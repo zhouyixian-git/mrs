@@ -73,8 +73,18 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">菜单级别：</label>
                             <div class="radio i-checks">
-                                <label><input type="radio" checked="" value="1" name="menu_level"> <i></i> 一级菜单</label>
-                                <label><input type="radio" value="2" name="menu_level"> <i></i> 二级菜单</label>
+                                <label onclick="checkParentMenu(1)"><input type="radio" checked value="1" name="menu_level"> <i></i> 一级菜单</label>
+                                <label onclick="checkParentMenu(2)"><input type="radio" value="2" name="menu_level"> <i></i> 二级菜单</label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="display: none;" id="parent_menu_div">
+                            <label class="col-sm-3 control-label">一级菜单：</label>
+                            <div class="col-sm-8">
+                                <select class="form-control m-b" name="parent_id" name="parent_id">
+                                    {volist name="parentMenuList" id="menuInfo"}
+                                        <option value="{$menuInfo.menu_id}">{$menuInfo.menu_name}</option>
+                                    {/volist}
+                                </select>
                             </div>
                         </div>
                         <div class="form-group">
@@ -86,7 +96,7 @@
 
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-8">
-                                <button class="btn btn-sm btn-primary" id="save">保存</button>
+                                <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
                             </div>
                         </div>
                     </form>
@@ -234,16 +244,24 @@
                         if (result.errcode == 1) {
                             alert('添加成功');
                         }else{
-                            alert('添加失败');
+                            alert(result.msg);
                         }
+                        return false;
                     },
                     error : function(e) {
-                        console.log(e);
                         alert("异常！");
                     }
                 });
             });
         });
+
+        function checkParentMenu(level){
+            if(level == 1){
+                $("#parent_menu_div").hide();
+            }else{
+                $("#parent_menu_div").show();
+            }
+        }
 
     </script>
 </body>
