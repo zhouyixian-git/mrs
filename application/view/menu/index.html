@@ -42,10 +42,14 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     <h5>菜单配置</h5>
+                    <div class="ibox-tools">
+                        <button type="button"class="btn btn-sm btn-success" onclick="toAdd()" style="margin-top: -6px;">新增</button>
+                    </div>
                 </div>
                 <div class="ibox-content">
                     <form class="form-horizontal" id="postForm">
-                        <input type="hidden" id="parent_id" name="parent_id" value="0"/>
+                        <input type="hidden" id="oper" value="add"/>
+                        <input type="hidden" id="menu_id" name="menu_id" value="add"/>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">菜单编码：</label>
                             <div class="col-sm-8">
@@ -73,14 +77,15 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">菜单级别：</label>
                             <div class="radio i-checks">
-                                <label onclick="checkParentMenu(1)"><input type="radio" checked value="1" name="menu_level"> <i></i> 一级菜单</label>
-                                <label onclick="checkParentMenu(2)"><input type="radio" value="2" name="menu_level"> <i></i> 二级菜单</label>
+                                <label onclick="checkParentMenu(1)"><input type="radio" checked id="menu_level1"  value="1" name="menu_level"> <i></i> 一级菜单</label>
+                                <label onclick="checkParentMenu(2)"><input type="radio" id="menu_level2" value="2" name="menu_level"> <i></i> 二级菜单</label>
                             </div>
                         </div>
                         <div class="form-group" style="display: none;" id="parent_menu_div">
                             <label class="col-sm-3 control-label">一级菜单：</label>
                             <div class="col-sm-8">
-                                <select class="form-control m-b" name="parent_id" name="parent_id">
+                                <select class="form-control m-b" name="parent_id" id="parent_id">
+                                    <option value="0">选择一级菜单</option>
                                     {volist name="parentMenuList" id="menuInfo"}
                                         <option value="{$menuInfo.menu_id}">{$menuInfo.menu_name}</option>
                                     {/volist}
@@ -97,6 +102,7 @@
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-8">
                                 <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                                <button type="button"class="btn btn-sm btn-danger" style="display:none;" id="delete">删除</button>
                             </div>
                         </div>
                     </form>
@@ -108,10 +114,12 @@
     <!-- 全局js -->
     <script src="__JS__/jquery.min.js?v=2.1.4"></script>
     <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+    <script src="__JS__/form_util.js"></script>
 
     <!-- Bootstrap-Treeview plugin javascript -->
     <script src="__JS__/plugins/treeview/bootstrap-treeview.js"></script>
     <script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+    <script src="__JS__/plugins/layer/layer.min.js"></script>
     <script>
         $(function(){
             $('.i-checks').iCheck({
@@ -122,29 +130,85 @@
             var defaultData = '{$menuList|raw}'; //这里必须使用单引号，后端传过来的菜单信息是json字符串包含双引号
 
             $('#menuview').treeview({
-                data: JSON.parse(defaultData)
+                data: JSON.parse(defaultData),
+                onNodeSelected: function(event,data){
+                    var menu_id = data.menu_id;
+                    $("#oper").val("edit");
+                    $("#delete").show();
+                    $.ajax({
+                        type: "post",
+                        dataType: "json",
+                        url: "/menu/getMenuById" ,
+                        data: {'menu_id': menu_id},
+                        success: function (result) {
+                            if (result.errcode == 1) {
+                                var menuInfo =  result.data;
+                                Form.mapToForm("postForm", menuInfo);
+                                checkParentMenu(menuInfo.menu_level);
+                                $("[id^=menu_level]").parent().removeClass("checked");
+                                $("#menu_level"+menuInfo.menu_level).parent().addClass("checked");
+                                $("#parent_id").val(menuInfo.parent_id);
+                            }else{
+                                layer.msg(result.msg, {icon: 2});
+                            }
+                            return false;
+                        }
+                    });
+                }
             });
 
             $("#save").click(function(){
+                var url = '';
+                if($("#oper").val() == "edit"){
+                    url = "/menu/edit";
+                }else{
+                    url = "/menu/add";
+                }
                 $.ajax({
                     type: "post",
                     dataType: "json",
-                    url: "/menu/add" ,
+                    url: url,
                     data: $('#postForm').serialize(),
                     success: function (result) {
-                        console.log(result);
                         if (result.errcode == 1) {
-                            alert('添加成功');
+                            layer.msg('编辑成功', {icon: 1,time: 1500});
+                            window.setTimeout(function(){
+                                window.location.reload();
+                            },1500);
                         }else{
-                            alert(result.msg);
+                            layer.msg(result.msg, {icon: 2});
                         }
                         return false;
-                    },
-                    error : function(e) {
-                        alert("异常！");
                     }
                 });
             });
+
+            $("#delete").click(function(){
+                layer.confirm('是否确定删除该菜单？', {
+                    btn: ['删除 ','我再想想'] //按钮
+                }, function(){
+                    var menu_id = $("#menu_id").val();
+                    $.ajax({
+                        type: "post",
+                        dataType: "json",
+                        url: "/menu/delete" ,
+                        data: {'menu_id': menu_id},
+                        success: function (result) {
+                            if (result.errcode == 1) {
+                                layer.msg("删除成功", {icon: 1,time: 1500});
+                                window.setTimeout(function(){
+                                    window.location.reload();
+                                },1500);
+                            }else{
+                                layer.msg(result.msg, {icon: 2});
+                            }
+                            return false;
+                        }
+                    });
+                }, function(){
+                });
+            });
+
         });
 
         function checkParentMenu(level){
@@ -153,6 +217,14 @@
             }else{
                 $("#parent_menu_div").show();
             }
+        }
+
+        function toAdd(){
+            $("#oper").val("add");
+            $("#delete").hide();
+            $('#postForm')[0].reset();
+            $("[id^=menu_level]").parent().removeClass("checked");
+            $("#menu_level1").parent().addClass("checked");
         }
 
     </script>
