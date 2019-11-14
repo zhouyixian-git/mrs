@@ -9,8 +9,6 @@
 namespace app\controller;
 
 
-use think\Db;
-use think\Exception;
 use think\Request;
 
 class Menu extends Base

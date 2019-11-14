@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>H+ 后台主题UI框架 - jqGird</title>
+    <meta name="keywords" content="H+后台主题,后台bootstrap框架,会员中心主题,后台HTML,响应式后台">
+    <meta name="description" content="H+是一个完全响应式，基于Bootstrap3最新版本开发的扁平化主题，她采用了主流的左右两栏式布局，使用了Html5+CSS3等现代技术">
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+
+    <!-- jqgrid-->
+    <link href="__CSS__/plugins/jqgrid/ui.jqgrid.css?0820" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        /* Additional style to fix warning dialog position */
+
+        #alertmod_table_list_2 {
+            top: 900px !important;
+        }
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox ">
+                <div class="ibox-content">
+                    <div class="jqGrid_wrapper">
+                        <table id="table_list"></table>
+                        <div id="pager_list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+<!-- Peity -->
+<script src="__JS__/plugins/peity/jquery.peity.min.js"></script>
+
+<!-- jqGrid -->
+<script src="__JS__/plugins/jqgrid/i18n/grid.locale-cn.js?0820"></script>
+<script src="__JS__/plugins/jqgrid/jquery.jqGrid.min.js?0820"></script>
+
+
+<!-- Page-Level Scripts -->
+<script>
+    $(document).ready(function () {
+        $.jgrid.defaults.styleUI = 'Bootstrap';
+        var roleData = '{$roleList|raw}';
+
+        // Configuration for jqGrid Example 1
+        $("#table_list").jqGrid({
+            data: JSON.parse(roleData),
+            datatype: "local",
+            height: 350,
+            autowidth: true,
+            shrinkToFit: true,
+            rowNum: 14,
+            rowList: [10, 20, 30],
+            colNames: ['角色id', '角色编码', '角色名称', '角色描述'],
+            colModel: [
+                {name: 'role_id', index: 'role_id', editable: true, width: 80, sorttype: "int", align: "center"},
+                {name: 'role_code', index: 'role_code', editable: true, width: 80, align: "center"},
+                {name: 'role_name', index: 'role_name', editable: true, width: 80, align: "center"},
+                {name: 'role_remark', index: 'role_remark', editable: true, width: 120, align: "left"}
+            ],
+            pager: "#pager_list",
+            viewrecords: true,
+            hidegrid: false,
+        });
+
+        $(window).bind('resize', function () {
+            var width = $('.jqGrid_wrapper').width();
+            $('#table_list').setGridWidth(width);
+        });
+    });
+</script>
+
+</body>
+
+</html>
