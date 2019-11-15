@@ -7,26 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
-    <title>H+ 后台主题UI框架 - jqGird</title>
-    <meta name="keywords" content="H+后台主题,后台bootstrap框架,会员中心主题,后台HTML,响应式后台">
-    <meta name="description" content="H+是一个完全响应式，基于Bootstrap3最新版本开发的扁平化主题，她采用了主流的左右两栏式布局，使用了Html5+CSS3等现代技术">
+    <title>角色管理</title>
 
     <link rel="shortcut icon" href="favicon.ico">
     <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
     <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
 
-    <!-- jqgrid-->
-    <link href="__CSS__/plugins/jqgrid/ui.jqgrid.css?0820" rel="stylesheet">
-
     <link href="__CSS__/animate.css" rel="stylesheet">
     <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
 
     <style>
-        /* Additional style to fix warning dialog position */
-
-        #alertmod_table_list_2 {
-            top: 900px !important;
-        }
+        .col-sm-1{width: auto;}
     </style>
 
 </head>
@@ -35,12 +26,52 @@
 <div class="wrapper wrapper-content  animated fadeInRight">
     <div class="row">
         <div class="col-sm-12">
-            <div class="ibox ">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('role/index')}">
+                        <div class="form-group">
+                            <label class="control-label col-sm-1">角色编码</label>
+                            <div class="col-sm-2">
+                                <input type="text" id="role_code" name="role_code" value="{$role_code}" class="form-control">
+                            </div>
+                            <label class="control-label col-sm-1">角色名称 </label>
+                            <div class="col-sm-2">
+                                <input type="text" id="role_name" name="role_name" value="{$role_name}" class="form-control">
+                            </div>
+                            <div class="col-sm-1" style="text-align:center;">
+                                <button type="submit" class="btn btn-sm btn-primary">查询</button>
+                            </div>
+                            <div>
+                                <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'role/add\')}'">新增</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
                 <div class="ibox-content">
-                    <div class="jqGrid_wrapper">
-                        <table id="table_list"></table>
-                        <div id="pager_list"></div>
-                    </div>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>角色编码</th>
+                            <th>角色名称</th>
+                            <th>角色描述</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {volist name="roleList" id="roleInfo"}
+                            <tr>
+                                <td>
+                                    <button type="button" onclick="toEdit({$roleInfo.role_id})" class="btn btn-sm btn-primary">修改</button>
+                                    <button type="button" onclick="delRole({$roleInfo.role_id})" class="btn btn-sm btn-danger">删除</button>
+                                </td>
+                                <td>{$roleInfo.role_code}</td>
+                                <td>{$roleInfo.role_name}</td>
+                                <td class="line">{$roleInfo.role_remark}</td>
+                            </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                    {$roleList|raw}
                 </div>
             </div>
         </div>
@@ -51,46 +82,39 @@
 <script src="__JS__/jquery.min.js?v=2.1.4"></script>
 <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
 
-<!-- Peity -->
-<script src="__JS__/plugins/peity/jquery.peity.min.js"></script>
-
-<!-- jqGrid -->
-<script src="__JS__/plugins/jqgrid/i18n/grid.locale-cn.js?0820"></script>
-<script src="__JS__/plugins/jqgrid/jquery.jqGrid.min.js?0820"></script>
-
+<script src="__JS__/plugins/layer/layer.min.js"></script>
 
 <!-- Page-Level Scripts -->
 <script>
-    $(document).ready(function () {
-        $.jgrid.defaults.styleUI = 'Bootstrap';
-        var roleData = '{$roleList|raw}';
+    function toEdit(role_id){
+        window.location.href = '/role/edit?role_id=' + role_id;
+    }
 
-        // Configuration for jqGrid Example 1
-        $("#table_list").jqGrid({
-            data: JSON.parse(roleData),
-            datatype: "local",
-            height: 350,
-            autowidth: true,
-            shrinkToFit: true,
-            rowNum: 14,
-            rowList: [10, 20, 30],
-            colNames: ['角色id', '角色编码', '角色名称', '角色描述'],
-            colModel: [
-                {name: 'role_id', index: 'role_id', editable: true, width: 80, sorttype: "int", align: "center"},
-                {name: 'role_code', index: 'role_code', editable: true, width: 80, align: "center"},
-                {name: 'role_name', index: 'role_name', editable: true, width: 80, align: "center"},
-                {name: 'role_remark', index: 'role_remark', editable: true, width: 120, align: "left"}
-            ],
-            pager: "#pager_list",
-            viewrecords: true,
-            hidegrid: false,
+    function delRole(role_id){
+        layer.confirm('是否确定删除该角色？', {
+            btn: ['删除 ','我再想想'] //按钮
+        }, function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "/role/delete" ,
+                data: {'role_id': role_id},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg("删除成功", {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            window.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        }, function(){
         });
+    }
 
-        $(window).bind('resize', function () {
-            var width = $('.jqGrid_wrapper').width();
-            $('#table_list').setGridWidth(width);
-        });
-    });
 </script>
 
 </body>
