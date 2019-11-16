@@ -29,18 +29,18 @@
                 <ul class="nav" id="side-menu">
                     <li class="nav-header">
                         <div class="dropdown profile-element">
-                            <span><img alt="image" class="img-circle" src="__STATIC__/img/profile_small.jpg" /></span>
+                            <span><img alt="image" class="img-circle" style="width:64px;" src='{if condition="$loginAdmin.admin_head neq null"}{$loginAdmin.admin_head}{else/}__IMAGE__/head.png{/if}' /></span>
                             <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                                     <span class="clear">
-                                    <span class="block m-t-xs"><strong class="font-bold">Beaut-zihan</strong></span>
-                                    <span class="text-muted text-xs block">超级管理员<b class="caret"></b></span>
+                                    <span class="block m-t-xs"><strong class="font-bold">{$loginAdmin.admin_name}</strong></span>
+                                    <span class="text-muted text-xs block">{$loginAdmin.role_name}<b class="caret"></b></span>
                                     </span>
                             </a>
                             <ul class="dropdown-menu animated fadeInRight m-t-xs">
-                                <li><a class="J_menuItem" href="form_avatar.html">修改头像</a></li>
-                                <li><a class="J_menuItem" href="profile.html">个人资料</a></li>
+                                <li><a class="J_menuItem" href="{:url('admin/updateinfo')}">个人资料</a></li>
+                                <li><a class="J_menuItem" href="{:url('admin/updateuserpwd')}">修改密码</a></li>
                                 <li class="divider"></li>
-                                <li><a href="{:url('admin/index/logout')}">安全退出</a></li>
+                                <li><a href="{:url('login/logout')}">安全退出</a></li>
                             </ul>
                         </div>
                         <div class="logo-element">H+</div>
@@ -64,9 +64,6 @@
                             </li>
                         </ul>
 
-                    </li>
-                    <li>
-                        <a class="J_menuItem" href="layouts.html"><i class="fa fa-columns"></i> <span class="nav-label">布局</span></a>
                     </li>
 
                 </ul>
@@ -113,10 +110,10 @@
                         <li class="J_tabCloseOther"><a>关闭其他选项卡</a></li>
                     </ul>
                 </div>
-                <a href="{:url('admin/index/logout')}" class="roll-nav roll-right J_tabExit"><i class="fa fa fa-sign-out"></i> 退出</a>
+                <a href="{:url('login/logout')}" class="roll-nav roll-right J_tabExit"><i class="fa fa fa-sign-out"></i> 退出</a>
             </div>
             <div class="row J_mainContent" id="content-main">
-                <iframe class="J_iframe" name="iframe0" width="100%" height="100%" src="index_v1.html?v=4.0" frameborder="0" data-id="index_v1.html" seamless></iframe>
+                <iframe class="J_iframe" name="iframe0" width="100%" height="100%" src="{:url('index/home')}" frameborder="0" data-id="index_v1.html" seamless></iframe>
 
             </div>
             <div class="footer">

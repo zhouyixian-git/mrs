@@ -238,4 +238,30 @@ class Admin extends Base
         $this->assign('admin_code', $admin_code);
         return $this->fetch();
     }
+
+    public function updateinfo(Request $request)
+    {
+        if ($request->isPost()) {
+            $admin_id = $request->post('admin_id');
+            $admin_name = $request->post('admin_name');
+            $admin_head = $request->post('admin_head');
+            $admin_mobile = $request->post('admin_mobile');
+            $admin_email = $request->post('admin_email');
+
+            $data = [
+                'admin_name' => $admin_name,
+                'admin_head' => $admin_head,
+                'admin_mobile' => $admin_mobile,
+                'admin_email' => $admin_email
+            ];
+
+            $admin = new \app\model\Admin();
+            $admin->save($data, ['admin_id' => $admin_id]);
+            echo $this->successJson();
+            return;
+        }
+
+        return $this->fetch();
+    }
+
 }

@@ -20,18 +20,6 @@ $(document).ready(function () {
         wheelStep: 10
     });
 
-    // 打开聊天窗口
-    $('.open-small-chat').click(function () {
-        $(this).children().toggleClass('fa-comments').toggleClass('fa-remove');
-        $('.small-chat-box').toggleClass('active');
-    });
-
-    // 聊天窗口使用slimscroll
-    $('.small-chat-box .content').slimScroll({
-        height: '234px',
-        railOpacity: 0.4
-    });
-
     // Small todo handler
     $('.check-link').click(function () {
         var button = $(this).find('i');

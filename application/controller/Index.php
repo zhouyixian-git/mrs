@@ -9,11 +9,14 @@
 namespace app\controller;
 
 
-use think\Controller;
-
-class Index extends Controller
+class Index extends Base
 {
     public function index()
+    {
+        return $this->fetch();
+    }
+
+    public function home()
     {
         return $this->fetch();
     }
