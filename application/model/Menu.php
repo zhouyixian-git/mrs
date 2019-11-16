@@ -13,4 +13,6 @@ use think\Model;
 
 class Menu extends Model
 {
+    //设置数据表名
+    protected $table = 'eas_menu';
 }

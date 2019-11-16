@@ -39,7 +39,7 @@
                                 <input type="text" id="role_name" name="role_name" value="{$role_name}" class="form-control">
                             </div>
                             <div class="col-sm-1" style="text-align:center;">
-                                <button type="submit" class="btn btn-sm btn-primary">查询</button>
+                                <button type="submit" class="btn btn-sm btn-white">查询</button>
                             </div>
                             <div>
                                 <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'role/add\')}'">新增</button>
@@ -51,7 +51,7 @@
                     <table class="table table-bordered table-hover">
                         <thead>
                         <tr>
-                            <th>操作</th>
+                            <th style="width: 200px;">操作</th>
                             <th>角色编码</th>
                             <th>角色名称</th>
                             <th>角色描述</th>
@@ -63,6 +63,7 @@
                                 <td>
                                     <button type="button" onclick="toEdit({$roleInfo.role_id})" class="btn btn-sm btn-primary">修改</button>
                                     <button type="button" onclick="delRole({$roleInfo.role_id})" class="btn btn-sm btn-danger">删除</button>
+                                    <button type="button" onclick="roleAuth({$roleInfo.role_id})" class="btn btn-sm btn-info">权限</button>
                                 </td>
                                 <td>{$roleInfo.role_code}</td>
                                 <td>{$roleInfo.role_name}</td>
@@ -113,6 +114,10 @@
             });
         }, function(){
         });
+    }
+
+    function roleAuth(role_id){
+        window.location.href = '/role/auth?role_id=' + role_id;
     }
 
 </script>

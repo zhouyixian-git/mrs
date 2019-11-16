@@ -13,5 +13,6 @@ use think\Model;
 
 class Admin extends Model
 {
-
+    //设置数据表名
+    protected $table = 'eas_admin';
 }

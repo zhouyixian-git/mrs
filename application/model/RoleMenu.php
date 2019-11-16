@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: Administrator
- * Date: 2019/11/14 0014
- * Time: 20:58
+ * Date: 2019/11/16 0016
+ * Time: 14:22
  */
 
 namespace app\model;
@@ -11,8 +11,10 @@ namespace app\model;
 
 use think\Model;
 
-class Role extends Model
+class RoleMenu extends Model
 {
+
     //设置数据表名
-    protected $table = 'eas_role';
+    protected $table = 'eas_role_menu';
+
 }

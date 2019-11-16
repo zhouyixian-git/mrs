@@ -14,6 +14,14 @@ use think\Request;
 class Menu extends Base
 {
 
+    /**
+     * 菜单列表
+     * @param Request $request
+     * @return mixed
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
     public function index(Request $request)
     {
         $parentMenuList = \app\model\Menu::where('parent_id', '0')->order('order_no', 'asc')->select();
@@ -35,6 +43,11 @@ class Menu extends Base
         return $this->fetch();
     }
 
+    /**
+     * 添加菜单
+     * @param Request $request
+     * @return mixed|void
+     */
     public function add(Request $request)
     {
         if ($request->isPost()) {
@@ -73,6 +86,10 @@ class Menu extends Base
         return $this->fetch();
     }
 
+    /**
+     * 编辑菜单
+     * @param Request $request
+     */
     public function edit(Request $request)
     {
         if ($request->isPost()) {
@@ -83,7 +100,7 @@ class Menu extends Base
             $order_no = $request->post('order_no');
             $menu_id = $request->post('menu_id');
 
-            if(empty($menu_id)){
+            if (empty($menu_id)) {
                 echo $this->errorJson(0, '关键数据错误');
                 exit;
             }
@@ -108,6 +125,13 @@ class Menu extends Base
         }
     }
 
+    /**
+     * 根据菜单id查询菜单
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
     public function getMenuById(Request $request)
     {
         if ($request->isPost()) {
@@ -123,15 +147,22 @@ class Menu extends Base
         }
     }
 
-    public function delete(Request $request){
-        if($request->isPost()){
+    /**
+     * 删除菜单
+     * @param Request $request
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public function delete(Request $request)
+    {
+        if ($request->isPost()) {
             $menu_id = $request->post('menu_id');
             if (empty($menu_id)) {
                 echo $this->errorJson(0, '关键参数错误！');
                 exit;
             }
 
-            \app\model\Menu::where('menu_id', '=',$menu_id)->whereOr('parent_id', '=', $menu_id)->delete();
+            \app\model\Menu::where('menu_id', '=', $menu_id)->whereOr('parent_id', '=', $menu_id)->delete();
             echo $this->successJson();
             return;
         }

@@ -20,7 +20,8 @@ class Base extends Controller
      * @param null $data
      * @return false|string|void
      */
-    public function successJson($data = null){
+    public function successJson($data = null)
+    {
         $result = [];
         $result['errcode'] = '1';
         $result['msg'] = 'success';
@@ -34,7 +35,8 @@ class Base extends Controller
      * @param string $message
      * @return false|string|void
      */
-    public function errorJson($errcode = 0, $message = 'error'){
+    public function errorJson($errcode = 0, $message = 'error')
+    {
         $result = [];
         $result['errcode'] = $errcode;
         $result['msg'] = $message;

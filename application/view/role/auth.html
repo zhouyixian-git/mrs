@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>角色授权</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        .child-menu-div{width: 14%;float: left;}
+        .all-check{margin-top: -15px !important;margin-bottom: 20px !important;}
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form class="form-horizontal" id="postForm">
+                        <input type="hidden" id="role_id" name="role_id" value="{$role_id}"/>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th style="width: 180px;">一级菜单</th>
+                                <th>二级菜单</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {volist name="parentMenuList" id="parentMenu"}
+                                <tr>
+                                    <td>
+                                        <div class="checkbox i-checks">
+                                            <input type="checkbox" {if condition='in_array($parentMenu.menu_id,$menuList)'}checked{/if} id="parent_menu_{$parentMenu.menu_id}" name="parent_menu[]" value="{$parentMenu.menu_id}"> <i></i> {$parentMenu.menu_name}</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {volist name="childMenuList" id="childMenu"}
+                                            {if condition="$childMenu.parent_id eq $parentMenu.menu_id"}
+                                                <div class="checkbox i-checks child-menu-div">
+                                                    <label><input type="checkbox" {if condition='in_array($childMenu.menu_id,$menuList)'}checked{/if} pid="{$parentMenu.menu_id}" class="child_menu_{$parentMenu.menu_id}[]" name="child_menu[]" value="{$childMenu.menu_id}"> <i></i> {$childMenu.menu_name}</label>
+                                                </div>
+                                            {/if}
+                                        {/volist}
+                                    </td>
+                                </tr>
+                            {/volist}
+                            </tbody>
+                        </table>
+                        <div class="checkbox i-checks all-check">
+                            <input type="checkbox" name="allcheck"> <i></i> 全选</label>
+                        </div>
+                        <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                        <button type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+
+<!-- Page-Level Scripts -->
+<script>
+    $(function(){
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green'
+        });
+
+        $("#save").click(function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "/role/auth",
+                data: $('#postForm').serialize(),
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg('保存成功', {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            history.back();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        });
+
+        $("input[name='allcheck']").on('ifClicked', function(event){
+            if(!$(this).is(':checked')){
+                $("input[name='parent_menu[]']").iCheck('check');
+                $("input[name='child_menu[]']").iCheck('check');
+            }else{
+                $("input[name='parent_menu[]']").iCheck('uncheck');
+                $("input[name='child_menu[]']").iCheck('uncheck');
+            }
+        });
+
+        $("input[name='parent_menu[]']").on('ifClicked', function(event){
+            if(!$(this).is(':checked')){
+                $("input[class='child_menu_"+$(this).val()+"[]']").iCheck('check');
+            }else{
+                $("input[class='child_menu_"+$(this).val()+"[]']").iCheck('uncheck');
+            }
+
+            var flag = true;
+            $("input[name='parent_menu[]']").each(function(){
+                if($(this).is(':checked')){
+                    flag = false;
+                }
+            });
+            if(flag){
+                $("input[name='allcheck']").iCheck('uncheck');
+            }
+        });
+
+        $("input[name='child_menu[]']").on('ifChanged', function(event){
+            if($(this).is(':checked')){
+                $("#parent_menu_"+$(this).attr("pid")).iCheck('check');
+            }
+
+            var flag = true;
+            $("input[class='child_menu_"+$(this).attr("pid")+"[]']").each(function(){
+                if($(this).is(':checked')){
+                    flag = false;
+                }
+            });
+            if(flag){
+                $("#parent_menu_"+$(this).attr("pid")).iCheck('uncheck');
+            }
+
+            var checkFlag = true;
+            var notcheckFlag = true;
+            $("input[name='child_menu[]']").each(function(){
+                if($(this).is(':checked')){
+                    checkFlag = false;
+                }
+                if(!$(this).is(':checked')){
+                    notcheckFlag = false;
+                }
+            });
+            if(checkFlag){
+                $("input[name='allcheck']").iCheck('uncheck');
+            }
+            if(notcheckFlag){
+                $("input[name='allcheck']").iCheck('check');
+            }else{
+                $("input[name='allcheck']").iCheck('uncheck');
+            }
+        });
+    });
+</script>
+
+</body>
+
+</html>
