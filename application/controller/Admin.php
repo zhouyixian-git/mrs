@@ -37,6 +37,7 @@ class Admin extends Base
             $where[] = ['t1.admin_status', '=', $admin_status];
         }
 
+        $where[] = ['t1.admin_code', '<>', 'admin'];
         $adminList = Db::table('eas_admin')
             ->alias('t1')
             ->leftJoin('eas_role t2', 't1.role_id = t2.role_id')
@@ -283,7 +284,7 @@ class Admin extends Base
             $admin_pwd = $request->post('admin_pwd');
             $confirm_admin_pwd = $request->post('confirm_admin_pwd');
 
-            if(empty($old_pwd)){
+            if (empty($old_pwd)) {
                 echo $this->errorJson(0, '原密码不能为空！');
                 return;
             }

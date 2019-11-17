@@ -54,11 +54,15 @@ class Login extends Base
                 return;
             }
 
-            $role_name = \app\model\Role::where('role_id',$loginAdmin['role_id'])->value('role_name');
+            if($loginAdmin['admin_code'] == 'admin'){
+                $role_name = '超级管理员';
+            }else{
+                $role_name = \app\model\Role::where('role_id', $loginAdmin['role_id'])->value('role_name');
+            }
 
             //查询菜单
-            $menuData = $this->getMenu($loginAdmin['role_id']);
-            if(empty($menuData)){
+            $menuData = $this->getMenu($loginAdmin['role_id'], $loginAdmin['admin_code']);
+            if (empty($menuData)) {
                 echo $this->errorJson(0, '您没有后台操作权限，请联系管理员！');
                 return;
             }
@@ -78,7 +82,8 @@ class Login extends Base
     /**
      * 退出登录
      */
-    public function logout(){
+    public function logout()
+    {
         parent::logout();
     }
 }

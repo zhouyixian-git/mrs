@@ -84,28 +84,45 @@ class Base extends Controller
     /**
      * 获取角色菜单
      * @param $role_id
+     * @param $admin_code
      * @return array
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function getMenu($role_id)
+    public function getMenu($role_id, $admin_code)
     {
-        $parentMenu = Db::table('eas_role_menu')
-            ->alias('t1')
-            ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.menu_level')
-            ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
-            ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 1]])
-            ->order('t2.order_no asc')
-            ->select();
+        if ($admin_code == 'admin') {
+            $parentMenu = Db::table('eas_menu')
+                ->field('menu_id,menu_name,menu_url,menu_icon,menu_level')
+                ->where([['menu_level', '=', 1]])
+                ->order('order_no asc')
+                ->select();
+        } else {
+            $parentMenu = Db::table('eas_role_menu')
+                ->alias('t1')
+                ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.menu_level')
+                ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
+                ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 1]])
+                ->order('t2.order_no asc')
+                ->select();
+        }
 
-        $childMenu = Db::table('eas_role_menu')
-            ->alias('t1')
-            ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.parent_id,t2.menu_level')
-            ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
-            ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 2]])
-            ->order('t2.order_no asc')
-            ->select();
+        if ($admin_code == 'admin') {
+            $childMenu = Db::table('eas_menu')
+                ->field('menu_id,menu_name,menu_url,menu_icon,parent_id,menu_level')
+                ->where([['menu_level', '=', 2]])
+                ->order('order_no asc')
+                ->select();
+        } else {
+            $childMenu = Db::table('eas_role_menu')
+                ->alias('t1')
+                ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.parent_id,t2.menu_level')
+                ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
+                ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 2]])
+                ->order('t2.order_no asc')
+                ->select();
+        }
 
         $menuData = [];
         foreach ($parentMenu as $k => $v) {
