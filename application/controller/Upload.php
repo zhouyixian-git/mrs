@@ -19,6 +19,9 @@ class Upload extends Base
     {
     }
 
+    /**
+     * 上传图片
+     */
     public function upload()
     {
         $file = $this->request->file('file');//file是传文件的名称，这是webloader插件固定写入的。因为webloader插件会写入一个隐藏input，这里与TP5的写法有点区别

@@ -9,6 +9,7 @@
 namespace app\controller;
 
 
+use app\model\RoleMenu;
 use think\Request;
 
 class Menu extends Base
@@ -159,6 +160,12 @@ class Menu extends Base
             $menu_id = $request->post('menu_id');
             if (empty($menu_id)) {
                 echo $this->errorJson(0, '关键参数错误！');
+                exit;
+            }
+
+            $roleMenuCount = RoleMenu::where('menu_id', $menu_id)->count();
+            if($roleMenuCount > 0){
+                echo $this->errorJson(0, '该菜单已经被使用，不可删除！');
                 exit;
             }
 

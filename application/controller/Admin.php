@@ -239,6 +239,11 @@ class Admin extends Base
         return $this->fetch();
     }
 
+    /**
+     * 修改资料
+     * @param Request $request
+     * @return mixed|void
+     */
     public function updateinfo(Request $request)
     {
         if ($request->isPost()) {
@@ -261,6 +266,63 @@ class Admin extends Base
             return;
         }
 
+        return $this->fetch();
+    }
+
+    /**
+     * 更新用户密码
+     * @param Request $request
+     * @return mixed|void
+     */
+    public function updateuserpwd(Request $request)
+    {
+        if ($request->isPost()) {
+            $admin_id = $request->post('admin_id');
+            $admin_code = $request->post('admin_code');
+            $old_pwd = $request->post('old_pwd');
+            $admin_pwd = $request->post('admin_pwd');
+            $confirm_admin_pwd = $request->post('confirm_admin_pwd');
+
+            if(empty($old_pwd)){
+                echo $this->errorJson(0, '原密码不能为空！');
+                return;
+            }
+
+            $data = [
+                'admin_id' => $admin_id,
+                'admin_pwd' => $admin_pwd,
+                'confirm_admin_pwd' => $confirm_admin_pwd,
+                'old_pwd' => $old_pwd,
+                'update_time' => time()
+            ];
+            $validate = new \app\validate\Admin();
+            if (!$validate->scene('updatepwd')->check($data)) {
+                echo $this->errorJson(0, $validate->getError());
+                return;
+            }
+
+            $adminUser = \app\model\Admin::where('admin_id', $admin_id)->find();
+            if (!$adminUser) {
+                echo $this->errorJson(0, '用户数据丢失！');
+                return;
+            }
+
+            if (md5($admin_code . $old_pwd . $admin_code) != $adminUser['admin_pwd']) {
+                echo $this->errorJson(0, '原密码错误，请重新输入！');
+                return;
+            }
+            $data['admin_pwd'] = md5($admin_code . $admin_pwd . $admin_code);
+
+            if (md5($admin_code . $old_pwd . $admin_code) == $data['admin_pwd']) {
+                echo $this->errorJson(0, '新密码与原密码不能相同！');
+                return;
+            }
+
+            $admin = new \app\model\Admin();
+            $admin->save($data, ['admin_id' => $admin_id]);
+            echo $this->successJson();
+            return;
+        }
         return $this->fetch();
     }
 

@@ -23,6 +23,14 @@ class Login extends Base
         }
     }
 
+    /**
+     * 登录
+     * @param Request $request
+     * @return mixed|void
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
     public function login(Request $request)
     {
 
@@ -48,6 +56,14 @@ class Login extends Base
 
             $role_name = \app\model\Role::where('role_id',$loginAdmin['role_id'])->value('role_name');
 
+            //查询菜单
+            $menuData = $this->getMenu($loginAdmin['role_id']);
+            if(empty($menuData)){
+                echo $this->errorJson(0, '您没有后台操作权限，请联系管理员！');
+                return;
+            }
+            $loginAdmin['menuData'] = $menuData;
+
             Cache::inc('SinglePoint_' . $loginAdmin['admin_id']);
             $loginAdmin['role_name'] = $role_name;
             $loginAdmin['single_point'] = Cache::get('SinglePoint_' . $loginAdmin['admin_id']);
@@ -59,6 +75,9 @@ class Login extends Base
         return $this->fetch();
     }
 
+    /**
+     * 退出登录
+     */
     public function logout(){
         parent::logout();
     }

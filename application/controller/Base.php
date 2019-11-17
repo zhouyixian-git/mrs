@@ -10,6 +10,7 @@ namespace app\controller;
 
 
 use think\Controller;
+use think\Db;
 use think\facade\Cache;
 use think\facade\Session;
 
@@ -33,10 +34,7 @@ class Base extends Controller
                 }
                 self::$_ADMINID = $admin['admin_id'];
 
-                //查询菜单
-
                 $this->assign('loginAdmin', $admin);
-
             } else {
                 return $this->redirect("/login/login");
             }
@@ -81,6 +79,58 @@ class Base extends Controller
         $result['errcode'] = $errcode;
         $result['msg'] = $message;
         return json_encode($result);
+    }
+
+    /**
+     * 获取角色菜单
+     * @param $role_id
+     * @return array
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getMenu($role_id)
+    {
+        $parentMenu = Db::table('eas_role_menu')
+            ->alias('t1')
+            ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.menu_level')
+            ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
+            ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 1]])
+            ->order('t2.order_no asc')
+            ->select();
+
+        $childMenu = Db::table('eas_role_menu')
+            ->alias('t1')
+            ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.parent_id,t2.menu_level')
+            ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
+            ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 2]])
+            ->order('t2.order_no asc')
+            ->select();
+
+        $menuData = [];
+        foreach ($parentMenu as $k => $v) {
+            $childMenuData = [];
+            foreach ($childMenu as $k1 => $v1) {
+                if ($v['menu_id'] == $v1['parent_id']) {
+                    $childMenuData[] = [
+                        'menu_name' => $v1['menu_name'],
+                        'menu_url' => $v1['menu_url'],
+                        'menu_id' => $v1['menu_id'],
+                        'menu_level' => $v1['menu_level'],
+                        'menu_icon' => $v1['menu_icon']
+                    ];
+                }
+            }
+            $menuData[] = [
+                'menu_name' => $v['menu_name'],
+                'menu_url' => $v['menu_url'],
+                'menu_id' => $v['menu_id'],
+                'menu_level' => $v['menu_level'],
+                'menu_icon' => $v['menu_icon'],
+                'child' => $childMenuData
+            ];
+        }
+        return $menuData;
     }
 
 }

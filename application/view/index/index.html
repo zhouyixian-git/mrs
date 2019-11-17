@@ -46,26 +46,28 @@
                         <div class="logo-element">H+</div>
                     </li>
 
-                    <li>
-                        <a href="#">
-                            <i class="fa fa-home"></i>
-                            <span class="nav-label">权限管理</span>
-                            <span class="fa arrow"></span>
-                        </a>
-                        <ul class="nav nav-second-level">
+                    {foreach $loginAdmin.menuData as $parentMenu}
+                        {if condition="empty($parentMenu.child)"}
                             <li>
-                                <a class="J_menuItem" href="{:url('menu/index')}" data-index="0">菜单管理</a>
+                                <a class="J_menuItem" href="{$parentMenu.menu_url}"><i class="{$parentMenu.menu_icon}"></i> <span class="nav-label">{$parentMenu.menu_name}</span></a>
                             </li>
+                        {else/}
                             <li>
-                                <a class="J_menuItem" href="{:url('role/index')}">角色管理</a>
+                                <a href="#">
+                                    <i class="{$parentMenu.menu_icon}"></i>
+                                    <span class="nav-label">{$parentMenu.menu_name}</span>
+                                    <span class="fa arrow"></span>
+                                </a>
+                                <ul class="nav nav-second-level">
+                                    {foreach $parentMenu.child as $childMenu}
+                                    <li>
+                                        <a class="J_menuItem" href="{$childMenu.menu_url}" data-index="0">{$childMenu.menu_name}</a>
+                                    </li>
+                                    {/foreach}
+                                </ul>
                             </li>
-                            <li>
-                                <a class="J_menuItem" href="{:url('admin/index')}">用户管理</a>
-                            </li>
-                        </ul>
-
-                    </li>
-
+                        {/if}
+                    {/foreach}
                 </ul>
             </div>
         </nav>
