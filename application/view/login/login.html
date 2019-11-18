@@ -19,6 +19,9 @@
     <meta http-equiv="refresh" content="0;ie.html" />
     <![endif]-->
     <script>if(window.top !== window.self){ window.top.location = window.location;}</script>
+    <style>
+        #vcode{width: 50%;float: left;}
+    </style>
 </head>
 
 <body class="gray-bg">
@@ -39,6 +42,10 @@
                 <div class="form-group">
                     <input type="password" name="password" class="form-control" placeholder="密码">
                 </div>
+                <div class="form-group">
+                    <input type="text" name="vcode" class="form-control" id="vcode" placeholder="验证码">
+                    <div style="margin-bottom: 20px;width: 50%;float: left;"><img src="{:url('login/verify')}" id="verify" style="height: 34px;" /></div>
+                </div>
                 <button type="button" class="btn btn-primary block full-width m-b" id="login">登 录</button>
             </form>
         </div>
@@ -49,6 +56,11 @@
     <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
     <script src="__JS__/plugins/layer/layer.min.js"></script>
     <script>
+        $(document).keyup(function(event){
+            if(event.keyCode ==13){
+                $("#login").click();
+            }
+        });
         $(function(){
            $("#login").click(function(){
                $.ajax({
@@ -60,12 +72,19 @@
                        if (result.errcode == 1) {
                            window.location.href = '/index';
                        }else{
+                           $("#verify").click();
                            layer.msg(result.msg, {icon: 2});
                        }
                        return false;
                    }
                });
            });
+        });
+
+        //刷新验证码
+        $("#verify").click(function() {
+            var verifyimg = $("#verify").attr("src");
+            $("#verify").attr("src", verifyimg.replace(/\?.*$/, '') + '?' + Math.random());
         });
     </script>
 </body>

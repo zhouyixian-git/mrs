@@ -8,7 +8,7 @@
 
 namespace app\controller;
 
-
+use think\captcha\Captcha;
 use think\facade\Cache;
 use think\facade\Session;
 use think\Request;
@@ -42,6 +42,13 @@ class Login extends Base
         if ($request->isPost()) {
             $admin_code = $request->post('user_name');
             $admin_pwd = $request->post('password');
+            $vcode = $request->post('vcode');
+
+            //验证码
+            if (!captcha_check($vcode)) {
+                echo $this->errorJson(0, '验证码输入错误！');
+                return;
+            }
 
             $loginAdmin = \app\model\Admin::where([['admin_code', '=', $admin_code], ['admin_status', '=', 1]])->find();
             if (!$loginAdmin) {
@@ -54,9 +61,9 @@ class Login extends Base
                 return;
             }
 
-            if($loginAdmin['admin_code'] == 'admin'){
+            if ($loginAdmin['admin_code'] == 'admin') {
                 $role_name = '超级管理员';
-            }else{
+            } else {
                 $role_name = \app\model\Role::where('role_id', $loginAdmin['role_id'])->value('role_name');
             }
 
@@ -85,5 +92,16 @@ class Login extends Base
     public function logout()
     {
         parent::logout();
+    }
+
+    /**
+     * 验证码
+     * @return \think\Response
+     */
+    public function verify()
+    {
+        $captcha = new Captcha();
+        $captcha->codeSet = '0123456789';
+        return $captcha->entry();
     }
 }

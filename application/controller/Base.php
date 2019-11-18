@@ -22,7 +22,7 @@ class Base extends Controller
     {
         parent::initialize();
         //过滤不需要登陆的行为
-        $allowUrl = ['/login/login', '/login/logout'];
+        $allowUrl = ['/login/login', '/login/logout', '/login/verify'];
         $rule = strtolower($this->request->module() . '/' . $this->request->controller() . '/' . $this->request->action());
         if (in_array($rule, $allowUrl)) {
         } else {
