@@ -122,6 +122,9 @@ class Role extends Base
         }
 
         $role_id = $request->get('role_id');
+        if(empty($role_id)){
+            $this->error('关键数据错误');
+        }
         $role = \app\model\Role::where('role_id', $role_id)->find();
 
         $this->assign('role', $role);
@@ -213,6 +216,9 @@ class Role extends Base
         }
 
         $role_id = $request->get('role_id');
+        if(empty($role_id)){
+            $this->error('关键数据错误');
+        }
         $parentMenuList = \app\model\Menu::where('parent_id', '0')->order('order_no', 'asc')->select();
         $childMenuList = \app\model\Menu::where('parent_id', '>', '0')->order('order_no', 'asc')->select();
         $menuList = RoleMenu::where('role_id', $role_id)->field('menu_id')->select()->toArray();

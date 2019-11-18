@@ -163,6 +163,9 @@ class Admin extends Base
         }
 
         $admin_id = $request->get('admin_id');
+        if(empty($admin_id)){
+            $this->error('关键数据错误');
+        }
         $admin = \app\model\Admin::where('admin_id', $admin_id)->find();
 
         $roleList = \app\model\Role::order('role_id desc')->select();
