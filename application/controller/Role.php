@@ -150,14 +150,18 @@ class Role extends Base
                 exit;
             }
 
-            $affected = \app\model\Role::where('role_id', $role_id)->delete();
-            if ($affected > 0) {
-                echo $this->successJson();
-                exit;
-            } else {
-                echo $this->errorJson(0, '删除失败');
-                exit;
+            Db::startTrans();
+            try {
+                Db::table('eas_role')->where(['role_id' => $role_id])->delete();
+                Db::table('eas_role_menu')->where(['role_id' => $role_id])->delete();
+                // 提交事务
+                Db::commit();
+            } catch (\Exception $e) {
+                // 回滚事务
+                Db::rollback();
             }
+            echo $this->successJson();
+            exit;
         }
     }
 
