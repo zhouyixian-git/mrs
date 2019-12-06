@@ -103,7 +103,7 @@ class Base extends Controller
                 ->alias('t1')
                 ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.menu_level')
                 ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
-                ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 1]])
+                ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 1], ['t2.menu_code', '<>', 'menu_mgr']])
                 ->order('t2.order_no asc')
                 ->select();
         }
