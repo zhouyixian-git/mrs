@@ -81,7 +81,7 @@
                 $.ajax({
                     type: "post",
                     dataType: "json",
-                    url: "/admin/updateuserpwd",
+                    url: "{:url('admin/updateuserpwd')}",
                     data: $('#postForm').serialize(),
                     success: function (result) {
                         if (result.errcode == 1) {

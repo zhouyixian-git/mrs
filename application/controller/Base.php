@@ -150,4 +150,31 @@ class Base extends Controller
         return $menuData;
     }
 
+    /**
+     * 获取按钮权限
+     * @param $role_id
+     * @param $admin_code
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getButton($role_id, $admin_code){
+        if ($admin_code == 'admin') {
+            $button = Db::table('eas_menu')
+                ->field('menu_code,menu_name')
+                ->where([['menu_level', '=', 3]])
+                ->order('order_no asc')
+                ->select();
+        } else {
+            $button = Db::table('eas_role_menu')
+                ->alias('t1')
+                ->field('t2.menu_code,t2.menu_name')
+                ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
+                ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 3]])
+                ->order('t2.order_no asc')
+                ->select();
+        }
+        return  $button;
+    }
+
 }

@@ -186,17 +186,23 @@ class Role extends Base
                 exit;
             }
 
-            $parentMenu = $request->post('parent_menu/a');
-            $childMenu = $request->post('child_menu/a');
+            $firstMenu = $request->post('firstMenu/a');
+            $secondMenu = $request->post('secondMenu/a');
+            $thirdMenu = $request->post('thirdMenu/a');
             $menuList = [];
-            if ($parentMenu) {
-                foreach ($parentMenu as $k => $v) {
-                    $menuList[] = ['role_id' => $role_id, 'menu_id' => $v];
+            if($firstMenu) {
+                foreach ($firstMenu as $k1 => $v1) {
+                    $menuList[] = ['role_id' => $role_id, 'menu_id' => $v1];
                 }
-                if ($childMenu) {
-                    foreach ($childMenu as $k1 => $v1) {
-                        $menuList[] = ['role_id' => $role_id, 'menu_id' => $v1];
-                    }
+            }
+            if($secondMenu) {
+                foreach ($secondMenu as $k2 => $v2) {
+                    $menuList[] = ['role_id' => $role_id, 'menu_id' => $v2];
+                }
+            }
+            if($thirdMenu) {
+                foreach ($thirdMenu as $k3 => $v3) {
+                    $menuList[] = ['role_id' => $role_id, 'menu_id' => $v3];
                 }
             }
 
@@ -219,15 +225,16 @@ class Role extends Base
         if (empty($role_id)) {
             $this->error('关键数据错误');
         }
-        $parentMenuList = \app\model\Menu::where('parent_id', '0')->order('order_no', 'asc')->select();
-        $childMenuList = \app\model\Menu::where([['parent_id', '>', '0'], ['menu_code', '<>', 'menu_mgr']])->order('order_no', 'asc')->select();
-        $menuList = RoleMenu::where('role_id', $role_id)->field('menu_id')->select()->toArray();
-        $menuList = array_column($menuList, 'menu_id');
+
+        $menu = new \app\model\Menu();
+        $menuList = $menu->getMenuList(0);
+
+        $checkMenuList = RoleMenu::where('role_id', $role_id)->field('menu_id')->select()->toArray();
+        $checkMenuList = array_column($checkMenuList, 'menu_id');
 
         $this->assign('role_id', $role_id);
-        $this->assign('childMenuList', $childMenuList);
-        $this->assign('parentMenuList', $parentMenuList);
         $this->assign('menuList', $menuList);
+        $this->assign('checkMenuList', $checkMenuList);
         return $this->fetch();
     }
 

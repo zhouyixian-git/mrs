@@ -135,7 +135,7 @@
                 $.ajax({
                     type: "post",
                     dataType: "json",
-                    url: "/admin/updateinfo",
+                    url: "{:url('admin/updateinfo')}",
                     data: $('#postForm').serialize(),
                     success: function (result) {
                         if (result.errcode == 1) {

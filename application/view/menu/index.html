@@ -40,7 +40,9 @@
                 <div class="ibox-title">
                     <h5>菜单配置</h5>
                     <div class="ibox-tools">
+                        {if condition="in_array('menu_add',$loginAdmin.buttonData)"}
                         <button type="button"class="btn btn-sm btn-success" onclick="toAdd()" style="margin-top: -6px;">新增</button>
+                        {/if}
                     </div>
                 </div>
                 <div class="ibox-content">
@@ -76,13 +78,14 @@
                             <div class="radio i-checks">
                                 <label onclick="checkParentMenu(1)"><input type="radio" checked id="menu_level1"  value="1" name="menu_level"> <i></i> 一级菜单</label>
                                 <label onclick="checkParentMenu(2)"><input type="radio" id="menu_level2" value="2" name="menu_level"> <i></i> 二级菜单</label>
+                                <label onclick="checkParentMenu(3)"><input type="radio" id="menu_level3" value="3" name="menu_level"> <i></i> 按钮</label>
                             </div>
                         </div>
                         <div class="form-group" style="display: none;" id="parent_menu_div">
-                            <label class="col-sm-3 control-label">一级菜单：</label>
+                            <label class="col-sm-3 control-label">上级菜单：</label>
                             <div class="col-sm-8">
                                 <select class="form-control m-b" name="parent_id" id="parent_id">
-                                    <option value="0">选择一级菜单</option>
+                                    <option value="0">选择上级菜单</option>
                                     {volist name="parentMenuList" id="menuInfo"}
                                         <option value="{$menuInfo.menu_id}">{$menuInfo.menu_name}</option>
                                     {/volist}
@@ -98,8 +101,12 @@
 
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-8">
+                                {if condition="in_array('menu_save',$loginAdmin.buttonData)"}
                                 <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                                {/if}
+                                {if condition="in_array('menu_delete',$loginAdmin.buttonData)"}
                                 <button type="button"class="btn btn-sm btn-danger" style="display:none;" id="delete">删除</button>
+                                {/if}
                             </div>
                         </div>
                     </form>
@@ -134,7 +141,7 @@
                     $.ajax({
                         type: "post",
                         dataType: "json",
-                        url: "/menu/getMenuById" ,
+                        url: "{:url('menu/getMenuById')}" ,
                         data: {'menu_id': menu_id},
                         success: function (result) {
                             if (result.errcode == 1) {
@@ -156,9 +163,9 @@
             $("#save").click(function(){
                 var url = '';
                 if($("#oper").val() == "edit"){
-                    url = "/menu/edit";
+                    url = "{:url('menu/edit')}";
                 }else{
-                    url = "/menu/add";
+                    url = "{:url('menu/add')}";
                 }
                 $.ajax({
                     type: "post",
@@ -187,7 +194,7 @@
                     $.ajax({
                         type: "post",
                         dataType: "json",
-                        url: "/menu/delete" ,
+                        url: "{:url('menu/delete')}" ,
                         data: {'menu_id': menu_id},
                         success: function (result) {
                             if (result.errcode == 1) {

@@ -50,7 +50,9 @@
                                 <button type="submit" class="btn btn-sm btn-white">查询</button>
                             </div>
                             <div>
+                                {if condition="in_array('admin_add',$loginAdmin.buttonData)"}
                                 <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'admin/add\')}'">新增</button>
+                                {/if}
                             </div>
                         </div>
                     </form>
@@ -73,9 +75,15 @@
                         {volist name="adminList" id="adminInfo"}
                             <tr>
                                 <td>
+                                    {if condition="in_array('admin_edit',$loginAdmin.buttonData)"}
                                     <button type="button" onclick="toEdit({$adminInfo.admin_id})" class="btn btn-sm btn-primary">修改</button>
+                                    {/if}
+                                    {if condition="in_array('admin_add',$loginAdmin.buttonData)"}
                                     <button type="button" onclick="delAdmin({$adminInfo.admin_id})" class="btn btn-sm btn-danger">删除</button>
-                                    <button type="button" onclick="updatePwd('{$adminInfo.admin_id}','{$adminInfo.admin_code}')" class="btn btn-sm btn-info">修改密码</button>
+                                    {/if}
+                                    {if condition="in_array('admin_updatepwd',$loginAdmin.buttonData)"}
+                                        <button type="button" onclick="updatePwd('{$adminInfo.admin_id}','{$adminInfo.admin_code}')" class="btn btn-sm btn-info">修改密码</button>
+                                    {/if}
                                 </td>
                                 <td>{$adminInfo.admin_code}</td>
                                 <td>{$adminInfo.admin_name}</td>
@@ -110,11 +118,11 @@
 <!-- Page-Level Scripts -->
 <script>
     function toEdit(admin_id){
-        window.location.href = '/admin/edit?admin_id=' + admin_id;
+        window.location.href = "{:url('admin/edit')}?admin_id=" + admin_id;
     }
 
     function updatePwd(admin_id,admin_code){
-        window.location.href = '/admin/updatepwd?admin_id=' + admin_id + "&admin_code=" + admin_code;
+        window.location.href = "{:url('admin/updatepwd')}?admin_id=" + admin_id + "&admin_code=" + admin_code;
     }
 
     function delAdmin(admin_id){
@@ -124,7 +132,7 @@
             $.ajax({
                 type: "post",
                 dataType: "json",
-                url: "/admin/delete" ,
+                url: "{:url('admin/delete')}" ,
                 data: {'admin_id': admin_id},
                 success: function (result) {
                     if (result.errcode == 1) {

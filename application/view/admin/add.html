@@ -114,13 +114,13 @@
                 $.ajax({
                     type: "post",
                     dataType: "json",
-                    url: "/admin/add",
+                    url: "{:url('admin/add')}",
                     data: $('#postForm').serialize(),
                     success: function (result) {
                         if (result.errcode == 1) {
                             layer.msg('添加成功', {icon: 1,time: 1500});
                             window.setTimeout(function(){
-                                window.location.href = '/admin/index';
+                                window.location.href = "{:url('admin/index')}";
                             },1500);
                         }else{
                             layer.msg(result.msg, {icon: 2});

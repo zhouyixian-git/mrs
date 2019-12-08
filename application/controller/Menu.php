@@ -25,19 +25,10 @@ class Menu extends Base
      */
     public function index(Request $request)
     {
-        $parentMenuList = \app\model\Menu::where('parent_id', '0')->order('order_no', 'asc')->select();
-        $childMenuList = \app\model\Menu::where('parent_id', '>', '0')->order('order_no', 'asc')->select();
+        $menu = new \app\model\Menu();
+        $menuData = $menu->getMenuTree(0);
 
-        $menuData = [];
-        foreach ($parentMenuList as $k => $v) {
-            $childMenuData = [];
-            foreach ($childMenuList as $k1 => $v1) {
-                if ($v['menu_id'] == $v1['parent_id']) {
-                    $childMenuData[] = ['menu_id' => $v1['menu_id'], 'text' => $v1['menu_name']];
-                }
-            }
-            $menuData[] = ['text' => $v['menu_name'], 'nodes' => $childMenuData, 'menu_id' => $v['menu_id']];
-        }
+        $parentMenuList = $menu->getParentMenu(0);
 
         $this->assign('menuList', json_encode($menuData));  //这里将菜单数据转成json字符串，因为前端js无法赋值
         $this->assign('parentMenuList', $parentMenuList);

@@ -36,28 +36,36 @@
                             <thead>
                             <tr>
                                 <th style="width: 180px;">一级菜单</th>
-                                <th>二级菜单</th>
+                                <th style="width: 180px;">二级菜单</th>
+                                <th>按钮</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {volist name="parentMenuList" id="parentMenu"}
-                                <tr>
-                                    <td>
-                                        <div class="checkbox i-checks">
-                                            <input type="checkbox" {if condition='in_array($parentMenu.menu_id,$menuList)'}checked{/if} id="parent_menu_{$parentMenu.menu_id}" name="parent_menu[]" value="{$parentMenu.menu_id}"> <i></i> {$parentMenu.menu_name}</label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {volist name="childMenuList" id="childMenu"}
-                                            {if condition="$childMenu.parent_id eq $parentMenu.menu_id"}
-                                                <div class="checkbox i-checks child-menu-div">
-                                                    <label><input type="checkbox" {if condition='in_array($childMenu.menu_id,$menuList)'}checked{/if} pid="{$parentMenu.menu_id}" class="child_menu_{$parentMenu.menu_id}[]" name="child_menu[]" value="{$childMenu.menu_id}"> <i></i> {$childMenu.menu_name}</label>
-                                                </div>
+                                {foreach $menuList as $menu}
+                                    {foreach $menu.childMenu as $k => $secondMenu}
+                                        <tr>
+                                            {if condition="$k eq 0"}
+                                                <td rowspan="{:count($menu.childMenu)}">
+                                                    <div class="checkbox i-checks">
+                                                        <input type="checkbox" {if condition='in_array($menu.menu_id,$checkMenuList)'}checked{/if} name="firstMenu[]" id="firstMenu_{$menu.menu_id}" value="{$menu.menu_id}"> <i></i> {$menu.menu_name}</label>
+                                                    </div>
+                                                </td>
                                             {/if}
-                                        {/volist}
-                                    </td>
-                                </tr>
-                            {/volist}
+                                            <td>
+                                                <div class="checkbox i-checks">
+                                                    <label><input type="checkbox" {if condition='in_array($secondMenu.menu_id,$checkMenuList)'}checked{/if} name="secondMenu[]" fid="{$menu.menu_id}" id="secondMenu_{$menu.menu_id}_{$secondMenu.menu_id}" value="{$secondMenu.menu_id}"> <i></i> {$secondMenu.menu_name}</label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {foreach $secondMenu.childMenu as $thirdMenu}
+                                                    <div class="checkbox i-checks col-sm-2">
+                                                        <label><input type="checkbox" {if condition='in_array($thirdMenu.menu_id,$checkMenuList)'}checked{/if} name="thirdMenu[]" fid="{$menu.menu_id}" sid="{$secondMenu.menu_id}" id="thirdMenu_{$menu.menu_id}_{$secondMenu.menu_id}_{$thirdMenu.menu_id}" value="{$thirdMenu.menu_id}"> <i></i> {$thirdMenu.menu_name}</label>
+                                                    </div>
+                                                {/foreach}
+                                            </td>
+                                        </tr>
+                                    {/foreach}
+                                {/foreach}
                             </tbody>
                         </table>
                         <div class="checkbox i-checks all-check">
@@ -90,7 +98,7 @@
             $.ajax({
                 type: "post",
                 dataType: "json",
-                url: "/role/auth",
+                url: "{:url('role/auth')}",
                 data: $('#postForm').serialize(),
                 success: function (result) {
                     if (result.errcode == 1) {
@@ -108,66 +116,55 @@
 
         $("input[name='allcheck']").on('ifClicked', function(event){
             if(!$(this).is(':checked')){
-                $("input[name='parent_menu[]']").iCheck('check');
-                $("input[name='child_menu[]']").iCheck('check');
+                $("input[name='firstMenu[]']").iCheck('check');
+                $("input[name='secondMenu[]']").iCheck('check');
+                $("input[name='thirdMenu[]']").iCheck('check');
             }else{
-                $("input[name='parent_menu[]']").iCheck('uncheck');
-                $("input[name='child_menu[]']").iCheck('uncheck');
+                $("input[name='firstMenu[]']").iCheck('uncheck');
+                $("input[name='secondMenu[]']").iCheck('uncheck');
+                $("input[name='thirdMenu[]']").iCheck('uncheck');
             }
         });
 
-        $("input[name='parent_menu[]']").on('ifClicked', function(event){
+        $("input[name='firstMenu[]']").on('ifClicked', function(event) {
             if(!$(this).is(':checked')){
-                $("input[class='child_menu_"+$(this).val()+"[]']").iCheck('check');
+                $("input[id^='secondMenu_"+$(this).val()+"']").iCheck('check');
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('check');
             }else{
-                $("input[class='child_menu_"+$(this).val()+"[]']").iCheck('uncheck');
-            }
-
-            var flag = true;
-            $("input[name='parent_menu[]']").each(function(){
-                if($(this).is(':checked')){
-                    flag = false;
-                }
-            });
-            if(flag){
-                $("input[name='allcheck']").iCheck('uncheck');
+                $("input[id^='secondMenu_"+$(this).val()+"']").iCheck('uncheck');
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('uncheck');
             }
         });
 
-        $("input[name='child_menu[]']").on('ifChanged', function(event){
+        $("input[name='secondMenu[]']").on('ifClicked', function(event) {
+            if(!$(this).is(':checked')){
+                $("input[id^='thirdMenu_"+$(this).attr('fid')+"_"+$(this).val()+"_']").iCheck('check');
+            }else{
+                $("input[id^='thirdMenu_"+$(this).attr('fid')+"_"+$(this).val()+"_']").iCheck('uncheck');
+            }
+        });
+
+        $("input[name='thirdMenu[]']").on('ifChecked', function(event) {
             if($(this).is(':checked')){
-                $("#parent_menu_"+$(this).attr("pid")).iCheck('check');
-            }
-
-            var flag = true;
-            $("input[class='child_menu_"+$(this).attr("pid")+"[]']").each(function(){
-                if($(this).is(':checked')){
-                    flag = false;
-                }
-            });
-            if(flag){
-                $("#parent_menu_"+$(this).attr("pid")).iCheck('uncheck');
-            }
-
-            var checkFlag = true;
-            var notcheckFlag = true;
-            $("input[name='child_menu[]']").each(function(){
-                if($(this).is(':checked')){
-                    checkFlag = false;
-                }
-                if(!$(this).is(':checked')){
-                    notcheckFlag = false;
-                }
-            });
-            if(checkFlag){
-                $("input[name='allcheck']").iCheck('uncheck');
-            }
-            if(notcheckFlag){
-                $("input[name='allcheck']").iCheck('check');
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('check');
             }else{
-                $("input[name='allcheck']").iCheck('uncheck');
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('uncheck');
             }
+
+            var flag = false;
+            $("input[name='thirdMenu[]']").each(function(){
+                if($(this).is(':checked')){
+                    flag = true;
+                }
+            });
+
+            if(flag){
+                $("#firstMenu_"+$(this).attr('fid')).iCheck("check");
+                $("#secondMenu_"+$(this).attr('fid')+"_"+$(this).attr('sid')).iCheck("check");
+            }
+
         });
+
     });
 </script>
 

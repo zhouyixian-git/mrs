@@ -66,11 +66,11 @@
                $.ajax({
                    type: "post",
                    dataType: "json",
-                   url: "/login/login",
+                   url: "{:url('login/login')}",
                    data: $('#postForm').serialize(),
                    success: function (result) {
                        if (result.errcode == 1) {
-                           window.location.href = '/index';
+                           window.location.href = "{:url('index')}";
                        }else{
                            $("#verify").click();
                            layer.msg(result.msg, {icon: 2});

@@ -74,6 +74,10 @@ class Login extends Base
                 return;
             }
             $loginAdmin['menuData'] = $menuData;
+            $buttonData = $this->getButton($loginAdmin['role_id'], $loginAdmin['admin_code']);
+
+            $buttonData = array_column($buttonData, 'menu_code');
+            $loginAdmin['buttonData'] = $buttonData;
 
             Cache::inc('SinglePoint_' . $loginAdmin['admin_id']);
             $loginAdmin['role_name'] = $role_name;

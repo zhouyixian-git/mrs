@@ -74,13 +74,13 @@
                 $.ajax({
                     type: "post",
                     dataType: "json",
-                    url: "/role/edit",
+                    url: "{:url('role/edit')}",
                     data: $('#postForm').serialize(),
                     success: function (result) {
                         if (result.errcode == 1) {
                             layer.msg('修改成功', {icon: 1,time: 1500});
                             window.setTimeout(function(){
-                                window.location.href = '/role/index';
+                                window.location.href = "{:url('role/index')}";
                             },1500);
                         }else{
                             layer.msg(result.msg, {icon: 2});
