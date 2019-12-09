@@ -46,7 +46,9 @@
                                 <button type="submit" class="btn btn-sm btn-white">查询</button>
                             </div>
                             <div>
+                                {if condition="in_array('banner_add',$loginAdmin.buttonData)"}
                                 <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'banner/add\')}'">新增</button>
+                                {/if}
                             </div>
                         </div>
                     </form>
@@ -68,8 +70,12 @@
                         {volist name="bannerList" id="bannerInfo"}
                             <tr>
                                 <td>
+                                    {if condition="in_array('banner_edit',$loginAdmin.buttonData)"}
                                     <button type="button" onclick="toEdit({$bannerInfo.banner_id})" class="btn btn-sm btn-primary">修改</button>
+                                    {/if}
+                                    {if condition="in_array('banner_delete',$loginAdmin.buttonData)"}
                                     <button type="button" onclick="delBanner({$bannerInfo.banner_id})" class="btn btn-sm btn-danger">删除</button>
+                                    {/if}
                                 </td>
                                 <td>{$bannerInfo.banner_title}</td>
                                 <td>

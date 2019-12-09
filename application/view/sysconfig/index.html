@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>系统参数配置</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__JS__/plugins/webuploader/webuploader.css" rel="stylesheet">
+    <style>
+        body {
+            overflow-y: hidden;
+        }
+
+        .ibox-content {
+            height: 480px;
+            overflow-y: auto
+        }
+
+        .thumbnail {
+            border: none;
+        }
+
+        #filePicker {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="gray-bg">
+<div class="row wrapper wrapper-content animated fadeInRight">
+    <div class="col-sm-6">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>系统参数配置</h5>
+                <!--{if condition="in_array('system_config_add',$loginAdmin.buttonData)"}
+                <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'sysconfig/add\')}'" style="float: right;margin-top: -5px;">新增</button>
+                {/if}-->
+            </div>
+            <div class="ibox-content">
+                <form class="form-horizontal" id="postForm">
+                    {foreach $configData as $config}
+                    {if condition="$config.input_type eq 1"}
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{$config.setting_name}：</label>
+                        <div class="radio i-checks">
+                            {foreach $config.set_value as $k => $v}
+                            <label><input type="radio" value="{$config.set_value[$k]}" {if condition='$config.set_value[$k] eq $config.setting_value'}checked{/if}  name="{$config.setting_code}"> <i></i> {$config.set_desc[$k]}</label>
+                            {/foreach}
+
+                            <!--<label><input type="radio" value="{$config.set_value.1}" {if condition='$config.set_value.1 eq $config.setting_value'}checked{/if} name="{$config.setting_code}"> <i></i> {$config.set_desc.1}</label>-->
+                        </div>
+                    </div>
+                    {else/}
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{$config.setting_desc}：</label>
+                        <div class="col-sm-8">
+                            <input type="text" name="{$config.setting_code}" value="{$config.setting_value}"
+                                   class="form-control">
+                        </div>
+                    </div>
+                    {/if}
+                    {/foreach}
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-8">
+                            <button type="button" class="btn btn-sm btn-primary" id="save">保存</button>
+                            <button type="button" class="btn btn-sm btn-default"
+                                    onclick="history.back(-1);return false;">返回
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<script src="__JS__/form_util.js"></script>
+<script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script src="__JS__/plugins/webuploader/webuploader.js"></script>
+<script>
+    $(function () {
+        $('.i-checks').iCheck({
+            radioClass: 'iradio_square-green',
+        });
+
+        // 初始化Web Uploader
+        var uploader = WebUploader.create({
+            // 选完文件后，是否自动上传。
+            auto: true,
+            // swf文件路径
+            swf: '__JS__/plugins/webuploader/Uploader.swf',
+            // 文件接收服务端。
+            server: "{:url('upload/upload')}",
+            // 选择文件的按钮。可选。
+            // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+            pick: '#filePicker',
+            formData: {"imageCate" : "site"},
+            // 只允许选择图片文件。
+            accept: {
+                title: 'Images',
+                extensions: 'gif,jpg,jpeg,bmp,png',
+                mimeTypes: 'image/*'
+            },
+            duplicate:true
+        });
+
+        // 文件上传成功，给item添加成功class, 用样式标记上传成功。
+        uploader.on('uploadSuccess', function (file, data) {
+            $("#fileList").find('img').attr('src', data.filePath);
+            $("#fileList").parent().prev().val(data.filePath);
+        });
+
+        $("#save").click(function () {
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('sysconfig/index')}",
+                data: $('#postForm').serialize(),
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg('修改成功', {icon: 1, time: 1500});
+                    } else {
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        });
+    });
+</script>
+</body>
+
+</html>
