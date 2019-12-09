@@ -104,7 +104,8 @@ class Login extends Base
      */
     public function verify()
     {
-        $captcha = new Captcha();
+        $config['useCurve'] = false;
+        $captcha = new Captcha($config);
         $captcha->codeSet = '0123456789';
         return $captcha->entry();
     }
