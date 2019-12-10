@@ -67,7 +67,7 @@
                             <label class="col-sm-3 control-label">是否激活：</label>
                             <div class="radio i-checks">
                                 <label><input type="radio" checked value="1" name="is_actived"> <i></i> 是</label>
-                                <label><input type="radio" value="2" name="is_actived"> <i></i> 否</label>
+                                <label><input type="radio" value="0" name="is_actived"> <i></i> 否</label>
                             </div>
                         </div>
 
@@ -127,13 +127,13 @@
                 $.ajax({
                     type: "post",
                     dataType: "json",
-                    url: "/banner/add",
+                    url: "{:url('banner/add')}",
                     data: $('#postForm').serialize(),
                     success: function (result) {
                         if (result.errcode == 1) {
                             layer.msg('添加成功', {icon: 1,time: 1500});
                             window.setTimeout(function(){
-                                window.location.href = '/banner/index';
+                                window.location.href = "{:url('banner/index')}";
                             },1500);
                         }else{
                             layer.msg(result.msg, {icon: 2});

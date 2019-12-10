@@ -59,7 +59,9 @@
 
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-8">
+                                {if condition="in_array('wechat_save',$loginAdmin.buttonData)"}
                                 <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                                {/if}
                                 <button type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
                             </div>
                         </div>

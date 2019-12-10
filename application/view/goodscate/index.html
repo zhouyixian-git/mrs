@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
-    <title>banner配置</title>
+    <title>商品分类</title>
 
     <link rel="shortcut icon" href="favicon.ico">
     <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
@@ -28,7 +28,7 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('banner/index')}">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('goodscate/index')}">
                         <div class="form-group">
                             <label class="control-label col-sm-1">是否激活</label>
                             <div class="col-sm-2">
@@ -38,16 +38,16 @@
                                     <option value="2" {if condition="$is_actived eq 2"}selected{/if}>未激活</option>
                                 </select>
                             </div>
-                            <label class="control-label col-sm-1">banner标题</label>
+                            <label class="control-label col-sm-1">分类名称</label>
                             <div class="col-sm-2">
-                                <input type="text" id="banner_title" name="banner_title" value="{$banner_title}" class="form-control">
+                                <input type="text" id="cate_name" name="cate_name" value="{$cate_name}" class="form-control">
                             </div>
                             <div class="col-sm-1" style="text-align:center;">
                                 <button type="submit" class="btn btn-sm btn-white">查询</button>
                             </div>
                             <div>
-                                {if condition="in_array('banner_add',$loginAdmin.buttonData)"}
-                                <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'banner/add\')}'">新增</button>
+                                {if condition="in_array('goods_cate_add',$loginAdmin.buttonData)"}
+                                <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'goodscate/add\')}'">新增</button>
                                 {/if}
                             </div>
                         </div>
@@ -58,46 +58,40 @@
                         <thead>
                         <tr>
                             <th style="width: 150px;">操作</th>
-                            <th>banner标题</th>
-                            <th>banner图片</th>
-                            <th>banner链接</th>
+                            <th>分类名称</th>
+                            <th>分类描述</th>
                             <th>排序</th>
                             <th>激活状态</th>
                             <th>创建时间</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {volist name="bannerList" id="bannerInfo"}
+                        {volist name="goodsCateList" id="goodsCateInfo"}
                             <tr>
                                 <td>
-                                    {if condition="in_array('banner_edit',$loginAdmin.buttonData)"}
-                                    <button type="button" onclick="toEdit({$bannerInfo.banner_id})" class="btn btn-sm btn-primary">修改</button>
+                                    {if condition="in_array('goods_cate_edit',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="toEdit({$goodsCateInfo.cate_id})" class="btn btn-sm btn-primary">修改</button>
                                     {/if}
-                                    {if condition="in_array('banner_delete',$loginAdmin.buttonData)"}
-                                    <button type="button" onclick="delBanner({$bannerInfo.banner_id})" class="btn btn-sm btn-danger">删除</button>
+                                    {if condition="in_array('goods_cate_delete',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="delGoodsCate({$goodsCateInfo.cate_id})" class="btn btn-sm btn-danger">删除</button>
                                     {/if}
                                 </td>
-                                <td>{$bannerInfo.banner_title}</td>
+                                <td>{$goodsCateInfo.cate_name}</td>
+                                <td>{$goodsCateInfo.cate_desc}</td>
+                                <td>{$goodsCateInfo.order_no}</td>
                                 <td>
-                                    <a href="{$bannerInfo.image_url}" target="_blank"><img src="{$bannerInfo.image_url}" style="width: 200px;height: 50px;"></a>
-                                </td>
-                                <td>
-                                    <a href="{$bannerInfo.link_url}" target="_blank"><button class="btn btn-sm btn-white" type="button"><i class="fa fa-search"></i>&nbsp;链接</button></a>
-                                </td>
-                                <td>{$bannerInfo.order_no}</td>
-                                <td>
-                                    {if condition="$bannerInfo.is_actived eq 1"}
+                                    {if condition="$goodsCateInfo.is_actived eq 1"}
                                     <span style="color: green;">已激活</span>
                                     {else/}
                                     <span style="color: red;">未激活</span>
                                     {/if}
                                 </td>
-                                <td>{$bannerInfo.create_time|date="Y-m-d H:i:s"}</td>
+                                <td>{$goodsCateInfo.create_time|date="Y-m-d H:i:s"}</td>
                             </tr>
                         {/volist}
                         </tbody>
                     </table>
-                    {$bannerList|raw}
+                    {$goodsCateList|raw}
                 </div>
             </div>
         </div>
@@ -112,19 +106,19 @@
 
 <!-- Page-Level Scripts -->
 <script>
-    function toEdit(banner_id){
-        window.location.href = "{:url('banner/edit')}?banner_id=" + banner_id;
+    function toEdit(cate_id){
+        window.location.href = "{:url('goodscate/edit')}?cate_id=" + cate_id;
     }
 
-    function delBanner(banner_id){
-        layer.confirm('是否确定删除该Banner？', {
+    function delGoodsCate(cate_id){
+        layer.confirm('是否确定删除该商品分类？', {
             btn: ['删除 ','我再想想'] //按钮
         }, function(){
             $.ajax({
                 type: "post",
                 dataType: "json",
-                url: "{:url('banner/delete')}" ,
-                data: {'banner_id': banner_id},
+                url: "{:url('goodscate/delete')}" ,
+                data: {'cate_id': cate_id},
                 success: function (result) {
                     if (result.errcode == 1) {
                         layer.msg("删除成功", {icon: 1,time: 1500});
