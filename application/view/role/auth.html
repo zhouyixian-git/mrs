@@ -57,11 +57,13 @@
                                                 </div>
                                             </td>
                                             <td>
+                                                {if condition="!empty($secondMenu.childMenu)"}
                                                 {foreach $secondMenu.childMenu as $thirdMenu}
                                                     <div class="checkbox i-checks col-sm-2">
                                                         <label><input type="checkbox" {if condition='in_array($thirdMenu.menu_id,$checkMenuList)'}checked{/if} name="thirdMenu[]" fid="{$menu.menu_id}" sid="{$secondMenu.menu_id}" id="thirdMenu_{$menu.menu_id}_{$secondMenu.menu_id}_{$thirdMenu.menu_id}" value="{$thirdMenu.menu_id}"> <i></i> {$thirdMenu.menu_name}</label>
                                                     </div>
                                                 {/foreach}
+                                                {/if}
                                             </td>
                                         </tr>
                                     {/foreach}

@@ -26,7 +26,7 @@ class Menu extends Model
      */
     public function getMenuTree($parent_id = 0)
     {
-        $menus = $this->field('menu_name as text,menu_id,parent_id')->where('parent_id', $parent_id)->select()->toArray();
+        $menus = $this->field('menu_name as text,menu_id,parent_id')->where('parent_id', $parent_id)->order('order_no asc')->select()->toArray();
         foreach ($menus as $k => $v) {
             $childMenus = $this->getMenuTree($v['menu_id']);
             if ($childMenus) {
