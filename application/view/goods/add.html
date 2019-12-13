@@ -16,6 +16,7 @@
     <link href="__CSS__/animate.css" rel="stylesheet">
     <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
     <link href="__JS__/plugins/webuploader/webuploader.css" rel="stylesheet">
+    <link href="__CSS__/goods/goods_webuploader.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="__CSS__/plugins/simditor/simditor.css" />
     <style>
         body{overflow-y: hidden;}
@@ -91,6 +92,27 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label class="col-sm-3 control-label">商品图片：</label>
+                            <div id="uploader" class="wu-example col-sm-8">
+                                <div class="queueList">
+                                    <div id="dndArea" class="placeholder">
+                                        <div id="filePicker"></div>
+                                        <p>或将照片拖到这里，单次最多可选5张，首张图为列表展示图</p>
+                                    </div>
+                                </div>
+                                <div class="statusBar" style="display:none;">
+                                    <div class="progress">
+                                        <span class="text">0%</span>
+                                        <span class="percentage"></span>
+                                    </div>
+                                    <div class="info"></div>
+                                    <div class="btns">
+                                        <div id="filePicker2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <div class="ibox-title">
                                 <h5>商品详情</h5>
                             </div>
@@ -120,11 +142,13 @@
 
     <script src="__JS__/plugins/layer/layer.min.js"></script>
     <script src="__JS__/plugins/webuploader/webuploader.js"></script>
+    <script src="__JS__/goods/goods_webuploader.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/module.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/uploader.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/hotkeys.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/simditor.js"></script>
     <script>
+        var path = "{:url('/upload/upload')}";
         $(function(){
             var toolbar = [ 'title', 'bold', 'italic', 'underline', 'strikethrough',
                 'color', '|', 'ol', 'ul', 'blockquote', 'code', 'table', '|',
@@ -132,31 +156,6 @@
             var editor = new Simditor({
                 toolbar : toolbar,  //工具栏
                 textarea: $('#editor')
-            });
-
-            var uploader = WebUploader.create({
-                // 选完文件后，是否自动上传。
-                auto: true,
-                // swf文件路径
-                swf: '__JS__/plugins/webuploader/Uploader.swf',
-                // 文件接收服务端。
-                server: "{:url('upload/upload')}",
-                // 选择文件的按钮。可选。
-                // 内部根据当前运行是创建，可能是input元素，也可能是flash.
-                pick: '#filePicker',
-                formData: {"imageCate" : "banner"},
-                // 只允许选择图片文件。
-                accept: {
-                    title: 'Images',
-                    extensions: 'gif,jpg,jpeg,bmp,png',
-                    mimeTypes: 'image/*'
-                },
-                duplicate:true
-            });
-
-            // 文件上传成功，给item添加成功class, 用样式标记上传成功。
-            uploader.on( 'uploadSuccess', function( file,data ) {
-                $("#fileList").find('img').attr('src', data.filePath);
             });
 
             $('.i-checks').iCheck({

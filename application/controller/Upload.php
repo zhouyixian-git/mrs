@@ -24,10 +24,14 @@ class Upload extends Base
      */
     public function upload()
     {
+        $imageCate = $this->request->param('imageCate');
         $file = $this->request->file('file');//file是传文件的名称，这是webloader插件固定写入的。因为webloader插件会写入一个隐藏input，这里与TP5的写法有点区别
-        $file->size = 524288000;
         $date = date('Ymd');
-        $folder = 'images/avator/' . $date;
+        if (empty($imageCate)) {
+            $folder = 'images/avator/' . $date;
+        } else {
+            $folder = 'images/' . $imageCate . '/' . $date;
+        }
 
         $path = '/uploads/' . $folder;
         $filename = date('YmdHis') . rand(9999, 99999) . '.png';
