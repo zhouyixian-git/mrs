@@ -74,14 +74,12 @@ jQuery(function() {
         },
 
         // swf文件路径
-        swf: window.BASE_URL + '/Uploader.swf',
+        swf: uploaderSwf,
 
         disableGlobalDnd: true,
         auto:true,
 
         chunked: true,
-        sendAsBinary:true,
-        // server: 'http://webuploader.duapp.com/server/fileupload.php',
         server: path,
         formData: {"imageCate" : "goods"},
         fileNumLimit: 3,
