@@ -1,0 +1,125 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        body, html {width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}
+        #allmap{width:100%;height:500px;}
+        .BMap_cpyCtrl {
+            display: none;
+        }
+        .anchorBL {
+            display: none;
+        }
+    </style>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=htSG7nM8PFyl8vOWjVSEMPio9BPODh9Y"></script>
+    <title>选择站点位置</title>
+</head>
+<body>
+<div id="allmap"></div>
+<input type="text" id="keywork"/>
+<button id="search">搜索</button>
+</body>
+</html>
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script type="text/javascript">
+    // 百度地图API功能
+    var map = new BMap.Map("allmap");
+    map.centerAndZoom(new BMap.Point(116.404, 39.915), 11);
+    var local = new BMap.LocalSearch(map, {
+        onSearchComplete:function(results){
+            console.log(results);
+            if (local.getStatus() == BMAP_STATUS_SUCCESS){
+                //map.clearOverlays();
+                for (var i = 0; i < results.getCurrentNumPois(); i ++){
+                    var str = getMarkerHtml(results.getPoi(i).title,results.getPoi(i).address,results.getPoi(i).phoneNumber,results.getPoi(i).point);
+                    addMarker(results.getPoi(i).point,str,i+1);
+                }
+            }
+        }
+    });
+
+    $("#search").click(function(){
+        var keywork = $("#keywork").val();
+        if(keywork != ''){
+            local.search(keywork);
+        }
+    });
+
+    /*获取marker内容*/
+    function getMarkerHtml(title,address,phone,point){
+        var htmlStr = '';
+        htmlStr += '<div style="box-sizing: content-box; width: 230px; height: 61px; position: absolute; z-index: 10; overflow: hidden;">';
+        htmlStr += '<div class="BMap_bubble_title" style="overflow: hidden; height: auto; line-height: 24px; white-space: nowrap; width: auto;">';
+        htmlStr += '<p style="width:210px;font:bold 14px/16px arial,sans-serif;margin:0;color:#cc5522;white-space:nowrap;overflow:hidden" title="'+title+'">';
+        htmlStr += '<span style="max-width:80%;display:block;text-overflow:ellipsis;overflow: hidden;float:left">'+title+'</span>';
+        htmlStr += '<span href="#" onclick="selectAddress(\''+address+'\',\''+point.lng+'\',\''+point.lat+'\')" style="margin-left:5px;color:#3d6dcc;font:bold 14px/16px arial;text-decoration:none;">选择</span>';
+        htmlStr += '</p>';
+        htmlStr += '</div>';
+        htmlStr += '<div class="BMap_bubble_content" style="width: auto; height: auto;">';
+        htmlStr += '<div style="font:12px arial,sans-serif;margin-top:10px">';
+        htmlStr += '<table cellspacing="0" style="overflow:hidden;table-layout:fixed;width:100%;font:12px arial,sans-serif">';
+        htmlStr += '<tbody>';
+        if(address != undefined && address != "") {
+            htmlStr += '<tr>';
+            htmlStr += '<td style="vertical-align:top;width:38px;white-space:nowrap;word-break:keep-all">地址：&nbsp;</td>';
+            htmlStr += '<td style="line-height:16pxoverflow: hidden;text-overflow:ellipsis;white-space: nowrap;">' + address + '&nbsp;</td>';
+            htmlStr += '</tr>';
+        }
+        if(phone != undefined && phone != ""){
+            htmlStr += '<tr>';
+            htmlStr += '<td style="vertical-align:top;">电话：</td>';
+            htmlStr += '<td>'+phone+'</td>';
+            htmlStr += '</tr>';
+        }
+        htmlStr += '</tbody>';
+        htmlStr += '</table>';
+        htmlStr += '</div>';
+        htmlStr += '</div>';
+        htmlStr += '<div class="BMap_bubble_max_content" style="display:none;position:relative"></div>';
+        htmlStr += '</div>';
+        return htmlStr;
+    }
+
+    function addMarker(point,info,num){
+        var marker = new BMap.Marker(point);
+        if(num>0){
+            markerAddLabel(marker,num);//设置label
+        }
+        if(num == 1 || num == 0){
+            var infoWindow = new BMap.InfoWindow(info);
+
+            infoWindow.setWidth(300);
+            infoWindow.setHeight(60);
+//			map.centerAndZoom(point, 16);
+            marker.setTop(true);
+            map.openInfoWindow(infoWindow,point);
+            map.centerAndZoom(point, 16);
+        }
+        map.addOverlay(marker);
+
+        marker.addEventListener("click",function(){
+            var infoWindow = new BMap.InfoWindow(info);
+
+            infoWindow.setWidth(210);
+            infoWindow.setHeight(40);
+
+            map.openInfoWindow(infoWindow,point);
+        });
+    }
+
+    function markerAddLabel(marker,num){
+        var label = new BMap.Label(num,{
+            offset:new BMap.Size(2,3)
+        });
+        label.setStyle({
+            "border" : "0",
+            "width" : "12px",
+            "color" : "#FFFFFF",
+            "background-color" : "#EF2929",
+            "textAlign" : "center",
+            "borderRadius" : "50%"
+        });
+        marker.setLabel(label);
+    }
+</script>
