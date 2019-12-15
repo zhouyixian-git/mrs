@@ -38,6 +38,7 @@
                         <input type="hidden" id="goods_id" value="{$goods.goods_id}" name="goods_id" />
                         <input type="hidden" id="goods_detail" value="{$goods.goods_detail}"  name="goods_detail" />
                         <input type="hidden" id="cate_name" value="{$goods.cate_name}"  name="cate_name" />
+                        <input type="hidden" id="goods_image_count" name="goods_image_count" />
                         <div class="form-group">
                             <label class="col-sm-3 control-label">商品名称：</label>
                             <div class="col-sm-8">
@@ -152,6 +153,8 @@
     <script type="text/javascript" src="__JS__/plugins/simditor/simditor.js"></script>
     <script>
         var path = "{:url('/upload/upload')}";
+        var imgpath = "{:url('/goods/getgoodsimg')}";
+        var uploaderSwf = "__JS__/plugins/webuploader/Uploader.swf";
         $(function(){
             var toolbar = [ 'title', 'bold', 'italic', 'underline', 'strikethrough',
                 'color', '|', 'ol', 'ul', 'blockquote', 'code', 'table', '|',

@@ -71,6 +71,7 @@ class Goods extends Base
             $data['is_cash'] = $request->post('is_cash');
             $data['max_cash'] = $request->post('max_cash');
             $data['goods_status'] = $request->post('goods_status');
+            $goods_image_count = $request->post('goods_image_count'); //商品图片数量
 
             $validate = new \app\validate\Goods();
             if (!$validate->check($data)) {
@@ -78,14 +79,39 @@ class Goods extends Base
                 return;
             }
 
-            //$data['goods_img'] = $request->post('');
+            $goodsImageList = [];
+            for ($i = 0; $i < $goods_image_count; $i++) {
+                $goodsImage = $request->post("goodsImage_" . ($i + 1));
+                if (empty($goodsImage)) {
+                    continue;
+                }
+                $goodsImageList[] = $goodsImage;
+            }
+            if (empty($goodsImageList)) {
+                echo $this->errorJson(0, '请先上传商品图片');
+                return;
+            }
+
+            $data['goods_img'] = $goodsImageList[0];
             $data['create_time'] = time();
             $data['cteate_admin_id'] = parent::$loginAdmin['admin_id'];
 
             Db::startTrans();
             try {
                 Db::table('mrs_goods')->insert($data);
-                //Db::table('eas_role_menu')->insertAll($menuList);
+                $goods_id = Db::getLastInsID();
+
+                $goods_img = [];
+                foreach ($goodsImageList as $k => $v) {
+                    $goods_img[] = [
+                        'img_path' => $v,
+                        'goods_id' => $goods_id,
+                        'order_no' => $k + 1,
+                        'create_time' => time()
+                    ];
+                }
+
+                Db::table('mrs_goods_img')->insertAll($goods_img);
                 // 提交事务
                 Db::commit();
             } catch (\Exception $e) {
@@ -126,6 +152,7 @@ class Goods extends Base
             $data['is_cash'] = $request->post('is_cash');
             $data['max_cash'] = $request->post('max_cash');
             $data['goods_status'] = $request->post('goods_status');
+            $goods_image_count = $request->post('goods_image_count'); //商品图片数量
 
             $validate = new \app\validate\Goods();
             if (!$validate->check($data)) {
@@ -133,12 +160,38 @@ class Goods extends Base
                 return;
             }
 
-            //$data['goods_img'] = $request->post('');
+            $goodsImageList = [];
+            for ($i = 0; $i < $goods_image_count; $i++) {
+                $goodsImage = $request->post("goodsImage_" . ($i + 1));
+                if (empty($goodsImage)) {
+                    continue;
+                }
+                $goodsImageList[] = $goodsImage;
+            }
+            if (empty($goodsImageList)) {
+                echo $this->errorJson(0, '请先上传商品图片');
+                return;
+            }
+
+            $data['goods_img'] = $goodsImageList[0];
 
             Db::startTrans();
             try {
-                Db::table('mrs_goods')->where('goods_id',$goods_id)->update($data);
-                //Db::table('eas_role_menu')->insertAll($menuList);
+                Db::table('mrs_goods')->where('goods_id', $goods_id)->update($data);
+
+                Db::table('mrs_goods_img')->where('goods_id', $goods_id)->delete();
+
+                $goods_img = [];
+                foreach ($goodsImageList as $k => $v) {
+                    $goods_img[] = [
+                        'img_path' => $v,
+                        'goods_id' => $goods_id,
+                        'order_no' => $k + 1,
+                        'create_time' => time()
+                    ];
+                }
+                Db::table('mrs_goods_img')->insertAll($goods_img);
+
                 // 提交事务
                 Db::commit();
             } catch (\Exception $e) {
@@ -168,7 +221,8 @@ class Goods extends Base
      * 删除商品
      * @param Request $request
      */
-    public function delete(Request $request){
+    public function delete(Request $request)
+    {
         if ($request->isPost()) {
             $goods_id = $request->post('goods_id');
 
@@ -189,6 +243,29 @@ class Goods extends Base
             }
             echo $this->successJson();
             exit;
+        }
+    }
+
+    /**
+     * 获取商品图片列表
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getgoodsimg(Request $request)
+    {
+        if ($request->isPost()) {
+            $goods_id = $request->post('goods_id');
+
+            $goodsImageList = Db::table('mrs_goods_img')
+                ->field('img_path,goods_id,order_no')
+                ->where('goods_id', $goods_id)
+                ->order('order_no asc,create_time desc')
+                ->select();
+
+            echo $this->successJson($goodsImageList);
+            return;
         }
     }
 
