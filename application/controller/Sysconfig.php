@@ -33,7 +33,7 @@ class Sysconfig extends Base
             Db::startTrans();
             try {
                 foreach ($configParam as $k => $v) {
-                    if ($v['input_type'] == 1) {
+                    if ($v['input_type'] == 2) {
                         Db::table('mrs_system_setting')->where('setting_id', $v['setting_id'])->update(['setting_value' => $request->post($v['setting_code'])]);
                     } else {
                         Db::table('mrs_system_setting')->where('setting_id', $v['setting_id'])->update(['setting_value' => $request->post($v['setting_code'])]);
@@ -50,7 +50,7 @@ class Sysconfig extends Base
         $configData = Db::table('mrs_system_setting')->order('create_time asc')->select();
 
         foreach ($configData as $k => $v) {
-            if ($v['input_type'] == '1') { //单选框，值用逗号分隔
+            if ($v['input_type'] == '2') { //单选框，值用逗号分隔
                 $set_value = explode(',', $v['setting_item']);
                 $set_desc = explode(',', $v['setting_desc']);
                 $configData[$k]['set_value'] = $set_value;

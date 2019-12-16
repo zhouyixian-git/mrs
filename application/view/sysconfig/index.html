@@ -49,7 +49,7 @@
             <div class="ibox-content">
                 <form class="form-horizontal" id="postForm">
                     {foreach $configData as $config}
-                    {if condition="$config.input_type eq 1"}
+                    {if condition="$config.input_type eq 2"}
                     <div class="form-group">
                         <label class="col-sm-3 control-label">{$config.setting_name}：</label>
                         <div class="radio i-checks">

@@ -48,10 +48,41 @@ class Site extends Base
         return $this->fetch();
     }
 
+    /**
+     * 添加站点
+     * @param Request $request
+     * @return mixed
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
     public function add(Request $request)
     {
         if ($request->isPost()) {
+            $data['site_name'] = $request->post('site_name');
+            $data['lng'] = $request->post('lng');
+            $data['lat'] = $request->post('lat');
+            $data['site_address'] = $request->post('site_address');
+            $data['province_id'] = $request->post('province_id');
+            $data['city_id'] = $request->post('city_id');
+            $data['area_id'] = $request->post('area_id');
+            $data['province_name'] = $request->post('province_name');
+            $data['city_name'] = $request->post('city_name');
+            $data['area_name'] = $request->post('area_name');
+            $data['status'] = $request->post('status');
 
+            $validate = new \app\validate\Site();
+            if (!$validate->check($data)) {
+                echo $this->errorJson(0, $validate->getError());
+                return;
+            }
+
+            $data['create_time'] = time();
+
+            $site = new \app\model\Site();
+            $site->save($data);
+            echo $this->successJson();
+            return;
         }
 
         $provinceList = \app\model\Area::where('parent_id', '=', 0)->select();

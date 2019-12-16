@@ -28,7 +28,6 @@
     map.centerAndZoom(new BMap.Point(116.404, 39.915), 11);
     var local = new BMap.LocalSearch(map, {
         onSearchComplete:function(results){
-            console.log(results);
             if (local.getStatus() == BMAP_STATUS_SUCCESS){
                 //map.clearOverlays();
                 for (var i = 0; i < results.getCurrentNumPois(); i ++){
@@ -122,4 +121,11 @@
         });
         marker.setLabel(label);
     }
+
+    function selectAddress(address, lng, lat){
+        window.parent.selectAddress(address, lng, lat);
+        var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+        parent.layer.close(index);
+    }
+
 </script>

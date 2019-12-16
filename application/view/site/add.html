@@ -31,6 +31,11 @@
                 </div>
                 <div class="ibox-content">
                     <form class="form-horizontal" id="postForm">
+                        <input type="hidden" value="" id="lat" name="lat"/>
+                        <input type="hidden" value="" id="lng" name="lng"/>
+                        <input type="hidden" value="" id="province_name" name="province_name"/>
+                        <input type="hidden" value="" id="city_name" name="city_name"/>
+                        <input type="hidden" value="" id="area_name" name="area_name"/>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">站点名称：</label>
                             <div class="col-sm-8">
@@ -40,14 +45,14 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label">站点坐标：</label>
                             <div class="col-sm-6">
-                                <input type="text" name="coordinate" placeholder="站点坐标" class="form-control">
+                                <input type="text" name="coordinate" readonly id="coordinate" placeholder="站点坐标" class="form-control">
                             </div>
                             <button type="button"class="btn btn-sm btn-info" id="selectLocat">选择位置</button>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">站点地址：</label>
                             <div class="col-sm-8">
-                                <input type="text" name="site_address" placeholder="站点地址" class="form-control">
+                                <input type="text" name="site_address" id="site_address" placeholder="站点地址" class="form-control">
                             </div>
                         </div>
                         <div class="form-group">
@@ -75,7 +80,7 @@
                             <label class="col-sm-3 control-label">是否有效：</label>
                             <div class="radio i-checks">
                                 <label><input type="radio" checked value="1" name="status"> <i></i> 有效</label>
-                                <label><input type="radio" value="0" name="status"> <i></i> 无效</label>
+                                <label><input type="radio" value="2" name="status"> <i></i> 无效</label>
                             </div>
                         </div>
 
@@ -126,6 +131,7 @@
 
             $("#province_id").change(function(){
                 var parent_id = $(this).val();
+                $("#province_name").val($(this).find("option:selected").text());
                 $.ajax({
                     type: "post",
                     dataType: "json",
@@ -151,6 +157,7 @@
 
             $("#city_id").change(function(){
                 var parent_id = $(this).val();
+                $("#city_name").val($(this).find("option:selected").text());
                 $.ajax({
                     type: "post",
                     dataType: "json",
@@ -172,16 +179,26 @@
                 });
             });
 
+            $("#area_id").change(function(){
+                $("#area_name").val($(this).find("option:selected").text());
+            });
+
             $("#selectLocat").click(function(){
-                parent.layer.open({
+                layer.open({
                     type: 2,
                     area: ['1000px', '600px'],
                     fixed: false, //不固定
                     content: "{:url('site/map')}"
                 });
             });
-
         });
+
+        window.selectAddress = function(address, lng, lat){
+            $("#site_address").val(address);
+            $("#lng").val(lng);
+            $("#lat").val(lat);
+            $("#coordinate").val("("+lng+","+lat+")");
+        }
     </script>
 </body>
 

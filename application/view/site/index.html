@@ -35,7 +35,7 @@
                                 <select class="form-control" name="status">
                                     <option value="">全部</option>
                                     <option value="1" {if condition="$status eq 1"}selected{/if}>有效</option>
-                                    <option value="0" {if condition="$status eq '0'"}selected{/if}>无效</option>
+                                    <option value="2" {if condition="$status eq 2"}selected{/if}>无效</option>
                                 </select>
                             </div>
                             <label class="control-label col-sm-1">站点名称</label>
@@ -83,6 +83,8 @@
                                 <td>({$siteInfo.lng}, {$siteInfo.lat})</td>
                                 <td>{$siteInfo.site_address}</td>
                                 <td>{$siteInfo.province_name}-{$siteInfo.city_name}-{$siteInfo.area_name}</td>
+                                <td>{$siteInfo.recovery_num}</td>
+                                <td>{$siteInfo.used_num}</td>
                                 <td>
                                     {if condition="$siteInfo.status eq 1"}
                                     <span style="color: green;">有效</span>
