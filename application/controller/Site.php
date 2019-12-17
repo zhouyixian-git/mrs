@@ -25,6 +25,7 @@ class Site extends Base
         $status = $request->param('status');
         $site_name = $request->param('site_name');
         $where = [];
+        $where[] = ['is_delete', '=', 2];
         if (!empty($status)) {
             $where[] = ['status', '=', $status];
         }
@@ -90,14 +91,76 @@ class Site extends Base
         return $this->fetch();
     }
 
+    /**
+     * 修改站点
+     * @param Request $request
+     * @return mixed
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
     public function edit(Request $request)
     {
+        if ($request->isPost()) {
+            $site_id = $request->post('site_id');
+            $data['site_name'] = $request->post('site_name');
+            $data['lng'] = $request->post('lng');
+            $data['lat'] = $request->post('lat');
+            $data['site_address'] = $request->post('site_address');
+            $data['province_id'] = $request->post('province_id');
+            $data['city_id'] = $request->post('city_id');
+            $data['area_id'] = $request->post('area_id');
+            $data['province_name'] = $request->post('province_name');
+            $data['city_name'] = $request->post('city_name');
+            $data['area_name'] = $request->post('area_name');
+            $data['status'] = $request->post('status');
 
+            $validate = new \app\validate\Site();
+            if (!$validate->check($data)) {
+                echo $this->errorJson(0, $validate->getError());
+                return;
+            }
+
+            $site = new \app\model\Site();
+            $site->save($data, ['site_id' => $site_id]);
+            echo $this->successJson();
+            return;
+        }
+
+        $site_id = $request->get('site_id');
+        if (empty($site_id)) {
+            $this->errorJson('关键数据错误');
+        }
+        $site = \app\model\Site::where('site_id', $site_id)->find();
+
+        $this->assign('site', $site);
+
+        $provinceList = \app\model\Area::where('parent_id', '=', 0)->select();
+        $this->assign('provinceList', $provinceList);
+        return $this->fetch();
     }
 
+    /**
+     * 删除站点
+     * @param Request $request
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
     public function delete(Request $request)
     {
+        if ($request->isPost()) {
+            $site_id = $request->post('site_id');
 
+            if (empty($site_id)) {
+                echo $this->errorJson(0, '关键数据错误');
+                exit;
+            }
+
+            $site = new \app\model\Site();
+            $site->save(['is_delete' => 1], ['site_id' => $site_id]);
+            echo $this->successJson();
+            exit;
+        }
     }
 
     /**
@@ -124,8 +187,21 @@ class Site extends Base
         }
     }
 
-    public function map()
+    /**
+     * 跳转地图
+     * @param Request $request
+     * @return mixed
+     */
+    public function map(Request $request)
     {
+
+        $lng = $request->get('lng');
+        $lat = $request->get('lat');
+        $keyword = $request->get('keyword');
+
+        $this->assign('lng', $lng);
+        $this->assign('lat', $lat);
+        $this->assign('keyword', $keyword);
         return $this->fetch();
     }
 

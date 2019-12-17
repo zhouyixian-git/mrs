@@ -11,21 +11,26 @@
         .anchorBL {
             display: none;
         }
+        .search-div{text-align: center;padding: 8px;}
+        #keywork{height: 34px;background-color: #FFFFFF;background-image: none;border: 1px solid #e5e6e7;border-radius: 1px;color: inherit;padding: 6px 12px;}
+        #search{height: 34px;color: inherit;background: white;border: 1px solid #e7eaec;margin-bottom: 5px;border-radius: 3px;padding: 5px 10px;font-size: 12px;line-height: 1.5;display: inline-block;cursor: pointer;}
     </style>
     <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=htSG7nM8PFyl8vOWjVSEMPio9BPODh9Y"></script>
     <title>选择站点位置</title>
 </head>
 <body>
 <div id="allmap"></div>
-<input type="text" id="keywork"/>
+<div class="search-div">
+<input type="text" id="keywork" value="{$keyword}"/>
 <button id="search">搜索</button>
+</div>
 </body>
 </html>
 <script src="__JS__/jquery.min.js?v=2.1.4"></script>
 <script type="text/javascript">
     // 百度地图API功能
     var map = new BMap.Map("allmap");
-    map.centerAndZoom(new BMap.Point(116.404, 39.915), 11);
+    map.centerAndZoom(new BMap.Point('{$lng ? $lng : 114.064552}', '{$lat ? $lat : 22.548456}'), 11);
     var local = new BMap.LocalSearch(map, {
         onSearchComplete:function(results){
             if (local.getStatus() == BMAP_STATUS_SUCCESS){
@@ -44,6 +49,10 @@
             local.search(keywork);
         }
     });
+
+    if($("#keywork").val() != ''){
+        $("#search").click();
+    }
 
     /*获取marker内容*/
     function getMarkerHtml(title,address,phone,point){
