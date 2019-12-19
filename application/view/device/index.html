@@ -69,6 +69,7 @@
                         <thead>
                         <tr>
                             <th style="width: 150px;">操作</th>
+                            <th>站点信息</th>
                             <th>设备名称</th>
                             <th>设备编码</th>
                             <th>设备描述</th>
@@ -90,6 +91,7 @@
                                 <button type="button" onclick="delDevice({$deviceInfo.device_id})" class="btn btn-sm btn-danger">删除</button>
                                 {/if}
                             </td>
+                            <td>{$deviceInfo.site_name}</td>
                             <td>{$deviceInfo.device_name}</td>
                             <td>{$deviceInfo.device_code}</td>
                             <td>{$deviceInfo.device_desc}</td>
