@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
-    <title>添加站点</title>
+    <title>添加设备</title>
 
     <link rel="shortcut icon" href="favicon.ico">
     <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
@@ -27,36 +27,55 @@
         <div class="col-sm-8">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <h5>添加站点</h5>
+                    <h5>添加设备</h5>
                 </div>
                 <div class="ibox-content">
                     <form class="form-horizontal" id="postForm">
                         <input type="hidden" value="" id="lat" name="lat"/>
                         <input type="hidden" value="" id="lng" name="lng"/>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">站点名称：</label>
+                            <label class="col-sm-3 control-label">站点信息：</label>
                             <div class="col-sm-8">
-                                <input type="text" name="site_name" placeholder="站点名称" class="form-control">
+                                <select class="form-control m-b" name="site_id" id="site_id">
+                                    <option value="">选择站点信息</option>
+                                    {volist name="siteList" id="siteInfo"}
+                                    <option value="{$siteInfo.site_id}">{$siteInfo.site_name}</option>
+                                    {/volist}
+                                </select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">站点坐标：</label>
+                            <label class="col-sm-3 control-label">设备名称：</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="device_name" placeholder="设备名称" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">设备编码：</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="device_code" placeholder="设备编码" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">设备坐标：</label>
                             <div class="col-sm-6">
-                                <input type="text" name="coordinate" readonly id="coordinate" placeholder="站点坐标" class="form-control">
+                                <input type="text" name="coordinate" readonly id="coordinate" placeholder="设备坐标" class="form-control">
                             </div>
                             <button type="button"class="btn btn-sm btn-info" id="selectLocat">选择位置</button>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">站点地址：</label>
+                            <label class="col-sm-3 control-label">设备描述：</label>
                             <div class="col-sm-8">
-                                <input type="text" name="site_address" id="site_address" placeholder="站点地址" class="form-control">
+                                <input type="text" name="device_desc" id="device_desc" placeholder="设备描述" class="form-control">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label">是否有效：</label>
+                            <label class="col-sm-3 control-label">状态：</label>
                             <div class="radio i-checks">
-                                <label><input type="radio" checked value="1" name="status"> <i></i> 有效</label>
-                                <label><input type="radio" value="2" name="status"> <i></i> 无效</label>
+                                <label><input type="radio" checked value="1" name="status"> <i></i> 禁用</label>
+                                <label><input type="radio" value="2" name="status"> <i></i> 启用</label>
+                                <label><input type="radio" value="3" name="status"> <i></i> 满载</label>
+                                <label><input type="radio" value="4" name="status"> <i></i> 故障</label>
                             </div>
                         </div>
 
@@ -89,13 +108,13 @@
                 $.ajax({
                     type: "post",
                     dataType: "json",
-                    url: "{:url('site/add')}",
+                    url: "{:url('device/add')}",
                     data: $('#postForm').serialize(),
                     success: function (result) {
                         if (result.errcode == 1) {
                             layer.msg('添加成功', {icon: 1,time: 1500});
                             window.setTimeout(function(){
-                                window.location.href = "{:url('site/index')}";
+                                window.location.href = "{:url('device/index')}";
                             },1500);
                         }else{
                             layer.msg(result.msg, {icon: 2});
@@ -110,13 +129,12 @@
                     type: 2,
                     area: ['1000px', '600px'],
                     fixed: false, //不固定
-                    content: "{:url('site/map')}"
+                    content: "{:url('device/map')}"
                 });
             });
         });
 
         window.selectAddress = function(address, lng, lat){
-            $("#site_address").val(address);
             $("#lng").val(lng);
             $("#lat").val(lat);
             $("#coordinate").val("("+lng+","+lat+")");

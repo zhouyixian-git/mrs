@@ -45,7 +45,7 @@ class Device extends Base
             ->paginate(8, false, ['query' => $request->param(), 'type' => 'page\Page', 'var_page' => 'page']);
 
         $page = $deviceList->render();
-        $count = Db::table('mrs_device')->where($where)->count();
+        $count = Db::table('mrs_device')->alias('t1')->where($where)->count();
 
         $siteList = Db::table('mrs_site')->where([['status', '=', 1], ['is_delete', '=', '2']])->order('create_time desc')->select();
 
@@ -171,7 +171,6 @@ class Device extends Base
      */
     public function map(Request $request)
     {
-
         $lng = $request->get('lng');
         $lat = $request->get('lat');
         $keyword = $request->get('keyword');

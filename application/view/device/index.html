@@ -28,7 +28,7 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('site/index')}">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('device/index')}">
                         <div class="form-group">
                             <label class="control-label col-sm-1">站点信息</label>
                             <div class="col-sm-2">
@@ -87,7 +87,7 @@
                                 <button type="button" onclick="toEdit({$deviceInfo.device_id})" class="btn btn-sm btn-primary">修改</button>
                                 {/if}
                                 {if condition="in_array('device_list_delete',$loginAdmin.buttonData)"}
-                                <button type="button" onclick="delDevice({$deviceInfo.devicce_id})" class="btn btn-sm btn-danger">删除</button>
+                                <button type="button" onclick="delDevice({$deviceInfo.device_id})" class="btn btn-sm btn-danger">删除</button>
                                 {/if}
                             </td>
                             <td>{$deviceInfo.device_name}</td>
