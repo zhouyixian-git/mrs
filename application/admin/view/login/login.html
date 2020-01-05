@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>登录</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <!--[if lt IE 9]>
+    <meta http-equiv="refresh" content="0;ie.html" />
+    <![endif]-->
+    <script>if(window.top !== window.self){ window.top.location = window.location;}</script>
+    <style>
+        #vcode{width: 50%;float: left;}
+    </style>
+</head>
+
+<body class="gray-bg">
+
+    <div class="middle-box text-center loginscreen  animated fadeInDown">
+        <div>
+            <div>
+
+                <h1 class="logo-name">H+</h1>
+
+            </div>
+            <h3>欢迎使用</h3>
+
+            <form id="postForm">
+                <div class="form-group">
+                    <input type="text" name="user_name" class="form-control" placeholder="用户名">
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" class="form-control" placeholder="密码">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="vcode" class="form-control" id="vcode" placeholder="验证码">
+                    <div style="margin-bottom: 20px;width: 50%;float: left;"><img src="{:url('admin/login/verify')}" id="verify" style="height: 34px;" /></div>
+                </div>
+                <button type="button" class="btn btn-primary block full-width m-b" id="login">登 录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 全局js -->
+    <script src="__JS__/jquery.min.js?v=2.1.4"></script>
+    <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+    <script src="__JS__/plugins/layer/layer.min.js"></script>
+    <script>
+        $(document).keyup(function(event){
+            if(event.keyCode ==13){
+                $("#login").click();
+            }
+        });
+        $(function(){
+           $("#login").click(function(){
+               $.ajax({
+                   type: "post",
+                   dataType: "json",
+                   url: "{:url('admin/login/login')}",
+                   data: $('#postForm').serialize(),
+                   success: function (result) {
+                       console.log(result);
+                       if (result.errcode == 1) {
+                           window.location.href = "{:url('/admin/index')}";
+                       }else{
+                           $("#verify").click();
+                           layer.msg(result.msg, {icon: 2});
+                       }
+                       return false;
+                   }
+               });
+           });
+        });
+
+        //刷新验证码
+        $("#verify").click(function() {
+            var verifyimg = $("#verify").attr("src");
+            $("#verify").attr("src", verifyimg.replace(/\?.*$/, '') + '?' + Math.random());
+        });
+    </script>
+</body>
+
+</html>

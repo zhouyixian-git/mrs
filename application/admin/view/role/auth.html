@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>角色授权</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        .child-menu-div{width: 14%;float: left;}
+        .all-check{margin-top: -15px !important;margin-bottom: 20px !important;}
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form class="form-horizontal" id="postForm">
+                        <input type="hidden" id="role_id" name="role_id" value="{$role_id}"/>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th style="width: 180px;">一级菜单</th>
+                                <th style="width: 180px;">二级菜单</th>
+                                <th>按钮</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $menuList as $menu}
+                                    {foreach $menu.childMenu as $k => $secondMenu}
+                                        <tr>
+                                            {if condition="$k eq 0"}
+                                                <td rowspan="{:count($menu.childMenu)}">
+                                                    <div class="checkbox i-checks">
+                                                        <input type="checkbox" {if condition='in_array($menu.menu_id,$checkMenuList)'}checked{/if} name="firstMenu[]" id="firstMenu_{$menu.menu_id}" value="{$menu.menu_id}"> <i></i> {$menu.menu_name}</label>
+                                                    </div>
+                                                </td>
+                                            {/if}
+                                            <td>
+                                                <div class="checkbox i-checks">
+                                                    <label><input type="checkbox" {if condition='in_array($secondMenu.menu_id,$checkMenuList)'}checked{/if} name="secondMenu[]" fid="{$menu.menu_id}" id="secondMenu_{$menu.menu_id}_{$secondMenu.menu_id}" value="{$secondMenu.menu_id}"> <i></i> {$secondMenu.menu_name}</label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {if condition="!empty($secondMenu.childMenu)"}
+                                                {foreach $secondMenu.childMenu as $thirdMenu}
+                                                    <div class="checkbox i-checks col-sm-2">
+                                                        <label><input type="checkbox" {if condition='in_array($thirdMenu.menu_id,$checkMenuList)'}checked{/if} name="thirdMenu[]" fid="{$menu.menu_id}" sid="{$secondMenu.menu_id}" id="thirdMenu_{$menu.menu_id}_{$secondMenu.menu_id}_{$thirdMenu.menu_id}" value="{$thirdMenu.menu_id}"> <i></i> {$thirdMenu.menu_name}</label>
+                                                    </div>
+                                                {/foreach}
+                                                {/if}
+                                            </td>
+                                        </tr>
+                                    {/foreach}
+                                {/foreach}
+                            </tbody>
+                        </table>
+                        <div class="checkbox i-checks all-check">
+                            <input type="checkbox" name="allcheck"> <i></i> 全选</label>
+                        </div>
+                        <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                        <button type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+<script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+
+<!-- Page-Level Scripts -->
+<script>
+    $(function(){
+        $('.i-checks').iCheck({
+            checkboxClass: 'icheckbox_square-green'
+        });
+
+        $("#save").click(function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('admin/role/auth')}",
+                data: $('#postForm').serialize(),
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg('保存成功', {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            history.back();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        });
+
+        $("input[name='allcheck']").on('ifClicked', function(event){
+            if(!$(this).is(':checked')){
+                $("input[name='firstMenu[]']").iCheck('check');
+                $("input[name='secondMenu[]']").iCheck('check');
+                $("input[name='thirdMenu[]']").iCheck('check');
+            }else{
+                $("input[name='firstMenu[]']").iCheck('uncheck');
+                $("input[name='secondMenu[]']").iCheck('uncheck');
+                $("input[name='thirdMenu[]']").iCheck('uncheck');
+            }
+        });
+
+        $("input[name='firstMenu[]']").on('ifClicked', function(event) {
+            if(!$(this).is(':checked')){
+                $("input[id^='secondMenu_"+$(this).val()+"']").iCheck('check');
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('check');
+            }else{
+                $("input[id^='secondMenu_"+$(this).val()+"']").iCheck('uncheck');
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('uncheck');
+            }
+        });
+
+        $("input[name='secondMenu[]']").on('ifClicked', function(event) {
+            if(!$(this).is(':checked')){
+                $("input[id^='thirdMenu_"+$(this).attr('fid')+"_"+$(this).val()+"_']").iCheck('check');
+            }else{
+                $("input[id^='thirdMenu_"+$(this).attr('fid')+"_"+$(this).val()+"_']").iCheck('uncheck');
+            }
+        });
+
+        $("input[name='thirdMenu[]']").on('ifChecked', function(event) {
+            if($(this).is(':checked')){
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('check');
+            }else{
+                $("input[id^='thirdMenu_"+$(this).val()+"']").iCheck('uncheck');
+            }
+
+            var flag = false;
+            $("input[name='thirdMenu[]']").each(function(){
+                if($(this).is(':checked')){
+                    flag = true;
+                }
+            });
+
+            if(flag){
+                $("#firstMenu_"+$(this).attr('fid')).iCheck("check");
+                $("#secondMenu_"+$(this).attr('fid')+"_"+$(this).attr('sid')).iCheck("check");
+            }
+
+        });
+
+    });
+</script>
+
+</body>
+
+</html>

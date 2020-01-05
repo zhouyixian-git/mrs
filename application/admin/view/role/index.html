@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>角色管理</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        .col-sm-1{width: auto;}
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/role/index')}">
+                        <div class="form-group">
+                            <label class="control-label col-sm-1">角色编码</label>
+                            <div class="col-sm-2">
+                                <input type="text" id="role_code" name="role_code" value="{$role_code}" class="form-control">
+                            </div>
+                            <label class="control-label col-sm-1">角色名称 </label>
+                            <div class="col-sm-2">
+                                <input type="text" id="role_name" name="role_name" value="{$role_name}" class="form-control">
+                            </div>
+                            <div class="col-sm-1" style="text-align:center;">
+                                <button type="submit" class="btn btn-sm btn-white">查询</button>
+                            </div>
+                            <div>
+                                {if condition="in_array('role_add',$loginAdmin.buttonData)"}
+                                <button type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'role/add\')}'">新增</button>
+                                {/if}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="ibox-content">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th style="width: 200px;">操作</th>
+                            <th>角色编码</th>
+                            <th>角色名称</th>
+                            <th>角色描述</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {volist name="roleList" id="roleInfo"}
+                            <tr>
+                                <td>
+                                    {if condition="in_array('role_edit',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="toEdit({$roleInfo.role_id})" class="btn btn-sm btn-primary">修改</button>
+                                    {/if}
+                                    {if condition="in_array('role_delete',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="delRole({$roleInfo.role_id})" class="btn btn-sm btn-danger">删除</button>
+                                    {/if}
+                                    {if condition="in_array('role_auth',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="roleAuth({$roleInfo.role_id})" class="btn btn-sm btn-info">权限</button>
+                                    {/if}
+                                </td>
+                                <td>{$roleInfo.role_code}</td>
+                                <td>{$roleInfo.role_name}</td>
+                                <td class="line">{$roleInfo.role_remark}</td>
+                            </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                    {$roleList|raw}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+
+<!-- Page-Level Scripts -->
+<script>
+    function toEdit(role_id){
+        window.location.href = "{:url('admin/role/edit')}?role_id=" + role_id;
+    }
+
+    function delRole(role_id){
+        layer.confirm('是否确定删除该角色？', {
+            btn: ['删除 ','我再想想'] //按钮
+        }, function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('admin/role/delete')}" ,
+                data: {'role_id': role_id},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg("删除成功", {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            window.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        }, function(){
+        });
+    }
+
+    function roleAuth(role_id){
+        window.location.href = "{:url('admin/role/auth')}?role_id=" + role_id;
+    }
+
+</script>
+
+</body>
+
+</html>

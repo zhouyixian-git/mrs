@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>添加站点</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <style>
+        body{overflow-y: hidden;}
+        .ibox-content{height: 480px;}
+        .thumbnail{border: none;}
+    </style>
+</head>
+
+<body class="gray-bg">
+    <div class="row wrapper wrapper-content animated fadeInRight">
+        <div class="col-sm-8">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>添加站点</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-horizontal" id="postForm">
+                        <input type="hidden" value="" id="lat" name="lat"/>
+                        <input type="hidden" value="" id="lng" name="lng"/>
+                        <input type="hidden" value="" id="province_name" name="province_name"/>
+                        <input type="hidden" value="" id="city_name" name="city_name"/>
+                        <input type="hidden" value="" id="area_name" name="area_name"/>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">站点名称：</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="site_name" placeholder="站点名称" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">站点坐标：</label>
+                            <div class="col-sm-6">
+                                <input type="text" name="coordinate" readonly id="coordinate" placeholder="站点坐标" class="form-control">
+                            </div>
+                            <button type="button"class="btn btn-sm btn-info" id="selectLocat">选择位置</button>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">站点地址：</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="site_address" id="site_address" placeholder="站点地址" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">站点区域：</label>
+                            <div class="col-sm-3">
+                                <select name="province_id" id="province_id" class="form-control">
+                                    <option value="">--请选择--</option>
+                                    {volist name="provinceList" id="provinceInfo"}
+                                    <option value="{$provinceInfo.area_id}">{$provinceInfo.area_name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="col-sm-2">
+                                <select name="city_id" id="city_id" class="form-control">
+                                    <option value="">--请选择--</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-2">
+                                <select name="area_id" id="area_id" class="form-control">
+                                    <option value="">--请选择--</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">是否有效：</label>
+                            <div class="radio i-checks">
+                                <label><input type="radio" checked value="1" name="status"> <i></i> 有效</label>
+                                <label><input type="radio" value="2" name="status"> <i></i> 无效</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-8">
+                                <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                                <button type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局js -->
+    <script src="__JS__/jquery.min.js?v=2.1.4"></script>
+    <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+    <script src="__JS__/form_util.js"></script>
+    <script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+
+    <script src="__JS__/plugins/layer/layer.min.js"></script>
+    <script>
+        $(function(){
+            $('.i-checks').iCheck({
+                radioClass: 'iradio_square-green',
+            });
+
+            $("#save").click(function(){
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: "{:url('admin/admin/site/add')}",
+                    data: $('#postForm').serialize(),
+                    success: function (result) {
+                        if (result.errcode == 1) {
+                            layer.msg('添加成功', {icon: 1,time: 1500});
+                            window.setTimeout(function(){
+                                window.location.href = "{:url('admin/admin/site/index')}";
+                            },1500);
+                        }else{
+                            layer.msg(result.msg, {icon: 2});
+                        }
+                        return false;
+                    }
+                });
+            });
+
+            $("#province_id").change(function(){
+                var parent_id = $(this).val();
+                $("#province_name").val($(this).find("option:selected").text());
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: "{:url('admin/admin/site/getarea')}",
+                    data: {'parent_id': parent_id},
+                    success: function (result) {
+                        if (result.errcode == 1) {
+                            var areaList = result.data;
+                            $("#city_id").children().remove();
+                            $("#area_id").children().remove();
+                            $("#city_id").append('<option value="">--请选择--</option>');
+                            $("#area_id").append('<option value="">--请选择--</option>');
+                            $.each(areaList, function(i, item){
+                                $("#city_id").append('<option value="'+item.area_id+'">'+item.area_name+'</option>');
+                            });
+                        }else{
+                            layer.msg(result.msg, {icon: 2});
+                        }
+                        return false;
+                    }
+                });
+            });
+
+            $("#city_id").change(function(){
+                var parent_id = $(this).val();
+                $("#city_name").val($(this).find("option:selected").text());
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: "{:url('admin/admin/site/getarea')}",
+                    data: {'parent_id': parent_id},
+                    success: function (result) {
+                        if (result.errcode == 1) {
+                            var areaList = result.data;
+                            $("#area_id").children().remove();
+                            $("#area_id").append('<option value="">--请选择--</option>');
+                            $.each(areaList, function(i, item){
+                                $("#area_id").append('<option value="'+item.area_id+'">'+item.area_name+'</option>');
+                            });
+                        }else{
+                            layer.msg(result.msg, {icon: 2});
+                        }
+                        return false;
+                    }
+                });
+            });
+
+            $("#area_id").change(function(){
+                $("#area_name").val($(this).find("option:selected").text());
+            });
+
+            $("#selectLocat").click(function(){
+                layer.open({
+                    type: 2,
+                    area: ['1000px', '600px'],
+                    fixed: false, //不固定
+                    content: "{:url('admin/admin/site/map')}"
+                });
+            });
+        });
+
+        window.selectAddress = function(address, lng, lat){
+            $("#site_address").val(address);
+            $("#lng").val(lng);
+            $("#lat").val(lat);
+            $("#coordinate").val("("+lng+","+lat+")");
+        }
+    </script>
+</body>
+
+</html>
