@@ -59,6 +59,7 @@
                         <tr>
                             <th style="width: 150px;">操作</th>
                             <th>分类名称</th>
+                            <th>分类图片</th>
                             <th>分类描述</th>
                             <th>排序</th>
                             <th>激活状态</th>
@@ -77,6 +78,9 @@
                                     {/if}
                                 </td>
                                 <td>{$goodsCateInfo.cate_name}</td>
+                                <td>
+                                    <a href="{$goodsCateInfo.cate_image}" target="_blank"><img src="{$goodsCateInfo.cate_image}" style="width: 200px;height: 50px;"></a>
+                                </td>
                                 <td>{$goodsCateInfo.cate_desc}</td>
                                 <td>{$goodsCateInfo.order_no}</td>
                                 <td>

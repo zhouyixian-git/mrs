@@ -59,6 +59,7 @@ class Goodscate extends Base
         if ($request->isPost()) {
             $data = [];
             $data['cate_name'] = $request->post('cate_name');
+            $data['cate_image'] = $request->post('cate_image');
             $data['cate_desc'] = $request->post('cate_desc');
             $data['order_no'] = $request->post('order_no');
             $data['is_actived'] = $request->post('is_actived');
@@ -93,6 +94,7 @@ class Goodscate extends Base
             $data = [];
             $cate_id = $request->post('cate_id');
             $data['cate_name'] = $request->post('cate_name');
+            $data['cate_image'] = $request->post('cate_image');
             $data['cate_desc'] = $request->post('cate_desc');
             $data['order_no'] = $request->post('order_no');
             $data['is_actived'] = $request->post('is_actived');
