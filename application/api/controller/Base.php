@@ -8,8 +8,12 @@
 
 namespace app\api\controller;
 
+use think\Controller;
+use think\Db;
+use think\facade\Cache;
+use think\facade\Session;
 
-class Base
+class Base extends Controller
 {
     /**
      * 返回成功信息
