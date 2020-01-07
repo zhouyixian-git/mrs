@@ -15,6 +15,14 @@ use think\facade\Session;
 
 class Base extends Controller
 {
+
+    public function __construct(App $app = null)
+    {
+        parent::__construct($app);
+        header('Access-Control-Allow-Origin:*');
+        header('Access-Control-Allow-Methods:POST,GET');
+    }
+
     /**
      * 返回成功信息
      * @param null $data
