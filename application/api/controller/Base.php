@@ -10,6 +10,7 @@ namespace app\api\controller;
 
 
 use think\App;
+use think\Db;
 use think\Controller;
 
 class Base extends Controller
