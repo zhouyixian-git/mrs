@@ -9,14 +9,16 @@
 namespace app\api\controller;
 
 
-class Base
-{
+use think\App;
+use think\Controller;
 
+class Base extends Controller
+{
     public function __construct(App $app = null)
     {
         parent::__construct($app);
         header('Access-Control-Allow-Origin:*');
-        header('Access-Control-Allow-Methods:POST,GET');
+        header('Access-Control-Allow-Method:POST,GET');
     }
 
     /**
