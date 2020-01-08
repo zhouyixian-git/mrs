@@ -41,7 +41,9 @@
                             </tr>
                             </thead>
                             <tbody>
+                            {if condition="!empty($menuList)"}
                                 {foreach $menuList as $menu}
+                                    {if condition="!empty($menu.childMenu)"}
                                     {foreach $menu.childMenu as $k => $secondMenu}
                                         <tr>
                                             {if condition="$k eq 0"}
@@ -67,7 +69,9 @@
                                             </td>
                                         </tr>
                                     {/foreach}
+                                    {/if}
                                 {/foreach}
+                            {/if}
                             </tbody>
                         </table>
                         <div class="checkbox i-checks all-check">
