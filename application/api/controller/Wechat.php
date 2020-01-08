@@ -31,15 +31,19 @@ class Wechat extends Base
 
             $wechatModel = new \app\api\model\Wechat();
             $wechatInfo = $wechatModel->getWechatInfo();
+            if(empty($wechatInfo)){
+                echo $this->errorJson(1, '小程序未绑定');
+                exit;
+            }
             $appid = $wechatInfo['app_id'];
             $appsecret = $wechatInfo['app_secret'];
 
             $requestUrl = "https://api.weixin.qq.com/sns/jscode2session?appid=$appid&js_code=$code&grant_type=authorization_code&secret=$appsecret";
             $result_json_str = file_get_contents($requestUrl);
             $result_json = json_decode($result_json_str, true);
-            $openid = $result_json['openid'];
 
-            if (!empty($openid)) {
+            if (!empty($result_json['openid'])) {
+                $openid = $result_json['openid'];
                 $userInfo = \app\api\Model\User::where(['open_id' => $openid])->find();
                 if ($userInfo) { //返回用户信息
                     $data['isauth'] = 1;

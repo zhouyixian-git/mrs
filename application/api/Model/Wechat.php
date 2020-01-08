@@ -4,8 +4,8 @@
 namespace app\api\model;
 
 
-use think\cache\driver\Redis;
 use think\Db;
+use think\facade\Cache;
 use think\Model;
 
 class Wechat extends Model
@@ -24,16 +24,15 @@ class Wechat extends Model
     public function getWechatInfo()
     {
         //查询微信公众号信息
-        $redis = new Redis();
-        $wechatInfo = $redis->get('wechatInfo');
+        $wechatInfo = Cache::get('wechatInfo');
         if (empty($wechatInfo)) {
             $where = [];
-            $where[] = ['is_actived' => 1];
-            $wechatInfo = Db::table('mrs_wechats')->where($where)->find();
+            $where[] = ['is_actived', '=', 1];
+            $wechatInfo = Wechat::where($where)->find();
             if (empty($wechatInfo)) {
-                mobile_notice('小程序未绑定');
+                return [];
             } else {
-                $redis->set('wechatInfo', $wechatInfo);
+                Cache::set('wechatInfo', $wechatInfo);
             }
         }
         return $wechatInfo;
