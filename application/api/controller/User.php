@@ -560,4 +560,44 @@ class User extends Base
             }
         }
     }
+
+    public function joincart(Request $request){
+        if($request->isPost()) {
+            $user_id = intval($request->post('user_id'));
+            $goods_id = intval($request->post('goods_id'));
+            $goods_num = intval($request->post('goods_num'));
+
+
+            if(empty($user_id)){
+                echo $this->errorJson(1, '缺少关键数据user_id');
+                exit;
+            }
+            if(empty($goods_id)){
+                echo $this->errorJson(1, '缺少关键数据goods_id');
+                exit;
+            }
+
+            $goods = Db::table('mrs_goods')->find($goods_id);
+
+            if(empty($goods)){
+                echo $this->errorJson(1, '找不到对应商品信息');
+                exit;
+            }
+
+            $cartData =array();
+            $cartData['user_id'] = $user_id;
+            $cartData['goods_id'] = $goods['goods_id'];
+            $cartData['goods_name'] = $goods['goods_name'];
+            $cartData['goods_image'] = $goods['goods_img'];
+            $cartData['goods_price'] = $goods['goods_price'];
+            $cartData['is_check'] = 0;
+            $cartData['goods_num'] = $goods_num;
+            $cartData['create_time'] = time();
+
+            $cart_id = Db::table('mrs_carts')->insert($cartData);
+
+            echo $this->successJson();
+            exit;
+        }
+    }
 }
