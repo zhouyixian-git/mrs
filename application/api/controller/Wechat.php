@@ -44,7 +44,7 @@ class Wechat extends Base
 
             if (!empty($result_json['openid'])) {
                 $openid = $result_json['openid'];
-                $userInfo = \app\api\Model\User::where(['open_id' => $openid])->find();
+                $userInfo = \app\api\model\User::where(['open_id' => $openid])->find();
 
                 $address = Db::table('mrs_user_address')->where(array('user_id' => $userInfo['user_id']))->order('is_default')->find();
 
@@ -78,7 +78,7 @@ class Wechat extends Base
                     $userInfo['status'] = 1;
                     $userInfo['create_time'] = time();
 
-                    $userModel = new \app\api\Model\User();
+                    $userModel = new \app\api\model\User();
                     $user_id = $userModel->insert($userInfo);
                     $userInfo['user_id'] = $user_id;
 
@@ -116,13 +116,13 @@ class Wechat extends Base
                 exit;
             }
 
-            $userInfo = \app\api\Model\User::where(['user_id' => $user_id])->find();
+            $userInfo = \app\api\model\User::where(['user_id' => $user_id])->find();
             if(!$userInfo){
                 echo $this->errorJson(1, '未找到用户信息');
                 exit;
             }
 
-            $userModel = new \app\api\Model\User();
+            $userModel = new \app\api\model\User();
             $userModel->save($data, ['user_id' => $user_id]);
             $userInfo['nick_name'] = $data['nick_name'];
             $userInfo['head_img'] = $data['head_img'];
