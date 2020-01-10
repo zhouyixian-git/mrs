@@ -27,7 +27,7 @@ function recordLog($log_content= 'test',$log_file='log.txt')
     file_put_contents($filename, $content);
 }
 
-function sendSms($phone,$code, $code2){
+function sendSms($phone, $tpl_code){
 
     $accessKeyId = '';
     $accessSecret = '';
@@ -38,6 +38,22 @@ function sendSms($phone,$code, $code2){
     if(empty($smsApi)){
         return errorJson('1', 'Not found the sms api!');
     }
+    $smsTpl= Db::table('mrs_sms_tpl')->where(array('tpl_code' => $tpl_code))->find();
+    if(empty($smsApi)){
+        return errorJson('1', 'Not found the sms template!');
+    }
+
+    $code = rand(100000, 999999);
+
+    $patterns = array();
+    $replacements = array();
+    $patterns[] = '/{code}/';
+    $replacements[] = $code;
+    $content = preg_replace($patterns, $replacements, $smsTpl['tpl_content']);
+
+    var_dump($content);
+    exit;
+
     $params = Db::table('mrs_api_params')->where(array('api_id' => $smsApi['api_id']))->select();
     if(is_array($params) && count($params)){
         foreach ($params as $k=>$param){

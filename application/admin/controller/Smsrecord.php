@@ -19,19 +19,25 @@ class Smsrecord extends Base
 
         $where = array();
         $phone = $request->param('phone');
-        if($phone){
-            $where [] = ['phone', 'like', "%%"];
-        }
         $keyword = $request->param('keyword');
 
+        if(!empty($phone)){
+            $where [] = ['phone', 'like', "%$phone%"];
+        }
+
+        if($keyword){
+            $where [] = ['sms_content', 'like', "%$keyword%"];
+        }
         $recordList = Db::table('mrs_sms_record')
-            ->order('create_time')
-            ->where()
+            ->order('record_time')
+            ->where($where)
             ->paginate(8, false, [ 'query' => $request->param(),'type' => 'page\Page', 'var_page' => 'page']);
 
         $page = $recordList->render();
-        $count = Db::table('mrs_sms_tpl')->count();
+        $count = Db::table('mrs_sms_record')->count();
 
+        $this->assign('phone', $phone);
+        $this->assign('keyword', $keyword);
         $this->assign('page', $page);
         $this->assign('count', $count);
         $this->assign('recordList', $recordList);
