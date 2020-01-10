@@ -41,9 +41,8 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {if condition="!empty($menuList)"}
                                 {foreach $menuList as $menu}
-                                    {if condition="!empty($menu.childMenu)"}
+                                    {if condition="$menu.hasChild == 1"}
                                     {foreach $menu.childMenu as $k => $secondMenu}
                                         <tr>
                                             {if condition="$k eq 0"}
@@ -69,9 +68,18 @@
                                             </td>
                                         </tr>
                                     {/foreach}
+                                    {else}
+                                    <tr>
+                                        <td>
+                                            <div class="checkbox i-checks">
+                                                <input type="checkbox" {if condition='in_array($menu.menu_id,$checkMenuList)'}checked{/if} name="firstMenu[]" id="firstMenu_{$menu.menu_id}" value="{$menu.menu_id}"> <i></i> {$menu.menu_name}</label>
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
                                     {/if}
                                 {/foreach}
-                            {/if}
                             </tbody>
                         </table>
                         <div class="checkbox i-checks all-check">

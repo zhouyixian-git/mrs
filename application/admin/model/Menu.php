@@ -76,7 +76,11 @@ class Menu extends Model
         foreach ($menus as $k => $v) {
             $childMenu = $this->getMenuList($v['menu_id']);
             if ($childMenu) {
+                $menus[$k]['hasChild'] = '1';
                 $menus[$k]['childMenu'] = $childMenu;
+            } else {
+                $menus[$k]['hasChild'] = '0';
+                $menus[$k]['childMenu'] = [];
             }
         }
         return $menus;
