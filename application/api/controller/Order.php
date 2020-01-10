@@ -174,7 +174,8 @@ class Order extends Base
 
         $order = Db::table('mrs_orders')
             ->field(array('order_id','order_sn','pay_order_sn','consignee','telephone','province_name','city_name','district_name','city_name','town_name','address','courier_company','courier_number','shipping_time','confirm_time','order_status','pay_status','shipping_status','refund_status','sales_status','accept_status','shipping_amount','integral_amount','cash_amount','create_time'))
-            ->find($order_id);
+            ->where(array('order_id' => $order_id))
+            ->find();
 
         if(!empty($order)){
             $where = [];
@@ -205,7 +206,8 @@ class Order extends Base
         $order_id = intval($request->post('order_id'));
 
         $order = Db::table('mrs_orders')
-            ->find($order_id);
+            ->where(array('order_id' => $order_id))
+            ->find();
 
         if(empty($order)){
             $result = $this->errorJson(1, '找不到对应的订单信息');
@@ -240,13 +242,21 @@ class Order extends Base
     public function getcrerateorderinfo(Request $request){
         $user_id = intval($request->post('user_id'));
         $cart_ids = $request->post('cart_ids');
+        $goods_id = $request->post('goods_id');
 
-        if(empty($cart_ids)){
-            $result = $this->errorJson(1, '缺少关键参数$cart_ids');
+//        $cart_ids = '10,9,8,6';
+//        $user_id = '2';
+//        $user_id = 1;
+//        $goods_id = '33';
+
+        if(empty($cart_ids) && empty($goods_id)){
+            $result = $this->errorJson(1, '缺少关键参数$cart_ids、$goods_id');
             echo $result;
             exit;
         }
-        $cart_ids = explode(',',$cart_ids);
+        if(!empty($cart_ids)){
+            $cart_ids = explode(',',$cart_ids);
+        }
 
         if(empty($user_id)){
             $result = $this->errorJson(1, '缺少关键参数$user_id');
@@ -268,15 +278,28 @@ class Order extends Base
         $data['shipping_price'] = 0;
         $data['goodslist'] = array();
 
-        if(is_array($cart_ids) && count($cart_ids) > 0){
+        if(is_array($cart_ids) && count($cart_ids) > 0 && !empty($cart_ids)){
             foreach ($cart_ids as $v){
                 $cart = Db::table('mrs_carts')
-                    ->field(array('goods_name','goods_image','goods_price','goods_num'))
-                    ->find($v);
+                    ->where(array('cart_id' => $v))
+                    ->field(array('goods_id','goods_name','goods_image','goods_price','goods_num'))
+                    ->find();
 
-                $data['discount_price'] += $cart['goods_price'] * $cart['goods_num'];
+                $cart['goods_image'] = SERVER_HOST.$cart['goods_image'];
+
+                $data['total_goods_price'] += $cart['goods_price'] * $cart['goods_num'];
                 $data['goodslist'][] = $cart;
             }
+        }else{
+            $goods = Db::table('mrs_goods')->field(array('goods_id','goods_name','goods_img','goods_price'))->where(array('goods_id' => $goods_id))->find();
+
+            $data['total_goods_price'] = $goods['goods_price'];
+            $goods['goods_num'] = 1;
+            $goods['goods_image'] = SERVER_HOST.$goods['goods_img'];
+
+            unset($goods['goods_img']);
+
+            $data['goodslist'][] = $goods;
         }
 
         $result = $this->successJson($data);
@@ -289,19 +312,25 @@ class Order extends Base
         $user_id = intval($request->post('user_id'));
         $address_id = intval($request->post('address_id'));
         $cart_ids = $request->post('cart_ids');
+        $goods_id = $request->post('goods_id');
+        $goods_num = $request->post('goods_num');
         $order_remark = $request->post('order_remark');
 
-        $address_id= '1';
-        $cart_ids = '1';
-        $user_id = '1';
-        $order_remark = '测试造数据';
+//        $address_id= '1';
+//        $user_id = '1';
+//        $order_remark = '测试造数据';
+//        $goods_id=8;
 
-        if(empty($cart_ids)){
-            $result = $this->errorJson(1, '缺少关键参数$cart_ids');
+        $goods_num = empty($goods_num)?1:$goods_num;
+
+        if(empty($cart_ids) && empty($goods_id)){
+            $result = $this->errorJson(1, '缺少关键参数$cart_ids、$goods_id');
             echo $result;
             exit;
         }
-        $cart_ids = explode(',',$cart_ids);
+        if(!empty($cart_ids)){
+            $cart_ids = explode(',',$cart_ids);
+        }
 
         if(empty($user_id)){
             $result = $this->errorJson(1, '缺少关键参数$user_id');
@@ -315,10 +344,12 @@ class Order extends Base
             exit;
         }
         $address = Db::table('mrs_user_address')
-            ->find($address_id);
+            ->where(array('address_id' => $address_id))
+            ->find();
 
         $user = Db::table('mrs_user')
-            ->find($user_id);
+            ->where(array('user_id' => $user_id))
+            ->find();
 
         $carts = array();
         $order_amount = 0;
@@ -326,11 +357,17 @@ class Order extends Base
             foreach ($cart_ids as $v){
                 $cart = Db::table('mrs_carts')
                     ->field(array('goods_id','goods_name','goods_image','goods_price','goods_num'))
-                    ->find($v);
+                    ->where(array('cart_id' => $v))
+                    ->find();
 
                 $order_amount = $cart['goods_price'] * $cart["goods_num"];
                 $carts[] = $cart;
             }
+        }else{
+            $goods = Db::table('mrs_goods')
+                ->where(array('goods_id' => $goods_id))
+                ->find();
+            $order_amount = $goods['goods_price'] * $goods_num;
         }
 
         $order_sn = date('YmdHis', time()).rand(100000,999999);
@@ -380,6 +417,17 @@ class Order extends Base
                     'goods_price' => $v['goods_price']
                 ];
             }
+        }else{
+            $orderGoodsData[] = [
+                'order_id' => $order_id,
+                'goods_id' => $goods['goods_id'],
+                'goods_name' => $goods['goods_name'],
+                'goods_num' => $goods_num,
+                'goods_m_list_image' => $goods['goods_image'],
+                'user_id' => $user_id,
+                'user_name'=>$user['user_name'],
+                'goods_price' => $goods['goods_price']
+            ];
         }
         $res = Db::table('mrs_order_goods')->insertAll($orderGoodsData);
 
@@ -440,7 +488,8 @@ class Order extends Base
             exit;
         }
         $order = Db::table('mrs_orders')
-        ->find($order_id);
+        ->where(array('order_id' => $order_id))
+        ->find();
         if(empty($order)){
             $result = $this->errorJson(1, '没有找到对应的订单信息');
             echo $result;

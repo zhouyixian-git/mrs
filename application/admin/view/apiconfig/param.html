@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>接口参数配置</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        .col-sm-1{width: auto;}
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+
+                <div class="ibox-title">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/apiconfig/param')}">
+                        <div class="form-group">
+                            <div>
+                                {if condition="in_array('api_param_add',$loginAdmin.buttonData)"}
+                                <button style="margin-left:20px;" type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'apiconfig/addparam\')}?api_id={$api_id}'">新增</button>
+                                {/if}
+                                <button style="margin-left:20px;" type="button"class="btn btn-sm btn-primary" onclick="window.history.go(-1);">返回</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="ibox-content">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th style="width: 150px;">操作</th>
+                            <th>参数名称</th>
+                            <th>参数编码</th>
+                            <th>参数描述</th>
+                            <th>参数值</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {volist name="apiParamList" id="paramInfo"}
+                            <tr>
+                                <td>
+                                    {if condition="in_array('api_param_update',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="toEdit({$paramInfo.param_id})" class="btn btn-sm btn-primary">修改</button>
+                                    {/if}
+                                    {if condition="in_array('api_param_delete',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="delParam({$paramInfo.param_id})" class="btn btn-sm btn-danger">删除</button>
+                                    {/if}
+                                </td>
+                                <td>{$paramInfo.param_name}</td>
+                                <td>{$paramInfo.param_code}</td>
+                                <td>{$paramInfo.param_desc}</td>
+                                <td>{$paramInfo.param_value}</td>
+                            </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                    {$apiParamList|raw}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+
+<!-- Page-Level Scripts -->
+<script>
+    function toEdit(param_id){
+        window.location.href = "{:url('admin/apiconfig/updateparam')}?param_id=" + param_id;
+    }
+
+    function delParam(param_id){
+        layer.confirm('是否确定删除该参数信息？', {
+            btn: ['删除 ','我再想想'] //按钮
+        }, function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('admin/apiconfig/deleteparam')}" ,
+                data: {'param_id': param_id},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg("删除成功", {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            window.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        }, function(){
+        });
+    }
+
+</script>
+
+</body>
+
+</html>

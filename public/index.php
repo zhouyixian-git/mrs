@@ -19,5 +19,7 @@ define('PUBLIC_PATH', __DIR__.'/../public');
 
 // 支持事先使用静态方法设置Request对象和Config对象
 
+define ('SERVER_HOST', 'http://'.$_SERVER['HTTP_HOST']);
+
 // 执行应用并响应
 Container::get('app')->run()->send();

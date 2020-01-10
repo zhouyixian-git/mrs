@@ -45,12 +45,16 @@ class Wechat extends Base
             if (!empty($result_json['openid'])) {
                 $openid = $result_json['openid'];
                 $userInfo = \app\api\Model\User::where(['open_id' => $openid])->find();
+
+                $address = Db::table('mrs_user_address')->where(array('user_id' => $userInfo['user_id']))->order('is_default')->find();
+
                 if ($userInfo) { //返回用户信息
                     $data['isauth'] = 1;
                     if (!empty($userInfo['face_img'])) {
                         $userInfo['face_img'] = config('domain') . $userInfo['face_img'];
                     }
                     $data['userInfo'] = $userInfo;
+                    $data['address'] = $address;
 
                     echo $this->successJson($data);
                     exit;

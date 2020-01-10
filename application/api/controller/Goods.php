@@ -121,6 +121,14 @@ class Goods extends Base
             $goods['cart_count'] = $cart_count;
             $goods['goods_img_list'] = $goodsimgList;
 
+            //判断是否已在购物车
+            $is_exists = Db::table("mrs_carts")->where(array('user_id' => $user_id, 'goods_id' => $goods_id))->find();
+            if(empty($is_exists)){
+                $goods['is_incart'] = 0;
+            }else{
+                $goods['is_incart'] = 1;
+            }
+
             if ($goods) {
                 echo $this->successJson($goods);
                 exit;
