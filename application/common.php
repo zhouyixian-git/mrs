@@ -27,6 +27,12 @@ function recordLog($log_content= 'test',$log_file='log.txt')
     file_put_contents($filename, $content);
 }
 
+/**
+ * 发送验证码通用方法
+ * @param $phone
+ * @param $tpl_code
+ * @return false|mixed|SimpleXMLElement|string|void
+ */
 function sendSms($phone, $tpl_code){
 
     $accessKeyId = '';
@@ -39,20 +45,29 @@ function sendSms($phone, $tpl_code){
         return errorJson('1', 'Not found the sms api!');
     }
     $smsTpl= Db::table('mrs_sms_tpl')->where(array('tpl_code' => $tpl_code))->find();
-    if(empty($smsApi)){
+    if(empty($smsTpl)){
         return errorJson('1', 'Not found the sms template!');
     }
 
+    //生成验证码
     $code = rand(100000, 999999);
 
+    //生成短信记录
     $patterns = array();
     $replacements = array();
     $patterns[] = '/{code}/';
     $replacements[] = $code;
     $content = preg_replace($patterns, $replacements, $smsTpl['tpl_content']);
 
-    var_dump($content);
-    exit;
+    $smsRecordData = array();
+    $smsRecordData['phone'] = $phone;
+    $smsRecordData['code'] = $code;
+    $smsRecordData['sms_content'] = $content;
+    $smsRecordData['valid_date'] = time() + 10*60;
+    $smsRecordData['is_use'] = '0';
+    $smsRecordData['record_time'] = time();
+
+    $record_id = Db::table('mrs_sms_record')->insert($smsRecordData);
 
     $params = Db::table('mrs_api_params')->where(array('api_id' => $smsApi['api_id']))->select();
     if(is_array($params) && count($params)){
@@ -70,11 +85,6 @@ function sendSms($phone, $tpl_code){
     if(empty($accessKeyId) || empty($accessSecret) || empty($sign)){
         return errorJson('1', '配置参数缺失!');
     }
-
-    echo '$accessKeyId->'.$accessKeyId;
-    echo '$accessSecret->'.$accessSecret;
-    echo '$sign->'.$sign;
-    exit;
 
     //引进阿里的配置文件
 //    Vendor('api_sdk.vendor.autoload');
@@ -95,7 +105,7 @@ function sendSms($phone, $tpl_code){
     // 必填，设置签名名称
     $request->setSignName($sign);
     // 必填，设置模板CODE
-    $request->setTemplateCode($code2);
+    $request->setTemplateCode($smsTpl['aliyun_code']);
     $params = array(
         'code' => $code,
     );

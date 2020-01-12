@@ -12,13 +12,12 @@ class Index extends Base
     }
 
     // 短信测试接口
-//    public function smsdemo()
-//    {
-//        $data['mobile'] = '18813974700';
-//        $data['code'] = '888888';
-//        $data['code2'] = 'SMS_176995151';   // 模板ID
-//        $result = sendSms($data['mobile'],$data['code'], $data['code2']);
-//
+    public function smsdemo()
+    {
+        $data['mobile'] = '18813974700';
+        $data['tpl_code'] = 'sms_vcode';   // 模板ID
+//        $result = sendSms($data['mobile'],$data['tpl_code']);
+
 //        var_dump($result);
-//    }
+    }
 }
