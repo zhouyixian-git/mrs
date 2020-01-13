@@ -154,3 +154,49 @@ function errorJson($errcode = 1, $message = 'error')
     $result['msg'] = $message;
     return json_encode($result);
 }
+
+
+/**提交POST的HTTP请求，并返回结果
+ * @param $url
+ * @param $post_string
+ * @return mixed
+ */
+function doPostHttp($url, $post, $cookie = '', $cookiejar = '', $referer = '',$timeout = 60) {
+    $tmpInfo = '';
+    $cookiepath = getcwd().'./'.$cookiejar;
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_USERAGENT, isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '');
+    if($referer) {
+        curl_setopt($curl, CURLOPT_REFERER, $referer);
+    } else {
+        curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
+    }
+    if($post) {
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+    }
+    if($cookie) {
+        curl_setopt($curl, CURLOPT_COOKIE, $cookie);
+    }
+    if($cookiejar) {
+        curl_setopt($curl, CURLOPT_COOKIEJAR, $cookiepath);
+        curl_setopt($curl, CURLOPT_COOKIEFILE, $cookiepath);
+    }
+    //允许跳转访问
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($curl, CURLOPT_TIMEOUT,$timeout);
+    curl_setopt($curl, CURLOPT_HEADER, 0);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+//        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/json; charset=utf-8","Content-Length:".strlen($post)));
+
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+//            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+
+    $tmpInfo = curl_exec($curl);
+    if (curl_errno($curl)) {
+        return curl_error($curl);
+    }
+    curl_close($curl);
+    return $tmpInfo;
+}
