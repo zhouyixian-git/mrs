@@ -34,7 +34,7 @@ class User extends Base
 
             $addressList = Db::table('mrs_user_address')
                 ->where('user_id', '=', $user_id)
-                ->field('address_id,consignee,telephone,province_name,city_name,district_name,address,is_default')
+                ->field('address_id,consignee,telephone,province_name,city_name,district_name,areainfo,address,is_default')
                 ->order('is_default asc,create_time desc')
                 ->select();
 
@@ -61,9 +61,10 @@ class User extends Base
             $data['consignee'] = $request->post('consignee');
             $data['telephone'] = $request->post('telephone');
             $data['zip_code'] = $request->post('zip_code');
-            $data['province_name'] = $request->post('province_name');
+            /*$data['province_name'] = $request->post('province_name');
             $data['city_name'] = $request->post('city_name');
-            $data['district_name'] = $request->post('district_name');
+            $data['district_name'] = $request->post('district_name');*/
+            $data['areainfo'] = $request->post('areainfo');
             $data['address'] = $request->post('address');
             $data['remark'] = $request->post('remark');
             $data['is_default'] = $request->post('is_default');
@@ -80,8 +81,12 @@ class User extends Base
                 echo $this->errorJson(1, '请填写手机号码信息');
                 exit;
             }
-            if (empty($data['province_name']) || empty($data['city_name']) || empty($data['district_name'])) {
-                echo $this->errorJson(1, '请填写手机号码信息');
+            /*if (empty($data['province_name']) || empty($data['city_name']) || empty($data['district_name'])) {
+                echo $this->errorJson(1, '请填写地区信息');
+                exit;
+            }*/
+            if (empty($data['areainfo'])) {
+                echo $this->errorJson(1, '请填写地区信息');
                 exit;
             }
             if (empty($data['address'])) {
@@ -113,10 +118,11 @@ class User extends Base
             $data['consignee'] = $request->post('consignee');
             $data['telephone'] = $request->post('telephone');
             $data['zip_code'] = $request->post('zip_code');
-            $data['province_name'] = $request->post('province_name');
+            /*$data['province_name'] = $request->post('province_name');
             $data['city_name'] = $request->post('city_name');
-            $data['district_name'] = $request->post('district_name');
+            $data['district_name'] = $request->post('district_name');*/
             $data['address'] = $request->post('address');
+            $data['areainfo'] = $request->post('areainfo');
             $data['remark'] = $request->post('remark');
             $data['is_default'] = $request->post('is_default');
 
@@ -132,8 +138,12 @@ class User extends Base
                 echo $this->errorJson(1, '请填写手机号码信息');
                 exit;
             }
-            if (empty($data['province_name']) || empty($data['city_name']) || empty($data['district_name'])) {
-                echo $this->errorJson(1, '请填写手机号码信息');
+            /*if (empty($data['province_name']) || empty($data['city_name']) || empty($data['district_name'])) {
+                echo $this->errorJson(1, '请填写地区信息');
+                exit;
+            }*/
+            if (empty($data['areainfo'])) {
+                echo $this->errorJson(1, '请填写地区信息');
                 exit;
             }
             if (empty($data['address'])) {
@@ -610,5 +620,19 @@ class User extends Base
             echo $this->successJson();
             exit;
         }
+    }
+
+    /**
+     * @param Request $request
+     * @searchkey 搜索地址
+     */
+    public function getpostcode(Request $request){
+        $searchkey = $request->get('searchkey');
+
+        $url = 'http://cpdc.chinapost.com.cn/web/index.php?m=postsearch&c=index&a=ajax_addr&searchkey='.$searchkey;
+
+        $result = doPostHttp($url, '');
+        echo $result;
+        exit;
     }
 }
