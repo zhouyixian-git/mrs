@@ -22,7 +22,7 @@ function recordLog($log_content= 'test',$log_file='log.txt')
     $content = "[". date('Y-m-d H:i:s') ."]".$log_content;
     if(file_exists($filename)){
         $last_content = file_get_contents($filename);
-        $content = $last_content."\r\n".$content ;
+        $content = $last_content."\r\n".$content;
     }
     file_put_contents($filename, $content);
 }
@@ -123,6 +123,22 @@ function sendSms($phone, $tpl_code){
 
 }
 
+
+//function connectModbus(){
+//
+//    ini_set('memory_limit',"88M");//重置php可以使用的内存大小为64M
+//    set_time_limit(0);
+//    ob_implicit_flush(1);
+//    include('../extend/Ohsce/loadohsce.php');
+//
+//    Ohsce_eng_serial_creat($hscecom,"com7"); //OHSCE会默认为你创建一个 9600,n,8,1 写读的串口资源
+//    Ohsce_eng_serial_open($hscecom); //一旦通过该函数成功开启了串口，此串口就被OHSCE进程占用了 此时串口资源变为可用状态
+//    Ohsce_eng_serial_write($hscecom,"01030001000415c9",true);//向串口设备发送数据 以16进制发送
+//    Ohsce_eng_serial_read($hscecom,$data,null,true); // 读取串口数据 返回数据长度为未知 以16进制返回
+//    echo $data; //输出数据
+//    sleep(30);
+//
+//}
 
 
 /**

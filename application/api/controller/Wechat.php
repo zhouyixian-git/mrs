@@ -39,7 +39,10 @@ class Wechat extends Base
             $appsecret = $wechatInfo['app_secret'];
 
             $requestUrl = "https://api.weixin.qq.com/sns/jscode2session?appid=$appid&js_code=$code&grant_type=authorization_code&secret=$appsecret";
+            recordLog('requestUrl-->'.$requestUrl, 'wechat.txt');
+
             $result_json_str = file_get_contents($requestUrl);
+            recordLog('$result_json_str-->'.$result_json_str, 'wechat.txt');
             $result_json = json_decode($result_json_str, true);
 
             if (!empty($result_json['openid'])) {
@@ -90,7 +93,7 @@ class Wechat extends Base
                 }
 
             } else {
-                echo $this->errorJson(1, '获取用户信息异常');
+                echo $this->errorJson(1, '获取用户信息异常:'.$result_json['errmsg']);
                 exit;
             }
         }
