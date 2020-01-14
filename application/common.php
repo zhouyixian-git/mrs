@@ -119,7 +119,7 @@ function sendSms($phone, $tpl_code){
     $acsResponse = $acsClient->getAcsResponse($request);
     // 打印请求结果
 
-    return $acsResponse;
+    return successJson();
 
 }
 

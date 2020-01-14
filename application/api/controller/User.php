@@ -635,4 +635,74 @@ class User extends Base
         echo $result;
         exit;
     }
+
+    public function sendvcode(Request $request){
+        $phone = $request->post("phone");
+        if(!preg_match("/^1[3456789]{1}\d{9}$/",$phone)){
+            echo errorJson('1','请输入正确的电话');
+            exit;
+        }
+
+        $tpl_code = 'sms_vcode';
+        echo sendSms($phone, 'sms_vcode');
+
+        return;
+    }
+
+    public function userlogin(Request $request){
+        $phone = $request->post("phone");
+
+        if(!preg_match("/^1[3456789]{1}\d{9}$/",$phone)){
+            echo errorJson('1','请输入正确的电话');
+            exit;
+        }
+
+        $login_type = $request->post("login_type");
+        $vcode = $request->post("vcode");
+        $password = $request->post("password");
+
+        if($login_type == 1 && empty($vcode)){
+            echo errorJson('1','请输入验证码');
+            exit;
+        }elseif($login_type == 2 && empty($password)){
+            echo errorJson('1','请输入密码');
+            exit;
+        }
+
+        //验证码登录
+        if($login_type == 1){
+            $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone,'vcode' => $vcode))->order('record_time desc')->find();
+            if(empty($smsRecord)){
+                echo errorJson('1','验证码不正确');
+                exit;
+            }else if($smsRecord['is_use'] == 1){
+                echo errorJson('1','验证码已失效');
+                exit;
+            }else if($smsRecord['valid_date'] < time()){
+                echo errorJson('1','验证码已失效');
+                exit;
+            }
+
+            $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
+            if(empty($user)){
+                $userData = array();
+                $userData['phone_no'] = $phone;
+                $userData['status'] = 1;
+                $userData['create_time'] = time();
+                Db::table('mrs_user')->insert($userData);
+                $user_id = Db::table("mrs_user")->getLastInsID();
+                $userData['user_id'] = $user_id;
+
+
+            }
+
+
+
+
+
+
+        }
+
+
+    }
 }
