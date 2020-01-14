@@ -138,6 +138,7 @@ class Order extends Base
 
             $orders = $result["data"];
             $orderInfo = array();
+            $domain = config('domain');
             if(is_array($orders) && count($orders) > 0){
                 foreach ($orders as $k=>$order){
                     $where = [];
@@ -145,6 +146,11 @@ class Order extends Base
                     $goodsList = Db::table('mrs_order_goods')
                         ->field(array('goods_name','goods_num','goods_m_list_image','goods_price'))
                         ->where($where)->select();
+
+                    foreach ($goodsList as $k => $v){
+                        $goodsList[$k]['goods_m_list_image'] = $domain . $v['goods_m_list_image'];
+                    }
+
                     $orders[$k]['goods'] = $goodsList;
 
                     //创建时间格式化
@@ -152,7 +158,7 @@ class Order extends Base
                 }
             }
             $data = array();
-            $data['total_page'] = $result['total'];
+            $data['total_page'] = $result['last_page'];
             $data['orders'] = $orders;
             $result = $this->successJson($data);
 
@@ -178,11 +184,17 @@ class Order extends Base
             ->find();
 
         if(!empty($order)){
+            $domain = config('domain');
             $where = [];
             $where[] = ['order_id', '=', $order['order_id']];
             $goodsList = Db::table('mrs_order_goods')
                 ->field(array('goods_name','goods_num','goods_m_list_image','goods_price'))
                 ->where($where)->select();
+
+            foreach ($goodsList as $k => $v){
+                $goodsList[$k]['goods_m_list_image'] = $domain . $v['goods_m_list_image'];
+            }
+
             $order['goods'] = $goodsList;
 
             //时间格式化
@@ -269,7 +281,7 @@ class Order extends Base
         $where[] = ['user_id', '=', $user_id];
         $address = Db::table('mrs_user_address')
             ->where($where)
-            ->field(array('consignee','telephone','province_name','city_name','district_name','address'))
+            ->field(array('consignee','telephone','province_name','city_name','district_name','areainfo','address'))
             ->find();
         $data['address'] = $address;
 
@@ -401,7 +413,8 @@ class Order extends Base
         $orderData['order_remark'] = $order_remark;
 
         Db::startTrans();
-        $order_id = Db::table('mrs_orders')->insert($orderData);
+        Db::table('mrs_orders')->insert($orderData);
+        $order_id = Db::table('mrs_orders')->getLastInsID();
 
         $orderGoodsData = array();
         if(is_array($carts) && count($carts)){

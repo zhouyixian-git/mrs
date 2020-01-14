@@ -8,6 +8,7 @@
 
 namespace app\api\controller;
 
+use think\Db;
 use think\Request;
 
 class Wechat extends Base
