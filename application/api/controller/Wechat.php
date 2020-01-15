@@ -32,7 +32,7 @@ class Wechat extends Base
 
             $wechatModel = new \app\api\model\Wechat();
             $wechatInfo = $wechatModel->getWechatInfo();
-            if(empty($wechatInfo)){
+            if (empty($wechatInfo)) {
                 echo $this->errorJson(1, '小程序未绑定');
                 exit;
             }
@@ -40,10 +40,10 @@ class Wechat extends Base
             $appsecret = $wechatInfo['app_secret'];
 
             $requestUrl = "https://api.weixin.qq.com/sns/jscode2session?appid=$appid&js_code=$code&grant_type=authorization_code&secret=$appsecret";
-            recordLog('requestUrl-->'.$requestUrl, 'wechat.txt');
+            recordLog('requestUrl-->' . $requestUrl, 'wechat.txt');
 
             $result_json_str = file_get_contents($requestUrl);
-            recordLog('$result_json_str-->'.$result_json_str, 'wechat.txt');
+            recordLog('$result_json_str-->' . $result_json_str, 'wechat.txt');
             $result_json = json_decode($result_json_str, true);
 
             if (!empty($result_json['openid'])) {
@@ -94,7 +94,7 @@ class Wechat extends Base
                 }
 
             } else {
-                echo $this->errorJson(1, '获取用户信息异常:'.$result_json['errmsg']);
+                echo $this->errorJson(1, '获取用户信息异常:' . $result_json['errmsg']);
                 exit;
             }
         }
@@ -111,7 +111,7 @@ class Wechat extends Base
     {
         if ($request->isPost()) {
             $user_id = $request->post('user_id');
-            $data['nick_name']= $request->post('nick_name');
+            $data['nick_name'] = $request->post('nick_name');
             $data['head_img'] = $request->post('head_img');
             $data['sex'] = $request->post('sex');
 
@@ -121,7 +121,7 @@ class Wechat extends Base
             }
 
             $userInfo = \app\api\model\User::where(['user_id' => $user_id])->find();
-            if(!$userInfo){
+            if (!$userInfo) {
                 echo $this->errorJson(1, '未找到用户信息');
                 exit;
             }
@@ -137,4 +137,45 @@ class Wechat extends Base
         }
     }
 
+    //支付回调
+    public function paynotice()
+    {
+        $param = file_get_contents('php://input');
+        $wechatModel = new \app\api\model\Wechat();
+        $data = $wechatModel->xmlToArray($param);
+        if (!empty($data['out_trade_no'])) {
+            $this->paysuccess($data['out_trade_no']);
+        }
+        echo '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+    }
+
+    //支付成功
+    public function paysuccess($pay_order_sn)
+    {
+        $wechatModel = new \app\api\model\Wechat();
+        $result = $wechatModel->queryOrder($pay_order_sn);
+        if ($result['code'] == 1) {
+            Db::startTrans();
+
+            try {
+                $time = time();
+                $payData['pay_time'] = $time;
+                $payData['is_pay'] = 1;
+                Db::table('mrs_order_pay_record')->where('wc_order_id', '=', $pay_order_sn)->update($payData);
+
+                $orderData['order_status'] = 2;
+                $orderData['pay_status'] = 2;
+                $orderData['shipping_status'] = 1;
+                $orderData['refund_status'] = 1;
+                $orderData['sales_status'] = 1;
+                $orderData['accept_status'] = 0;
+                $orderData['accept_status'] = 0;
+                $orderData['pay_time'] = $time;
+                Db::table('mrs_orders')->where('pay_order_sn', '=', $pay_order_sn)->update($orderData);
+                Db::commit();
+            } catch (Exception $e) {
+                Db::rollback();
+            }
+        }
+    }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace app\api\controller;
 
 use think\Db;
@@ -11,7 +12,7 @@ class Order extends Base
 
     public function index()
     {
-        recordLog('testContent','test.txt');
+        recordLog('testContent', 'test.txt');
         echo 'api->index';
 //        return '<style type="text/css">*{ padding: 0; margin: 0; } div{ padding: 4px 48px;} a{color:#2E5CD5;cursor: pointer;text-decoration: none} a:hover{text-decoration:underline; } body{ background: #fff; font-family: "Century Gothic","Microsoft yahei"; color: #333;font-size:18px;} h1{ font-size: 100px; font-weight: normal; margin-bottom: 12px; } p{ line-height: 1.6em; font-size: 42px }</style><div style="padding: 24px 48px;"> <h1>:) </h1><p> ThinkPHP V5.1<br/><span style="font-size:30px">12载初心不改（2006-2018） - 你值得信赖的PHP框架</span></p></div><script type="text/javascript" src="https://tajs.qq.com/stats?sId=64890268" charset="UTF-8"></script><script type="text/javascript" src="https://e.topthink.com/Public/static/client.js"></script><think id="eab4b9f840753f8e7"></think>';
     }
@@ -20,14 +21,15 @@ class Order extends Base
      * @param Request $request
      * $user_id 用户ID
      */
-    public function getordernum(Request $request){
-        try{
+    public function getordernum(Request $request)
+    {
+        try {
             $user_id = $request->post('user_id');
 
             $where = [];
             if (!empty($user_id)) {
                 $where[] = ['user_id', '=', $user_id];
-            }else{
+            } else {
                 $result = $this->errorJson(1, '功能异常，请稍后重试');
                 echo $result;
                 exit;
@@ -72,7 +74,7 @@ class Order extends Base
             $result = $this->successJson($data);
 
             echo $result;
-        }catch(Exception $e){
+        } catch (Exception $e) {
             $result = $this->errorJson(1, '功能异常，请稍后重试');
             echo $result;
             exit;
@@ -89,120 +91,119 @@ class Order extends Base
      * $page 所查询的当前页
      * $query_type 查询类型（1:所有订单；2：待付款；3：待收货；4：已完成；5:退款/售后订单）
      */
-    public function getorders(Request $request){
-            $user_id = $request->post('user_id');
-            $page = $request->post('page');
-            $query_type = $request->post('query_type');
+    public function getorders(Request $request)
+    {
+        $user_id = $request->post('user_id');
+        $page = $request->post('page');
+        $query_type = $request->post('query_type');
 
-            $where = [];
-            if (!empty($user_id)) {
-                $where[] = ['user_id', '=', $user_id];
-            }
-            else{
-                $result = $this->errorJson(1, '缺少关键参数user_id');
-                echo $result;
-                exit;
-            }
-            if(empty($query_type)){
-                $query_type = 1;
-            }
-
-            switch ($query_type){
-                case '2':
-                    $where[] = ['order_status', '=', 1];
-                    break;
-                case '3':
-                    $where[] = ['order_status', 'in', '2,3'];
-                    break;
-                case '4':
-                    $where[] = ['order_status', '=', 4];
-                    break;
-                case '5':
-                    $where[] = ['refund_status*sales_status', '>', '1'];
-                    break;
-            }
-
-            if(empty($page)){
-                $page = 1;
-            }
-
-            $orderList = Db::table('mrs_orders')
-                ->field(array('order_id','order_sn','order_status','pay_status','shipping_status','refund_status','sales_status','accept_status','shipping_amount','integral_amount','cash_amount','create_time'))
-                ->where($where)
-                ->order('create_time desc')
-                ->paginate($this->prepage, false, ['type' => 'page\Page', 'var_page' => 'page','page' => $page])
-            ;
-
-            $json = json_encode($orderList);
-            $result = @json_decode($json, true);
-
-            $orders = $result["data"];
-            $orderInfo = array();
-            $domain = config('domain');
-            if(is_array($orders) && count($orders) > 0){
-                foreach ($orders as $k=>$order){
-                    $where = [];
-                    $where[] = ['order_id', '=', $order['order_id']];
-                    $goodsList = Db::table('mrs_order_goods')
-                        ->field(array('goods_name','goods_num','goods_m_list_image','goods_price'))
-                        ->where($where)->select();
-
-                    foreach ($goodsList as $k => $v){
-                        $goodsList[$k]['goods_m_list_image'] = $domain . $v['goods_m_list_image'];
-                    }
-
-                    $orders[$k]['goods'] = $goodsList;
-
-                    //创建时间格式化
-                    $orders[$k]['create_time'] = empty($order['create_time'])?'':date('Y-m-d H:i:s', $order['create_time']);
-                }
-            }
-            $data = array();
-            $data['total_page'] = $result['last_page'];
-            $data['orders'] = $orders;
-            $result = $this->successJson($data);
-
+        $where = [];
+        if (!empty($user_id)) {
+            $where[] = ['user_id', '=', $user_id];
+        } else {
+            $result = $this->errorJson(1, '缺少关键参数user_id');
             echo $result;
+            exit;
+        }
+        if (empty($query_type)) {
+            $query_type = 1;
+        }
+
+        switch ($query_type) {
+            case '2':
+                $where[] = ['order_status', '=', 1];
+                break;
+            case '3':
+                $where[] = ['order_status', 'in', '2,3'];
+                break;
+            case '4':
+                $where[] = ['order_status', '=', 4];
+                break;
+            case '5':
+                $where[] = ['refund_status*sales_status', '>', '1'];
+                break;
+        }
+
+        if (empty($page)) {
+            $page = 1;
+        }
+
+        $orderList = Db::table('mrs_orders')
+            ->field(array('order_id', 'order_sn', 'order_status', 'pay_status', 'shipping_status', 'refund_status', 'sales_status', 'accept_status', 'shipping_amount', 'integral_amount', 'cash_amount', 'create_time'))
+            ->where($where)
+            ->order('create_time desc')
+            ->paginate($this->prepage, false, ['type' => 'page\Page', 'var_page' => 'page', 'page' => $page]);
+
+        $json = json_encode($orderList);
+        $result = @json_decode($json, true);
+
+        $orders = $result["data"];
+        $orderInfo = array();
+        $domain = config('domain');
+        if (is_array($orders) && count($orders) > 0) {
+            foreach ($orders as $k => $order) {
+                $where = [];
+                $where[] = ['order_id', '=', $order['order_id']];
+                $goodsList = Db::table('mrs_order_goods')
+                    ->field(array('goods_name', 'goods_num', 'goods_m_list_image', 'goods_price'))
+                    ->where($where)->select();
+
+                foreach ($goodsList as $k => $v) {
+                    $goodsList[$k]['goods_m_list_image'] = $domain . $v['goods_m_list_image'];
+                }
+
+                $orders[$k]['goods'] = $goodsList;
+
+                //创建时间格式化
+                $orders[$k]['create_time'] = empty($order['create_time']) ? '' : date('Y-m-d H:i:s', $order['create_time']);
+            }
+        }
+        $data = array();
+        $data['total_page'] = $result['last_page'];
+        $data['orders'] = $orders;
+        $result = $this->successJson($data);
+
+        echo $result;
     }
 
-    public function getorderinfo(Request $request){
+    public function getorderinfo(Request $request)
+    {
         $order_id = intval($request->post('order_id'));
 
         $where = [];
         if (!empty($order_id)) {
             $where[] = ['order_id', '=', $order_id];
-        }
-        else{
+        } else {
             $result = $this->errorJson(1, '缺少关键参数order_id');
             echo $result;
             exit;
         }
 
         $order = Db::table('mrs_orders')
-            ->field(array('order_id','order_sn','pay_order_sn','consignee','telephone','province_name','city_name','district_name','city_name','town_name','address','courier_company','courier_number','shipping_time','confirm_time','order_status','pay_status','shipping_status','refund_status','sales_status','accept_status','shipping_amount','integral_amount','cash_amount','create_time'))
+            ->field(array('order_id', 'order_sn', 'pay_order_sn', 'consignee', 'telephone', 'province_name', 'city_name', 'district_name', 'city_name', 'town_name', 'address', 'courier_company', 'courier_number', 'shipping_time', 'confirm_time', 'order_status', 'pay_status', 'shipping_status', 'refund_status', 'sales_status', 'accept_status', 'shipping_amount', 'integral_amount', 'cash_amount', 'create_time'))
             ->where(array('order_id' => $order_id))
             ->find();
 
-        if(!empty($order)){
+        if (!empty($order)) {
             $domain = config('domain');
             $where = [];
             $where[] = ['order_id', '=', $order['order_id']];
             $goodsList = Db::table('mrs_order_goods')
-                ->field(array('goods_name','goods_num','goods_m_list_image','goods_price'))
+                ->field(array('goods_name', 'goods_num', 'goods_m_list_image', 'goods_price'))
                 ->where($where)->select();
 
-            foreach ($goodsList as $k => $v){
+            foreach ($goodsList as $k => $v) {
                 $goodsList[$k]['goods_m_list_image'] = $domain . $v['goods_m_list_image'];
             }
 
             $order['goods'] = $goodsList;
 
             //时间格式化
-            $order['create_time'] = empty($order['create_time'])?'':date('Y-m-d H:i:s', $order['create_time']);
-            $order['shipping_time'] = empty($order['shipping_time'])?'':date('Y-m-d H:i:s', $order['shipping_time']);
-            $order['confirm_time'] = empty($order['confirm_time'])?'':date('Y-m-d H:i:s', $order['confirm_time']);
+            $order['create_time'] = empty($order['create_time']) ? '' : date('Y-m-d H:i:s', $order['create_time']);
+            $order['shipping_time'] = empty($order['shipping_time']) ? '' : date('Y-m-d H:i:s', $order['shipping_time']);
+            $order['confirm_time'] = empty($order['confirm_time']) ? '' : date('Y-m-d H:i:s', $order['confirm_time']);
 
-        }else{
+        } else {
             $result = $this->errorJson(1, '找不到对应的订单信息');
             echo $result;
             exit;
@@ -214,20 +215,21 @@ class Order extends Base
         echo $result;
     }
 
-    public function confirmshipping(Request $request){
+    public function confirmshipping(Request $request)
+    {
         $order_id = intval($request->post('order_id'));
 
         $order = Db::table('mrs_orders')
             ->where(array('order_id' => $order_id))
             ->find();
 
-        if(empty($order)){
+        if (empty($order)) {
             $result = $this->errorJson(1, '找不到对应的订单信息');
             echo $result;
             exit;
         }
 
-        if($order['order_status'] != 3){
+        if ($order['order_status'] != 3) {
             $result = $this->errorJson(1, '该订单状态无法确认收货');
             echo $result;
             exit;
@@ -238,20 +240,21 @@ class Order extends Base
         $data['confirm_time'] = time();
 
         $res = Db::table('mrs_orders')->where('order_id', $order['order_id'])->update($data);
-        if($res){
+        if ($res) {
             $data = array();
 
             $result = $this->successJson($data);
             echo $result;
             exit;
-        }else{
+        } else {
             $result = $this->errorJson(1, '确认收货失败');
             echo $result;
             exit;
         }
     }
 
-    public function getcrerateorderinfo(Request $request){
+    public function getcrerateorderinfo(Request $request)
+    {
         $user_id = intval($request->post('user_id'));
         $cart_ids = $request->post('cart_ids');
         $goods_id = $request->post('goods_id');
@@ -261,16 +264,16 @@ class Order extends Base
 //        $user_id = 1;
 //        $goods_id = '33';
 
-        if(empty($cart_ids) && empty($goods_id)){
+        if (empty($cart_ids) && empty($goods_id)) {
             $result = $this->errorJson(1, '缺少关键参数$cart_ids、$goods_id');
             echo $result;
             exit;
         }
-        if(!empty($cart_ids)){
-            $cart_ids = explode(',',$cart_ids);
+        if (!empty($cart_ids)) {
+            $cart_ids = explode(',', $cart_ids);
         }
 
-        if(empty($user_id)){
+        if (empty($user_id)) {
             $result = $this->errorJson(1, '缺少关键参数$user_id');
             echo $result;
             exit;
@@ -281,7 +284,7 @@ class Order extends Base
         $where[] = ['user_id', '=', $user_id];
         $address = Db::table('mrs_user_address')
             ->where($where)
-            ->field(array('consignee','telephone','province_name','city_name','district_name','areainfo','address'))
+            ->field(array('consignee', 'telephone', 'province_name', 'city_name', 'district_name', 'areainfo', 'address'))
             ->find();
         $data['address'] = $address;
 
@@ -290,24 +293,24 @@ class Order extends Base
         $data['shipping_price'] = 0;
         $data['goodslist'] = array();
 
-        if(is_array($cart_ids) && count($cart_ids) > 0 && !empty($cart_ids)){
-            foreach ($cart_ids as $v){
+        if (is_array($cart_ids) && count($cart_ids) > 0 && !empty($cart_ids)) {
+            foreach ($cart_ids as $v) {
                 $cart = Db::table('mrs_carts')
                     ->where(array('cart_id' => $v))
-                    ->field(array('goods_id','goods_name','goods_image','goods_price','goods_num'))
+                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num'))
                     ->find();
 
-                $cart['goods_image'] = SERVER_HOST.$cart['goods_image'];
+                $cart['goods_image'] = SERVER_HOST . $cart['goods_image'];
 
                 $data['total_goods_price'] += $cart['goods_price'] * $cart['goods_num'];
                 $data['goodslist'][] = $cart;
             }
-        }else{
-            $goods = Db::table('mrs_goods')->field(array('goods_id','goods_name','goods_img','goods_price'))->where(array('goods_id' => $goods_id))->find();
+        } else {
+            $goods = Db::table('mrs_goods')->field(array('goods_id', 'goods_name', 'goods_img', 'goods_price'))->where(array('goods_id' => $goods_id))->find();
 
             $data['total_goods_price'] = $goods['goods_price'];
             $goods['goods_num'] = 1;
-            $goods['goods_image'] = SERVER_HOST.$goods['goods_img'];
+            $goods['goods_image'] = SERVER_HOST . $goods['goods_img'];
 
             unset($goods['goods_img']);
 
@@ -320,7 +323,8 @@ class Order extends Base
 
     }
 
-    public function createorder(Request $request){
+    public function createorder(Request $request)
+    {
         $user_id = intval($request->post('user_id'));
         $address_id = intval($request->post('address_id'));
         $cart_ids = $request->post('cart_ids');
@@ -329,24 +333,24 @@ class Order extends Base
         $order_remark = $request->post('order_remark');
         $open_id = $request->post('open_id');
 
-        $goods_num = empty($goods_num)?1:$goods_num;
+        $goods_num = empty($goods_num) ? 1 : $goods_num;
 
-        if(empty($cart_ids) && empty($goods_id)){
+        if (empty($cart_ids) && empty($goods_id)) {
             $result = $this->errorJson(1, '缺少关键参数$cart_ids、$goods_id');
             echo $result;
             exit;
         }
-        if(!empty($cart_ids)){
-            $cart_ids = explode(',',$cart_ids);
+        if (!empty($cart_ids)) {
+            $cart_ids = explode(',', $cart_ids);
         }
 
-        if(empty($user_id)){
+        if (empty($user_id)) {
             $result = $this->errorJson(1, '缺少关键参数$user_id');
             echo $result;
             exit;
         }
 
-        if(empty($address_id)){
+        if (empty($address_id)) {
             $result = $this->errorJson(1, '缺少关键参数$address_id');
             echo $result;
             exit;
@@ -361,29 +365,30 @@ class Order extends Base
 
         $carts = array();
         $order_amount = 0;
-        if(is_array($cart_ids) && count($cart_ids) > 0){
-            foreach ($cart_ids as $v){
+        if (is_array($cart_ids) && count($cart_ids) > 0) {
+            foreach ($cart_ids as $v) {
                 $cart = Db::table('mrs_carts')
-                    ->field(array('goods_id','goods_name','goods_image','goods_price','goods_num'))
+                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num'))
                     ->where(array('cart_id' => $v))
                     ->find();
 
                 $order_amount = $cart['goods_price'] * $cart["goods_num"];
                 $carts[] = $cart;
             }
-        }else{
+        } else {
             $goods = Db::table('mrs_goods')
                 ->where(array('goods_id' => $goods_id))
                 ->find();
             $order_amount = $goods['goods_price'] * $goods_num;
         }
 
-        $order_sn = date('YmdHis', time()).rand(100000,999999);
+        $order_sn = date('YmdHis', time()) . rand(100000, 999999);
+        $pay_order_sn = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
 
         $orderData = array();
         $orderData['order_sn'] = $order_sn;
         $orderData['user_id'] = $user_id;
-        $orderData['pay_order_sn'] = '';
+        $orderData['pay_order_sn'] = $pay_order_sn;
         $orderData['user_name'] = $user['user_name'];
         $orderData['order_status'] = '1';
         $orderData['pay_status'] = '1';
@@ -413,8 +418,8 @@ class Order extends Base
         $order_id = Db::table('mrs_orders')->getLastInsID();
 
         $orderGoodsData = array();
-        if(is_array($carts) && count($carts)){
-            foreach ($carts as $k=>$v){
+        if (is_array($carts) && count($carts)) {
+            foreach ($carts as $k => $v) {
                 $orderGoodsData[] = [
                     'order_id' => $order_id,
                     'goods_id' => $v['goods_id'],
@@ -422,11 +427,11 @@ class Order extends Base
                     'goods_num' => $v['goods_num'],
                     'goods_m_list_image' => $v['goods_image'],
                     'user_id' => $user_id,
-                    'user_name'=>$user['user_name'],
+                    'user_name' => $user['user_name'],
                     'goods_price' => $v['goods_price']
                 ];
             }
-        }else{
+        } else {
             $orderGoodsData[] = [
                 'order_id' => $order_id,
                 'goods_id' => $goods['goods_id'],
@@ -434,34 +439,43 @@ class Order extends Base
                 'goods_num' => $goods_num,
                 'goods_m_list_image' => $goods['goods_image'],
                 'user_id' => $user_id,
-                'user_name'=>$user['user_name'],
+                'user_name' => $user['user_name'],
                 'goods_price' => $goods['goods_price']
             ];
         }
         $res = Db::table('mrs_order_goods')->insertAll($orderGoodsData);
 
-        if($res){
-            if(is_array($cart_ids) && count($cart_ids) > 0) {
+        if ($res) {
+            if (is_array($cart_ids) && count($cart_ids) > 0) {
                 foreach ($cart_ids as $v) {
 //                    echo 'del->'.$v;
                     $where = array();
-                    $where[] = ['cart_id' , '=', $v];
+                    $where[] = ['cart_id', '=', $v];
                     Db::table('mrs_carts')->where($where)->delete();
                 }
             }
         }
 
+        //生成订单支付记录
+        $payData['type'] = '1';
+        $payData['order_id'] = $order_id;
+        $payData['money'] = $order_amount;
+        $payData['is_pay'] = 2;
+        $payData['user_id'] = $user_id;
+        $payData['wc_order_id'] = $pay_order_sn;
+        Db::table('mrs_order_pay_record')->insert($payData);
+
         //获取支付参数
+        $domain = config('domain');
         $wechatModel = new \app\api\model\Wechat();
-        $pay_order_sn = 'LZHS'.date('YmdHis', time()).rand(100000,999999);
         $data['pay_order_sn'] = $pay_order_sn;
         $data['order_amount'] = $order_amount;
         $data['open_id'] = $open_id;
         $data['body'] = '商品购买';
-        $data['notify_url'] = '';
+        $data['notify_url'] = $domain . '/api/wechat/paynotice';
         $result = $wechatModel->doPay($data);
 
-        if(isset($result['errcode'])){
+        if (isset($result['errcode'])) {
             Db::rollback();
             echo $this->errorJson(1, $result['errmsg']);
             exit;
@@ -474,13 +488,14 @@ class Order extends Base
         exit;
     }
 
-    public function getrefundinfo(){
+    public function getrefundinfo()
+    {
         $where = array();
         $where[] = ['setting_code', '=', 'goods_status_option'];
         $goods_status_option = Db::table('mrs_system_setting')
             ->where($where)
             ->find();
-        $goods_status_option = empty($goods_status_option['setting_value'])?'':explode('|', $goods_status_option['setting_value']);
+        $goods_status_option = empty($goods_status_option['setting_value']) ? '' : explode('|', $goods_status_option['setting_value']);
 
 
         $where = array();
@@ -488,7 +503,7 @@ class Order extends Base
         $refund_reason_option = Db::table('mrs_system_setting')
             ->where($where)
             ->find();
-        $refund_reason_option = empty($refund_reason_option['setting_value'])?'':explode('|', $refund_reason_option['setting_value']);
+        $refund_reason_option = empty($refund_reason_option['setting_value']) ? '' : explode('|', $refund_reason_option['setting_value']);
 
         $data = array();
         $data['goods_status_option'] = $goods_status_option;
@@ -499,7 +514,8 @@ class Order extends Base
         exit;
     }
 
-    public function applyrefund(Request $request){
+    public function applyrefund(Request $request)
+    {
         $order_id = $request->post('order_id');
         $type = $request->post("type");
         $goods_status = $request->post("goods_status");
@@ -508,26 +524,26 @@ class Order extends Base
         $goods_status = '未到货';
         $apply_reason = '不喜欢';
 
-        if(empty($order_id)){
-            $result = $this->errorJson(1, '缺少关键参数$order_id');
+        if (empty($order_id)) {
+            $result = $this->errorJson(1, '缺少关键参数order_id');
             echo $result;
             exit;
         }
         $order = Db::table('mrs_orders')
-        ->where(array('order_id' => $order_id))
-        ->find();
-        if(empty($order)){
+            ->where(array('order_id' => $order_id))
+            ->find();
+        if (empty($order)) {
             $result = $this->errorJson(1, '没有找到对应的订单信息');
             echo $result;
             exit;
         }
 
-        $type = empty($type)?"1":$type;
+        $type = empty($type) ? "1" : $type;
 
         $data = array();
-        if($type == 1){
+        if ($type == 1) {
             $data['refund_status'] = '2';
-        }else{
+        } else {
             $data['sales_status'] = '2';
         }
         $data['refund_reason'] = $apply_reason;
@@ -540,4 +556,44 @@ class Order extends Base
         echo $result;
         exit;
     }
+
+    /**
+     * 发起支付
+     * @param Request $request
+     */
+    public function dopay(Request $request)
+    {
+        $order_id = $request->post('order_id');
+
+        if (empty($order_id)) {
+            echo $this->errorJson(1, '缺少关键参数order_id');
+            exit;
+        }
+
+        $order = Db::table('mrs_orders')
+            ->alias('t1')
+            ->field('t1.pay_order_sn,t1.order_amount,t2.open_id')
+            ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
+            ->where('t1.order_id', '=', $order_id)
+            ->find();
+        if (empty($order)) {
+            $result = $this->errorJson(1, '没有找到对应的订单信息');
+            echo $result;
+            exit;
+        }
+
+        //获取支付参数
+        $domain = config('domain');
+        $wechatModel = new \app\api\model\Wechat();
+        $data['pay_order_sn'] = $order['pay_order_sn'];
+        $data['order_amount'] = $order['order_amount'];
+        $data['open_id'] = $order['open_id'];
+        $data['body'] = '商品购买';
+        $data['notify_url'] = $domain . '/api/wechat/paynotice';
+        $result = $wechatModel->doPay($data);
+
+        echo $this->successJson($result);
+        exit;
+    }
+
 }
