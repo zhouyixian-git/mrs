@@ -39,12 +39,24 @@ class Wechat extends Model
     }
 
     //小程序支付
-    public function pay($pay)
+    public function doPay($pay)
     {
-        empty($pay['order']) ? exit('订单号不能为空') : '';
-        empty($pay['price']) ? exit('交易金额不能为空') : '';
-        empty($pay['openid']) ? exit('openID不能为空') : '';
-        empty($pay['body']) ? exit('商品描述不能为空') : '';
+        if (empty($pay['pay_order_sn'])) {
+            $data['errcode'] = 1;
+            $data['errmsg'] = '支付订单号不能为空';
+        }
+        if (empty($pay['order_amount'])) {
+            $data['errcode'] = 1;
+            $data['errmsg'] = '交易金额不能为空';
+        }
+        if (empty($pay['open_id'])) {
+            $data['errcode'] = 1;
+            $data['errmsg'] = 'openid不能为空';
+        }
+        if (empty($pay['body'])) {
+            $data['errcode'] = 1;
+            $data['errmsg'] = '商品描述不能为空';
+        }
 
         $wechatInfo = $this->getWechatInfo();
         $appid = $wechatInfo['app_id'];
@@ -58,12 +70,12 @@ class Wechat extends Model
             'nonce_str' => $this->createNoncestr(),//1  随机字符串
             'sign_type' => 'MD5',//1
             'body' => $pay['body'],          //1  商品描述
-            'out_trade_no' => $pay['order'],   //1  商户订单号
-            'total_fee' => $pay['price'],        //1  交易金额，单位分
+            'out_trade_no' => $pay['pay_order_sn'],   //1  商户订单号
+            'total_fee' => $pay['order_amount'] * 100,        //1  交易金额，单位分
             'spbill_create_ip' => $_SERVER['REMOTE_ADDR'],//1 终端IP
             'notify_url' => $pay['notify_url'],//1 异步通知地址
             'trade_type' => 'JSAPI',  //交易类型，公众号小程序支付jsapi
-            'openid' => $pay['openid'],
+            'openid' => $pay['open_id'],
         );
         $data['sign'] = $this->sign($data, $mch_key);
         $xml = $this->arrayToXml($data);
@@ -93,9 +105,9 @@ class Wechat extends Model
     }
 
     //微信支付 根据商户订单号查询订单
-    public function queryOrder($order)
+    public function queryOrder($pay_order_sn)
     {
-        empty($order) ? exit('订单号不能为空') : '';
+        empty($pay_order_sn) ? exit('订单号不能为空') : '';
 
         $wechatInfo = $this->getWechatInfo();
         $appid = $wechatInfo['app_id'];
@@ -107,7 +119,7 @@ class Wechat extends Model
             'appid' => $appid,
             'mch_id' => $mch_id,
             'nonce_str' => $this->createNoncestr(),//随机字符串
-            'out_trade_no' => $order,   //商户订单号
+            'out_trade_no' => $pay_order_sn,   //商户订单号
         );
         $data['sign'] = $this->sign($data, $mch_key);
         $xml = $this->arrayToXml($data);

@@ -327,11 +327,7 @@ class Order extends Base
         $goods_id = $request->post('goods_id');
         $goods_num = $request->post('goods_num');
         $order_remark = $request->post('order_remark');
-
-//        $address_id= '1';
-//        $user_id = '1';
-//        $order_remark = '测试造数据';
-//        $goods_id=8;
+        $open_id = $request->post('open_id');
 
         $goods_num = empty($goods_num)?1:$goods_num;
 
@@ -454,9 +450,26 @@ class Order extends Base
                 }
             }
         }
+
+        //获取支付参数
+        $wechatModel = new \app\api\model\Wechat();
+        $pay_order_sn = 'LZHS'.date('YmdHis', time()).rand(100000,999999);
+        $data['pay_order_sn'] = $pay_order_sn;
+        $data['order_amount'] = $order_amount;
+        $data['open_id'] = $open_id;
+        $data['body'] = '商品购买';
+        $data['notify_url'] = '';
+        $result = $wechatModel->doPay($data);
+
+        if(isset($result['errcode'])){
+            Db::rollback();
+            echo $this->errorJson(1, $result['errmsg']);
+            exit;
+        }
+
         Db::commit();
 
-        $result = $this->successJson();
+        $result = $this->successJson($result);
         echo $result;
         exit;
     }
