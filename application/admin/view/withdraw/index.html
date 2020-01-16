@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>提现列表</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        .col-sm-1{width: auto;}
+        .form-group label{padding-right: 2px;}
+        .col-sm-2{width: 12%;}
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/admin/withdraw/index')}">
+                        <div class="form-group">
+                            <label class="control-label col-sm-1">状态</label>
+                            <div class="col-sm-2">
+                                <select class="form-control" name="status">
+                                    <option value="">全部</option>
+                                    <option value="1" {if condition="$status eq 1"}selected{/if}>待处理</option>
+                                    <option value="2" {if condition="$status eq 2"}selected{/if}>提现成功</option>
+                                    <option value="3" {if condition="$status eq 3"}selected{/if}>提现失败</option>
+                                    <option value="4" {if condition="$status eq 4"}selected{/if}>审核通过</option>
+                                    <option value="5" {if condition="$status eq 5"}selected{/if}>审核不通过</option>
+                                </select>
+                            </div>
+                            <label class="control-label col-sm-1">提现流水号</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="withdraw_sn" name="withdraw_sn" value="{$withdraw_sn}" class="form-control">
+                            </div>
+                            <div class="col-sm-1" style="text-align:center;">
+                                <button type="submit" class="btn btn-sm btn-white">查询</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="ibox-content">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>操作</th>
+                            <th>提现流水</th>
+                            <th>用户名称</th>
+                            <th>提现金额</th>
+                            <th>提现手续费</th>
+                            <th>到账金额</th>
+                            <th>提现前积分</th>
+                            <th>提现后积分</th>
+                            <th>提现状态</th>
+                            <th>处理人</th>
+                            <th>审核备注</th>
+                            <th>失败备注</th>
+                            <th>提现时间</th>
+                            <th>到账时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {volist name="withdrawList" id="withdrawInfo"}
+                            <tr>
+                                <td>
+                                    {if condition="in_array('withdraw_auth',$loginAdmin.buttonData)"}
+                                        {if condition="$withdrawInfo.status eq 1"}
+                                            <button type="button" onclick="toAuth({$withdrawInfo.withdraw_id})" class="btn btn-sm btn-info">审核</button>
+                                        {elseif condition="$withdrawInfo.status eq 2"}
+                                            <button type="button" class="btn btn-sm btn-success">提现成功</button>
+                                        {elseif condition="$withdrawInfo.status eq 3"}
+                                            <button type="button" class="btn btn-sm btn-danger">提现失败</button>
+                                        {elseif condition="$withdrawInfo.status eq 4"}
+                                            <button type="button" class="btn btn-sm btn-primary">审核通过</button>
+                                        {elseif condition="$withdrawInfo.status eq 5"}
+                                            <button type="button" class="btn btn-sm btn-warning">审核不通过</button>
+                                        {else/}
+                                            <button type="button" class="btn btn-sm btn-default">未知</button>
+                                        {/if}
+                                    {/if}
+                                </td>
+                                <td>{$withdrawInfo.withdraw_sn}</td>
+                                <td>{$withdrawInfo.user_name}</td>
+                                <td>{$withdrawInfo.withdraw_amount}</td>
+                                <td>{$withdrawInfo.withdraw_fee}</td>
+                                <td>{$withdrawInfo.withdraw_payed}</td>
+                                <td>{$withdrawInfo.integral_before}</td>
+                                <td>{$withdrawInfo.integral_after}</td>
+                                <td>
+                                    {if condition="$withdrawInfo.status eq 1"}
+                                    <span style="color: #23c6c8;">待处理</span>
+                                    {elseif condition="$withdrawInfo.status eq 2"}
+                                    <span style="color: #1c84c6;">提现成功</span>
+                                    {elseif condition="$withdrawInfo.status eq 3"}
+                                    <span style="color: #ed5565;">提现失败</span>
+                                    {elseif condition="$withdrawInfo.status eq 4"}
+                                    <span style="color: #1ab394;">审核通过</span>
+                                    {elseif condition="$withdrawInfo.status eq 5"}
+                                    <span style="color: #f8ac59;">审核不通过</span>
+                                    {else/}
+                                    <span style="color: yellow;">#c2c2c2</span>
+                                    {/if}
+                                </td>
+                                <td>{$withdrawInfo.admin_name}</td>
+                                <td>{$withdrawInfo.auth_remark}</td>
+                                <td>{$withdrawInfo.fail_remark}</td>
+                                <td>{$withdrawInfo.create_time|date="Y-m-d H:i:s"}</td>
+                                <td>{$withdrawInfo.payed_time|date="Y-m-d H:i:s"}</td>
+                            </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                    {$withdrawList|raw}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+
+<!-- Page-Level Scripts -->
+<script>
+    function toAuth(withdraw_id){
+        layer.open({
+            type: 2,
+            title: '提现审核',
+            area: ['400px', '300px'],
+            content: "{:url('admin/admin/withdraw/auth')}?withdraw_id=" + withdraw_id
+        });
+    }
+</script>
+
+</body>
+
+</html>
