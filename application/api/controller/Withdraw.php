@@ -10,6 +10,7 @@ namespace app\api\controller;
 
 
 use think\Db;
+use think\Request;
 
 class Withdraw extends Base
 {
@@ -34,7 +35,10 @@ class Withdraw extends Base
                 exit;
             }
 
-            $user = Db::table('mrs_user')->where('user_id', '=', $user_id)->field('able_integral,frozen_integral,used_integral');
+            $user = Db::table('mrs_user')
+                ->field('able_integral,frozen_integral,used_integral')
+                ->where('user_id', '=', $user_id)
+                ->find();
             if (empty($user)) {
                 echo $this->errorJson(1, '用户信息不存在');
                 exit;
@@ -46,7 +50,6 @@ class Withdraw extends Base
                 echo $this->errorJson(1, '可提现积分不足');
                 exit;
             }
-
 
             //提现手续费率 %
             $where = [];
@@ -62,7 +65,7 @@ class Withdraw extends Base
             $withdraw_amount = bcmul($withdraw_integral, $integral * 0.01, 2);
 
             $withdraw_fee = 0; //手续费
-            if (empty($withdraw_rate)) {
+            if (!empty($withdraw_rate)) {
                 $withdraw_fee = bcmul($withdraw_amount, $withdraw_rate * 0.01, 2);
             }
 
