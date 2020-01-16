@@ -62,6 +62,7 @@
                             <th>banner图片</th>
                             <th>banner链接</th>
                             <th>排序</th>
+                            <th>类型</th>
                             <th>激活状态</th>
                             <th>创建时间</th>
                         </tr>
@@ -85,6 +86,17 @@
                                     <a href="{$bannerInfo.link_url}" target="_blank"><button class="btn btn-sm btn-white" type="button"><i class="fa fa-search"></i>&nbsp;链接</button></a>
                                 </td>
                                 <td>{$bannerInfo.order_no}</td>
+                                <td>
+                                    {if condition="$bannerInfo.type eq 1"}
+                                    <span>首页</span>
+                                    {elseif condition="$bannerInfo.type eq 2"}
+                                    <span>商城</span>
+                                    {elseif condition="$bannerInfo.type eq 3"}
+                                    <span>上门预约</span>
+                                    {elseif condition="$bannerInfo.type eq 4"}
+                                    <span>帮助中心</span>
+                                    {/if}
+                                </td>
                                 <td>
                                     {if condition="$bannerInfo.is_actived eq 1"}
                                     <span style="color: green;">已激活</span>

@@ -649,6 +649,7 @@ class User extends Base
         return;
     }
 
+    //用户登录（短信或验证码）
     public function userlogin(Request $request){
         $phone = $request->post("phone");
 
@@ -693,16 +694,43 @@ class User extends Base
                 $user_id = Db::table("mrs_user")->getLastInsID();
                 $userData['user_id'] = $user_id;
 
+                $user = $userData;
+            }else{
+                if($user['status'] == '2'){
+                    echo errorJson('1','该用户已被禁用');
+                    exit;
+                }
+                unset($user['password']);
+            }
+            $data = array();
+            $data['userInfo'] = $user;
 
+            echo $this->successJson($data);
+            exit;
+        }else{
+            //密码登录
+            $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
+            if(empty($user)){
+                echo errorJson('1','用户名或密码错误');
+                exit;
             }
 
+            if($user['status'] == '2'){
+                echo errorJson('1','该用户已被禁用');
+                exit;
+            }
+            $password = md5($phone . md5($password));
+            if($password != $user['password']){
+                echo errorJson('1','用户名或密码错误');
+                exit;
+            }
 
+            unset($user['password']);
+            $data = array();
+            $data['userInfo'] = $user;
 
-
-
-
+            echo $this->successJson($data);
+            exit;
         }
-
-
     }
 }

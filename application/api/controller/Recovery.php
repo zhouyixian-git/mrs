@@ -42,7 +42,7 @@ class Recovery extends Base
             $where = [];
             if (!empty($key_word)) {
                 $where[] = [
-                    ['t1.site_address', 'like', "%$key_word%"]
+                    ['site_address', 'like', "%$key_word%"]
                 ];
             }
 

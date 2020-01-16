@@ -62,6 +62,7 @@ class Banner extends Base
             $data['image_url'] = $request->post('image_url');
             $data['link_url'] = $request->post('link_url');
             $data['order_no'] = $request->post('order_no');
+            $data['type'] = $request->post('type');
             $data['is_actived'] = $request->post('is_actived');
 
             $validate = new \app\admin\validate\Banner();
@@ -97,6 +98,7 @@ class Banner extends Base
             $data['image_url'] = $request->post('image_url');
             $data['link_url'] = $request->post('link_url');
             $data['order_no'] = $request->post('order_no');
+            $data['type'] = $request->post('type');
             $data['is_actived'] = $request->post('is_actived');
 
             $validate = new \app\admin\validate\Banner();

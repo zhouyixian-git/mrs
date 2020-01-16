@@ -24,8 +24,13 @@ class Home extends Base
     public function getbanner(Request $request)
     {
         if ($request->isPost()) {
+            $type = $request->post('type');
+            $type = empty($type)?'1':$type;
+            $where = [];
+            $where[] = ['is_actived', '=', 1];
+            $where[] = ['type', '=', $type];
             $bannerList = Db::table('mrs_home_banner')
-                ->where('is_actived', '=', 1)
+                ->where($where)
                 ->field('banner_title,link_url,image_url')
                 ->order('order_no asc,create_time desc')
                 ->select();
