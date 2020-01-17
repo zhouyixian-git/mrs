@@ -195,10 +195,15 @@ class Site extends Base
     public function map(Request $request)
     {
 
+        //查询百度地图AK
+        $apiM = new \app\admin\model\Api();
+        $ak = $apiM->getParam('baiduMap', 'ak');
+
         $lng = $request->get('lng');
         $lat = $request->get('lat');
         $keyword = $request->get('keyword');
 
+        $this->assign('ak', $ak);
         $this->assign('lng', $lng);
         $this->assign('lat', $lat);
         $this->assign('keyword', $keyword);

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>上门人员管理</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        .col-sm-1{width: auto;}
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+
+                <div class="ibox-title">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/apiconfig/index')}">
+                        <div class="form-group">
+                            <div>
+                                {if condition="in_array('master_add',$loginAdmin.buttonData)"}
+                                <button style="margin-left:20px;" type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'callrecoverymaster/add\')}'">新增</button>
+                                {/if}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="ibox-content">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th style="width: 150px;">操作</th>
+                            <th>人员名称</th>
+                            <th>地址</th>
+                            <th>人员联系号码</th>
+                            <th>是否激活</th>
+                            <th>创建时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {volist name="masterList" id="masterInfo"}
+                            <tr>
+                                <td>
+                                    {if condition="in_array('master_update',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="toEdit({$masterInfo.master_id})" class="btn btn-sm btn-primary">修改</button>
+                                    {/if}
+                                    {if condition="in_array('master_delete',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="delTpl({$masterInfo.master_id})" class="btn btn-sm btn-danger">删除</button>
+                                    {/if}
+                                </td>
+                                <td>{$masterInfo.master_name}</td>
+                                <td>{$masterInfo.address}</td>
+                                <td>{$masterInfo.master_phone_no}</td>
+                                <td>
+                                    {if condition="$masterInfo.is_actived eq 1"}
+                                    <span style="color: green;">已激活</span>
+                                    {else/}
+                                    <span style="color: red;">未激活</span>
+                                    {/if}
+                                </td>
+                                <td>{$masterInfo.create_time|date="Y-m-d H:i:s"}</td>
+                            </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                    {$masterList|raw}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+
+<!-- Page-Level Scripts -->
+<script>
+    function toEdit(master_id){
+        window.location.href = "{:url('admin/callrecoverymaster/update')}?master_id=" + master_id;
+    }
+
+    function delMaster(master_id){
+        layer.confirm('是否确定删除该上门人员信息？', {
+            btn: ['删除 ','我再想想'] //按钮
+        }, function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('admin/callrecoverymaster/delete')}" ,
+                data: {'master_id': master_id},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg("删除成功", {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            window.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        }, function(){
+        });
+    }
+
+</script>
+
+</body>
+
+</html>

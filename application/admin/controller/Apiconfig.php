@@ -134,6 +134,7 @@ class Apiconfig extends Base
         $where[] = ['api_id','=', $api_id];
 
         $apiParamsList = Db::table('mrs_api_params')
+            ->where($where)
             ->paginate(8, false, [ 'type' => 'page\Page', 'var_page' => 'page']);
 
         $page = $apiParamsList->render();
