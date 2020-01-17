@@ -437,7 +437,7 @@ class Order extends Base
                 'goods_id' => $goods['goods_id'],
                 'goods_name' => $goods['goods_name'],
                 'goods_num' => $goods_num,
-                'goods_m_list_image' => $goods['goods_image'],
+                'goods_m_list_image' => $goods['goods_img'],
                 'user_id' => $user_id,
                 'user_name' => $user['user_name'],
                 'goods_price' => $goods['goods_price']

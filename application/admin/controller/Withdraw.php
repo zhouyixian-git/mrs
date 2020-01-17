@@ -92,7 +92,8 @@ class Withdraw extends Base
             $data['admin_id'] = parent::$_ADMINID;
             $res = Db::table('mrs_withdraw')->where('withdraw_id', '=', $withdraw_id)->update($data);
             if ($res) { //审核通过
-                Db::commit();
+                //Db::commit();
+                Db::rollback();
 
                 //todo  审核通过，调用微信企业付款到个人接口
                 /*$wechatModel = new \app\admin\model\Wechat();

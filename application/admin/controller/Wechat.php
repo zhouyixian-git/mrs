@@ -20,6 +20,8 @@ class Wechat extends Base
             $data['wechat_name'] = $request->post('wechat_name');
             $data['app_id'] = $request->post('app_id');
             $data['app_secret'] = $request->post('app_secret');
+            $data['mch_id'] = $request->post('mch_id');
+            $data['mch_key'] = $request->post('mch_key');
             $data['is_actived'] = $request->post('is_actived');
 
             $validate = new \app\admin\validate\Wechat();
