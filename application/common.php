@@ -252,11 +252,12 @@ function httpPostCert($url, $data = '', $second = 30, $header = array())
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     //默认格式为PEM，可以注释
+    $cert_path = config('cert_path');
     curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'PEM');//绝对地址可使用 dirname(__DIR__)打印，如果不是绝对地址会报 58 错误
 
-    curl_setopt($ch, CURLOPT_SSLCERT, dirname(ROOT_PATH) . '/certs/apiclient_cert.pem');
+    curl_setopt($ch, CURLOPT_SSLCERT, $cert_path . 'apiclient_cert.pem');
     curl_setopt($ch, CURLOPT_SSLKEYTYPE, 'PEM');
-    curl_setopt($ch, CURLOPT_SSLKEY, dirname(ROOT_PATH) . '/certs/apiclient_key.pem');
+    curl_setopt($ch, CURLOPT_SSLKEY, $cert_path . 'apiclient_key.pem');
     if (count($header) >= 1) {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
     }
