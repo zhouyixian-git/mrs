@@ -80,6 +80,7 @@ class Withdraw extends Base
             $data['withdraw_amount'] = $withdraw_amount;
             $data['withdraw_fee'] = $withdraw_fee;
             $data['withdraw_payed'] = $withdraw_payed;
+            $data['integral_used'] = $withdraw_integral;
             $data['integral_before'] = $integral_before;
             $data['integral_after'] = $integral_after;
             $data['status'] = 1;
@@ -91,7 +92,7 @@ class Withdraw extends Base
 
                 $userData['able_integral'] = bcsub($user['able_integral'], $withdraw_integral, 2);
                 $userData['frozen_integral'] = bcadd($user['frozen_integral'], $withdraw_integral, 2);
-                $userData['used_integral'] = bcadd($user['used_integral'], $withdraw_integral, 2);
+                //$userData['used_integral'] = bcadd($user['used_integral'], $withdraw_integral, 2);
                 $res2 = Db::table('mrs_user')->where('user_id', '=', $user_id)->update($userData);
 
                 if ($res1 && $res2) {

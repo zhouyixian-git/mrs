@@ -16,13 +16,13 @@
  * @param unknown_type $log_content 日志内容
  * @param unknown_type $log_file SEED_TEMP_ROOT+文件名
  */
-function recordLog($log_content= 'test',$log_file='log.txt')
+function recordLog($log_content = 'test', $log_file = 'log.txt')
 {
-    $filename = '../public/log/'.$log_file;
-    $content = "[". date('Y-m-d H:i:s') ."]".$log_content;
-    if(file_exists($filename)){
+    $filename = '../public/log/' . $log_file;
+    $content = "[" . date('Y-m-d H:i:s') . "]" . $log_content;
+    if (file_exists($filename)) {
         $last_content = file_get_contents($filename);
-        $content = $last_content."\r\n".$content;
+        $content = $last_content . "\r\n" . $content;
     }
     file_put_contents($filename, $content);
 }
@@ -33,7 +33,8 @@ function recordLog($log_content= 'test',$log_file='log.txt')
  * @param $tpl_code
  * @return false|mixed|SimpleXMLElement|string|void
  */
-function sendSms($phone, $tpl_code){
+function sendSms($phone, $tpl_code)
+{
 
     $accessKeyId = '';
     $accessSecret = '';
@@ -41,11 +42,11 @@ function sendSms($phone, $tpl_code){
 
     $smsApi = Db::table('mrs_api')->where(array('api_code' => 'aliyunsms', 'status' => '1'))->find();
 
-    if(empty($smsApi)){
+    if (empty($smsApi)) {
         return errorJson('1', 'Not found the sms api!');
     }
-    $smsTpl= Db::table('mrs_sms_tpl')->where(array('tpl_code' => $tpl_code))->find();
-    if(empty($smsTpl)){
+    $smsTpl = Db::table('mrs_sms_tpl')->where(array('tpl_code' => $tpl_code))->find();
+    if (empty($smsTpl)) {
         return errorJson('1', 'Not found the sms template!');
     }
 
@@ -63,33 +64,33 @@ function sendSms($phone, $tpl_code){
     $smsRecordData['phone'] = $phone;
     $smsRecordData['code'] = $code;
     $smsRecordData['sms_content'] = $content;
-    $smsRecordData['valid_date'] = time() + 10*60;
+    $smsRecordData['valid_date'] = time() + 10 * 60;
     $smsRecordData['is_use'] = '0';
     $smsRecordData['record_time'] = time();
 
     $record_id = Db::table('mrs_sms_record')->insert($smsRecordData);
 
     $params = Db::table('mrs_api_params')->where(array('api_id' => $smsApi['api_id']))->select();
-    if(is_array($params) && count($params)){
-        foreach ($params as $k=>$param){
-            if($param['param_code'] == 'AccessKeyID'){
+    if (is_array($params) && count($params)) {
+        foreach ($params as $k => $param) {
+            if ($param['param_code'] == 'AccessKeyID') {
                 $accessKeyId = $param['param_value'];
-            }else if($param['param_code'] == 'AccessKeySecret'){
+            } else if ($param['param_code'] == 'AccessKeySecret') {
                 $accessSecret = $param['param_value'];
-            }else if($param['param_code'] == 'sign'){
+            } else if ($param['param_code'] == 'sign') {
                 $sign = $param['param_value'];
             }
         }
     }
 
-    if(empty($accessKeyId) || empty($accessSecret) || empty($sign)){
+    if (empty($accessKeyId) || empty($accessSecret) || empty($sign)) {
         return errorJson('1', '配置参数缺失!');
     }
 
     //引进阿里的配置文件
 //    Vendor('api_sdk.vendor.autoload');
     require_once '../extend/api_sdk/vendor/autoload.php';
-        // TP5.1及以上用require_once
+    // TP5.1及以上用require_once
 
     // 加载区域结点配置
     \Aliyun\Core\Config::load();
@@ -151,7 +152,7 @@ function successJson($data = null)
     $result = [];
     $result['errcode'] = 0;
     $result['msg'] = 'success';
-    if(!empty($data)) {
+    if (!empty($data)) {
         $result['data'] = $data;
     }
     return json_encode($result);
@@ -177,31 +178,32 @@ function errorJson($errcode = 1, $message = 'error')
  * @param $post_string
  * @return mixed
  */
-function doPostHttp($url, $post, $cookie = '', $cookiejar = '', $referer = '',$timeout = 60) {
+function doPostHttp($url, $post, $cookie = '', $cookiejar = '', $referer = '', $timeout = 60)
+{
     $tmpInfo = '';
-    $cookiepath = getcwd().'./'.$cookiejar;
+    $cookiepath = getcwd() . './' . $cookiejar;
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_USERAGENT, isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '');
-    if($referer) {
+    if ($referer) {
         curl_setopt($curl, CURLOPT_REFERER, $referer);
     } else {
         curl_setopt($curl, CURLOPT_AUTOREFERER, 1);
     }
-    if($post) {
+    if ($post) {
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
     }
-    if($cookie) {
+    if ($cookie) {
         curl_setopt($curl, CURLOPT_COOKIE, $cookie);
     }
-    if($cookiejar) {
+    if ($cookiejar) {
         curl_setopt($curl, CURLOPT_COOKIEJAR, $cookiepath);
         curl_setopt($curl, CURLOPT_COOKIEFILE, $cookiepath);
     }
     //允许跳转访问
     curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($curl, CURLOPT_TIMEOUT,$timeout);
+    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
     curl_setopt($curl, CURLOPT_HEADER, 0);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 //        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/json; charset=utf-8","Content-Length:".strlen($post)));
@@ -218,7 +220,8 @@ function doPostHttp($url, $post, $cookie = '', $cookiejar = '', $referer = '',$t
 }
 
 //发起POST请求
-function httpPost($url,$data = ''){
+function httpPost($url, $data = '')
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -232,4 +235,99 @@ function httpPost($url,$data = ''){
     $output = curl_exec($ch);
     curl_close($ch);
     return $output;
+}
+
+//发起POST请求
+function httpPostCert($url, $data = '', $second = 30, $header = array())
+{
+    $ch = curl_init();
+    //超时时间
+    curl_setopt($ch, CURLOPT_TIMEOUT, $second);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    //这里设置代理，如果有的话
+    //curl_setopt($ch,CURLOPT_PROXY, '10.206.30.98');
+    //curl_setopt($ch,CURLOPT_PROXYPORT, 8080);
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    //默认格式为PEM，可以注释
+    curl_setopt($ch, CURLOPT_SSLCERTTYPE, 'PEM');//绝对地址可使用 dirname(__DIR__)打印，如果不是绝对地址会报 58 错误
+
+    curl_setopt($ch, CURLOPT_SSLCERT, dirname(ROOT_PATH) . '/certs/apiclient_cert.pem');
+    curl_setopt($ch, CURLOPT_SSLKEYTYPE, 'PEM');
+    curl_setopt($ch, CURLOPT_SSLKEY, dirname(ROOT_PATH) . '/certs/apiclient_key.pem');
+    if (count($header) >= 1) {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    }
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    $data = curl_exec($ch);
+    if ($data) {
+        curl_close($ch);
+        return $data;
+    } else {
+        $error = curl_errno($ch);
+        echo "call faild, errorCode:$error\n";
+        curl_close($ch);
+        return false;
+    }
+}
+
+//创建随机字符串
+function createNoncestr($length = 32)
+{
+    $chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    $str = "";
+    for ($i = 0; $i < $length; $i++) {
+        $str .= substr($chars, mt_rand(0, strlen($chars) - 1), 1);
+    }
+    return $str;
+}
+
+//生成签名
+function sign($data, $mch_key)
+{
+    ksort($data);
+    $str = toParamss($data);
+    $str = $str . '&key=' . $mch_key;
+    $str = md5($str);
+    //将字符串转成大写
+    $str = strtoupper($str);
+    return $str;
+}
+
+//格式化参数成URL参数
+function toParamss($data)
+{
+    $buff = '';
+    foreach ($data as $key => $value) {
+        if ($key != 'sign' && $value != '' && !is_array($value)) {
+            $buff .= $key . '=' . $value . '&';
+        }
+    }
+    $buff = trim($buff, '&');
+    return $buff;
+}
+
+//将xml转成数组
+function xmlToArray($xml)
+{
+    $array_data = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+    return $array_data;
+}
+
+//将数组转成xml
+function arrayToXml($arr)
+{
+    $xml = "<xml>";
+    foreach ($arr as $key => $val) {
+        if (is_numeric($val)) {
+            $xml .= "<" . $key . ">" . $val . "</" . $key . ">";
+
+        } else
+            $xml .= "<" . $key . "><![CDATA[" . $val . "]]></" . $key . ">";
+    }
+    $xml .= "</xml>";
+    return $xml;
 }

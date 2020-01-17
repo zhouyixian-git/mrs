@@ -64,21 +64,99 @@ class Withdraw extends Base
             $data['status'] = $request->post('status');
             $data['auth_remark'] = $request->post('auth_remark');
 
-            if($data['status'] == 5 && empty($data['auth_remark'])){
+            if ($data['status'] == 5 && empty($data['auth_remark'])) {
                 echo $this->errorJson(0, '请填写审核备注');
                 exit;
             }
 
-            Db::table('mrs_withdraw')->where('withdraw_id', '=', $withdraw_id)->update($data);
+            $withdraw = Db::table('mrs_withdraw')
+                ->field('t1.user_id,t1.withdraw_sn,t1.withdraw_amount,t1.integral_used,t2.able_integral,t2.frozen_integral,t2.used_integral,t2.open_id')
+                ->alias('t1')
+                ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
+                ->where('t1.withdraw_id', '=', $withdraw_id)
+                ->find();
 
+            if (empty($withdraw)) {
+                echo $this->errorJson(0, '未找到提现记录');
+                exit;
+            }
 
-            //todo  审核通过，调用微信企业付款到个人接口
+            Db::startTrans();
+            if ($data['status'] == 5) { //提现失败，将提现金额返还用户
+                $userData = [];
+                $userData['able_integral'] = bcadd($withdraw['able_integral'], $withdraw['integral_used'], 2);
+                $userData['frozen_integral'] = bcsub($withdraw['frozen_integral'], $withdraw['integral_used'], 2);
+                Db::table('mrs_user')->where('user_id', '=', $withdraw['user_id'])->update($userData);
+            }
 
+            $data['admin_id'] = parent::$_ADMINID;
+            $res = Db::table('mrs_withdraw')->where('withdraw_id', '=', $withdraw_id)->update($data);
+            if ($res) { //审核通过
+                Db::commit();
 
+                //todo  审核通过，调用微信企业付款到个人接口
+                /*$wechatModel = new \app\admin\model\Wechat();
+                $param['partner_trade_no'] = $withdraw['withdraw_sn'];
+                $param['amount'] = $withdraw['withdraw_amount'];
+                $param['openid'] = $withdraw['open_id'];
+                $param['desc'] = '用户提现';
+                $result = $wechatModel->transfers($param);
 
+                if (isset($result['errcode'])) {
+                    Db::startTrans();
+                    //提现失败，更新提现记录表数据
+                    $data = [];
+                    $data['status'] = 3;
+                    $data['fail_remark'] = $result['errmsg'];
+                    $data['admin_id'] = parent::$_ADMINID;
+                    Db::table('mrs_withdraw')->where('withdraw_id', '=', $withdraw_id)->update($data);
 
-            echo $this->successJson();
-            exit;
+                    $userData = [];
+                    $userData['able_integral'] = bcadd($withdraw['able_integral'], $withdraw['integral_used'], 2);
+                    $userData['frozen_integral'] = bcsub($withdraw['frozen_integral'], $withdraw['integral_used'], 2);
+                    Db::table('mrs_user')->where('user_id', '=', $withdraw['user_id'])->update($userData);
+
+                    Db::commit();
+                    echo $this->errorJson(1, $result['errmsg']);
+                    exit;
+                }*/
+
+                $result['payment_time'] = time(); //todo 测试用的，到时候要去掉
+                Db::startTrans();
+                try {
+                    // 更新提现记录表状态
+                    $data = [];
+                    $data['status'] = 2;
+                    $data['fail_remark'] = '提现成功';
+                    $data['admin_id'] = parent::$_ADMINID;
+                    $data['payed_time'] = strtotime($result['payment_time']);
+                    $res1 = Db::table('mrs_withdraw')->where('withdraw_id', '=', $withdraw_id)->update($data);
+
+                    //更新用户资产
+                    $userData = [];
+                    $userData['frozen_integral'] = bcsub($withdraw['frozen_integral'], $withdraw['integral_used'], 2);
+                    $userData['used_integral'] = bcadd($withdraw['used_integral'], $withdraw['integral_used'], 2);
+                    $res2 = Db::table('mrs_user')->where('user_id', '=', $withdraw['user_id'])->update($userData);
+
+                    if($res1 && $res2) {
+                        Db::commit();
+                        echo $this->successJson();
+                        exit;
+                    }else{
+                        Db::rollback();
+                        echo $this->errorJson(1, '审核成功，提现失败');
+                        exit;
+                    }
+                } catch (Exception $e) {
+                    Db::rollback();
+                    echo $this->errorJson(1, '审核成功，提现异常');
+                    exit;
+                }
+            } else {
+                Db::rollback();
+                echo $this->errorJson(0, '审核失败');
+                exit;
+            }
         }
 
         $withdraw_id = $request->get('withdraw_id');
