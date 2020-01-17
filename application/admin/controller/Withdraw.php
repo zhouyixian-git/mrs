@@ -92,10 +92,11 @@ class Withdraw extends Base
             $data['admin_id'] = parent::$_ADMINID;
             $res = Db::table('mrs_withdraw')->where('withdraw_id', '=', $withdraw_id)->update($data);
             if ($res) { //审核通过
-                Db::commit();
+                //Db::commit();
+                Db::rollback();
 
                 //todo  审核通过，调用微信企业付款到个人接口
-                $wechatModel = new \app\admin\model\Wechat();
+                /*$wechatModel = new \app\admin\model\Wechat();
                 $param['partner_trade_no'] = $withdraw['withdraw_sn'];
                 $param['amount'] = $withdraw['withdraw_amount'];
                 $param['openid'] = $withdraw['open_id'];
@@ -119,9 +120,9 @@ class Withdraw extends Base
                     Db::commit();
                     echo $this->errorJson(1, $result['errmsg']);
                     exit;
-                }
+                }*/
 
-                //$result['payment_time'] = time(); //todo 测试用的，到时候要去掉
+                $result['payment_time'] = time(); //todo 测试用的，到时候要去掉
                 Db::startTrans();
                 try {
                     // 更新提现记录表状态
