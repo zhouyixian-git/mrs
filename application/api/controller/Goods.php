@@ -99,11 +99,11 @@ class Goods extends Base
                 ->field('goods_id,goods_name,goods_desc,goods_detail,goods_price')
                 ->find();
 
-            if(!empty($user_id)) {
+            if (!empty($user_id)) {
                 $cart_count = Db::table('mrs_carts')
                     ->where('user_id', '=', $user_id)
                     ->count();
-            }else{
+            } else {
                 $cart_count = 0;
             }
 
@@ -114,7 +114,7 @@ class Goods extends Base
                 ->select();
 
             $domain = config('domain');
-            foreach ($goodsimgList as $k => $v){
+            foreach ($goodsimgList as $k => $v) {
                 $goodsimgList[$k]['img_path'] = $domain . $v['img_path'];
             }
 
@@ -123,9 +123,9 @@ class Goods extends Base
 
             //判断是否已在购物车
             $is_exists = Db::table("mrs_carts")->where(array('user_id' => $user_id, 'goods_id' => $goods_id))->find();
-            if(empty($is_exists)){
+            if (empty($is_exists)) {
                 $goods['is_incart'] = 0;
-            }else{
+            } else {
                 $goods['is_incart'] = 1;
             }
 
@@ -139,4 +139,35 @@ class Goods extends Base
         }
     }
 
+    /**
+     * 获取商品分类信息
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getgoodscate(Request $request)
+    {
+        if ($request->isPost()) {
+            $goodscateList = Db::table('mrs_goods_cate')
+                ->field('cate_name,cate_image,cate_desc')
+                ->where('is_actived', '=', 1)
+                ->order('order_no asc,create_time desc')
+                ->select();
+
+            if ($goodscateList) {
+                $domain = config('domain');
+                foreach ($goodscateList as $k => $v) {
+                    $goodscateList[$k]['cate_image'] = $domain . $v['cate_image'];
+                }
+
+                $data['goodscateList'] = $goodscateList;
+                echo $this->successJson($data);
+                exit;
+            } else {
+                echo $this->errorJson(1, '没有商品分类信息');
+                exit;
+            }
+        }
+    }
 }

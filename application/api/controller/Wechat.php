@@ -141,8 +141,8 @@ class Wechat extends Base
     public function paynotice()
     {
         $param = file_get_contents('php://input');
-        $wechatModel = new \app\api\model\Wechat();
-        $data = $wechatModel->xmlToArray($param);
+        $data = xmlToArray($param);
+        recordLog('data->'.json_encode($data), 'wechat.txt');
         if (!empty($data['out_trade_no'])) {
             $this->paysuccess($data['out_trade_no']);
         }
@@ -154,6 +154,7 @@ class Wechat extends Base
     {
         $wechatModel = new \app\api\model\Wechat();
         $result = $wechatModel->queryOrder($pay_order_sn);
+        recordLog('result->'.json_encode($result), 'wechat.txt');
         if ($result['code'] == 1) {
             $order = Db::table('mrs_orders')->where('pay_order_sn', '=', $pay_order_sn)->find();
 

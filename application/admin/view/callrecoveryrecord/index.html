@@ -57,6 +57,7 @@
                     <table class="table table-bordered table-hover">
                         <thead>
                         <tr>
+                            <th>操作</th>
                             <th>人员名称</th>
                             <th>人员联系号码</th>
                             <th>用户名称</th>
@@ -71,6 +72,11 @@
                         <tbody>
                         {volist name="recordList" id="recordInfo"}
                             <tr>
+                                <td>
+                                    {if condition="in_array('call_record_accept',$loginAdmin.buttonData)"}
+                                        <button type="button" onclick="toAccept({$recordInfo.record_id})" class="btn btn-sm btn-default">受理</button>
+                                    {/if}
+                                </td>
                                 <td>{$recordInfo.master_name}</td>
                                 <td>{$recordInfo.master_phone_no}</td>
                                 <td>{$recordInfo.user_name}</td>
@@ -98,7 +104,14 @@
 
 <!-- Page-Level Scripts -->
 <script>
-
+    function toAccept(record_id){
+        layer.open({
+            type: 2,
+            title: '受理',
+            area: ['400px', '300px'],
+            content: "{:url('admin/admin/callrecoveryrecord/accept')}?record_id=" + record_id
+        });
+    }
 </script>
 
 </body>

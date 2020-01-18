@@ -87,6 +87,14 @@ class Withdraw extends Base
                 $userData['able_integral'] = bcadd($withdraw['able_integral'], $withdraw['integral_used'], 2);
                 $userData['frozen_integral'] = bcsub($withdraw['frozen_integral'], $withdraw['integral_used'], 2);
                 Db::table('mrs_user')->where('user_id', '=', $withdraw['user_id'])->update($userData);
+
+                //生成积分流水
+                $integralData['user_id'] = $withdraw['user_id'];
+                $integralData['integral_value'] = $withdraw['integral_used'];
+                $integralData['type'] = 1;
+                $integralData['action_desc'] = '提现失败积分退回';
+                $integralData['create_time'] = time();
+                Db::table('mrs_integral_detail')->insert($integralData);
             }
 
             $data['admin_id'] = parent::$_ADMINID;
@@ -116,6 +124,14 @@ class Withdraw extends Base
                     $userData['able_integral'] = bcadd($withdraw['able_integral'], $withdraw['integral_used'], 2);
                     $userData['frozen_integral'] = bcsub($withdraw['frozen_integral'], $withdraw['integral_used'], 2);
                     Db::table('mrs_user')->where('user_id', '=', $withdraw['user_id'])->update($userData);
+
+                    //生成积分流水
+                    $integralData['user_id'] = $withdraw['user_id'];
+                    $integralData['integral_value'] = $withdraw['integral_used'];
+                    $integralData['type'] = 1;
+                    $integralData['action_desc'] = '提现失败积分退回';
+                    $integralData['create_time'] = time();
+                    Db::table('mrs_integral_detail')->insert($integralData);
 
                     Db::commit();
                     echo $this->errorJson(1, $result['errmsg']);

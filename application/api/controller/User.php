@@ -493,7 +493,8 @@ class User extends Base
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function msgdetail(Request $request){
+    public function msgdetail(Request $request)
+    {
         if ($request->isPost()) {
             $msg_id = $request->post('msg_id');
 
@@ -527,8 +528,9 @@ class User extends Base
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function integrallist(Request $request){
-        if($request->isPost()){
+    public function integrallist(Request $request)
+    {
+        if ($request->isPost()) {
             $user_id = $request->post('user_id');
             $page = $request->post('page');
 
@@ -571,25 +573,26 @@ class User extends Base
         }
     }
 
-    public function joincart(Request $request){
-        if($request->isPost()) {
+    public function joincart(Request $request)
+    {
+        if ($request->isPost()) {
             $user_id = intval($request->post('user_id'));
             $goods_id = intval($request->post('goods_id'));
             $goods_num = intval($request->post('goods_num'));
 
-            $goods_num = empty($goods_num)?1:$goods_num;
-            if(empty($user_id)){
+            $goods_num = empty($goods_num) ? 1 : $goods_num;
+            if (empty($user_id)) {
                 echo $this->errorJson(1, '缺少关键数据user_id');
                 exit;
             }
-            if(empty($goods_id)){
+            if (empty($goods_id)) {
                 echo $this->errorJson(1, '缺少关键数据goods_id');
                 exit;
             }
 
-            $goods = Db::table('mrs_goods')->where(array('goods_id'=>$goods_id))->find();
+            $goods = Db::table('mrs_goods')->where(array('goods_id' => $goods_id))->find();
 
-            if(empty($goods)){
+            if (empty($goods)) {
                 echo $this->errorJson(1, '找不到对应商品信息');
                 exit;
             }
@@ -600,11 +603,11 @@ class User extends Base
 
             $cart = Db::table('mrs_carts')->where($where)->find();
             //判断是否已存在
-            if(!empty($cart)){
+            if (!empty($cart)) {
                 $sql = "update mrs_carts set goods_num=goods_num+{$goods_num} where cart_id={$cart['cart_id']}";
                 $cart = Db::table('mrs_carts')->execute($sql);
-            }else{
-                $cartData =array();
+            } else {
+                $cartData = array();
                 $cartData['user_id'] = $user_id;
                 $cartData['goods_id'] = $goods['goods_id'];
                 $cartData['goods_name'] = $goods['goods_name'];
@@ -626,20 +629,22 @@ class User extends Base
      * @param Request $request
      * @searchkey 搜索地址
      */
-    public function getpostcode(Request $request){
+    public function getpostcode(Request $request)
+    {
         $searchkey = $request->get('searchkey');
 
-        $url = 'http://cpdc.chinapost.com.cn/web/index.php?m=postsearch&c=index&a=ajax_addr&searchkey='.$searchkey;
+        $url = 'http://cpdc.chinapost.com.cn/web/index.php?m=postsearch&c=index&a=ajax_addr&searchkey=' . $searchkey;
 
         $result = doPostHttp($url, '');
         echo $result;
         exit;
     }
 
-    public function sendvcode(Request $request){
+    public function sendvcode(Request $request)
+    {
         $phone = $request->post("phone");
-        if(!preg_match("/^1[3456789]{1}\d{9}$/",$phone)){
-            echo errorJson('1','请输入正确的电话');
+        if (!preg_match("/^1[3456789]{1}\d{9}$/", $phone)) {
+            echo errorJson('1', '请输入正确的电话');
             exit;
         }
 
@@ -650,11 +655,12 @@ class User extends Base
     }
 
     //用户登录（短信或验证码）
-    public function userlogin(Request $request){
+    public function userlogin(Request $request)
+    {
         $phone = $request->post("phone");
 
-        if(!preg_match("/^1[3456789]{1}\d{9}$/",$phone)){
-            echo errorJson('1','请输入正确的电话');
+        if (!preg_match("/^1[3456789]{1}\d{9}$/", $phone)) {
+            echo errorJson('1', '请输入正确的电话');
             exit;
         }
 
@@ -662,30 +668,30 @@ class User extends Base
         $vcode = $request->post("vcode");
         $password = $request->post("password");
 
-        if($login_type == 1 && empty($vcode)){
-            echo errorJson('1','请输入验证码');
+        if ($login_type == 1 && empty($vcode)) {
+            echo errorJson('1', '请输入验证码');
             exit;
-        }elseif($login_type == 2 && empty($password)){
-            echo errorJson('1','请输入密码');
+        } elseif ($login_type == 2 && empty($password)) {
+            echo errorJson('1', '请输入密码');
             exit;
         }
 
         //验证码登录
-        if($login_type == 1){
-            $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone,'vcode' => $vcode))->order('record_time desc')->find();
-            if(empty($smsRecord)){
-                echo errorJson('1','验证码不正确');
+        if ($login_type == 1) {
+            $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'vcode' => $vcode))->order('record_time desc')->find();
+            if (empty($smsRecord)) {
+                echo errorJson('1', '验证码不正确');
                 exit;
-            }else if($smsRecord['is_use'] == 1){
-                echo errorJson('1','验证码已失效');
+            } else if ($smsRecord['is_use'] == 1) {
+                echo errorJson('1', '验证码已失效');
                 exit;
-            }else if($smsRecord['valid_date'] < time()){
-                echo errorJson('1','验证码已失效');
+            } else if ($smsRecord['valid_date'] < time()) {
+                echo errorJson('1', '验证码已失效');
                 exit;
             }
 
             $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
-            if(empty($user)){
+            if (empty($user)) {
                 $userData = array();
                 $userData['phone_no'] = $phone;
                 $userData['status'] = 1;
@@ -695,9 +701,9 @@ class User extends Base
                 $userData['user_id'] = $user_id;
 
                 $user = $userData;
-            }else{
-                if($user['status'] == '2'){
-                    echo errorJson('1','该用户已被禁用');
+            } else {
+                if ($user['status'] == '2') {
+                    echo errorJson('1', '该用户已被禁用');
                     exit;
                 }
                 unset($user['password']);
@@ -707,21 +713,21 @@ class User extends Base
 
             echo $this->successJson($data);
             exit;
-        }else{
+        } else {
             //密码登录
             $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
-            if(empty($user)){
-                echo errorJson('1','用户名或密码错误');
+            if (empty($user)) {
+                echo errorJson('1', '用户名或密码错误');
                 exit;
             }
 
-            if($user['status'] == '2'){
-                echo errorJson('1','该用户已被禁用');
+            if ($user['status'] == '2') {
+                echo errorJson('1', '该用户已被禁用');
                 exit;
             }
             $password = md5($phone . md5($password));
-            if($password != $user['password']){
-                echo errorJson('1','用户名或密码错误');
+            if ($password != $user['password']) {
+                echo errorJson('1', '用户名或密码错误');
                 exit;
             }
 
@@ -731,6 +737,31 @@ class User extends Base
 
             echo $this->successJson($data);
             exit;
+        }
+    }
+
+    /**
+     * 获取用户信息
+     * @param Request $request
+     */
+    public function getUserInfo(Request $request)
+    {
+        if ($request->isPost()) {
+            $user_id = $request->post('user_id');
+
+            if (empty($user_id)) {
+                echo $this->errorJson(1, '缺少关键数据');
+                exit;
+            }
+
+            $user = Db::table('mrs_user')->where('user_id', '=', $user_id)->find();
+            if (empty($user)) {
+                echo $this->errorJson(1, '未找到用户信息');
+                exit;
+            } else {
+                echo $this->successJson($user);
+                exit;
+            }
         }
     }
 }
