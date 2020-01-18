@@ -145,11 +145,11 @@ class Order extends Base
                 $where = [];
                 $where[] = ['order_id', '=', $order['order_id']];
                 $goodsList = Db::table('mrs_order_goods')
-                    ->field(array('goods_name', 'goods_num', 'goods_m_list_image', 'goods_price'))
+                    ->field('goods_name,goods_num,goods_m_list_image,goods_price')
                     ->where($where)->select();
 
-                foreach ($goodsList as $k => $v) {
-                    $goodsList[$k]['goods_m_list_image'] = $domain . $v['goods_m_list_image'];
+                foreach ($goodsList as $k1 => $v1) {
+                    $goodsList[$k1]['goods_m_list_image'] = $domain . $v1['goods_m_list_image'];
                 }
 
                 $orders[$k]['goods'] = $goodsList;
@@ -372,14 +372,14 @@ class Order extends Base
                     ->where(array('cart_id' => $v))
                     ->find();
 
-                $order_amount = $cart['goods_price'] * $cart["goods_num"];
+                $order_amount = bcadd($order_amount, bcmul($cart['goods_price'], $cart["goods_num"], 2), 2);
                 $carts[] = $cart;
             }
         } else {
             $goods = Db::table('mrs_goods')
                 ->where(array('goods_id' => $goods_id))
                 ->find();
-            $order_amount = $goods['goods_price'] * $goods_num;
+            $order_amount = bcmul($goods['goods_price'], $goods_num, 2);
         }
 
         $order_sn = date('YmdHis', time()) . rand(100000, 999999);
@@ -456,6 +456,15 @@ class Order extends Base
             }
         }
 
+        //生成订单动作表
+        $actionData['order_id'] = $order_id;
+        $actionData['action_name'] = '用户下单';
+        $actionData['action_user_id'] = $user_id;
+        $actionData['action_user_name'] = $user['user_name'];
+        $actionData['action_remark'] = '用户【'.$user['user_name'].'】下单';
+        $actionData['create_time'] = time();
+        Db::table('mrs_order_action')->insert($actionData);
+
         //生成订单支付记录
         $payData['type'] = '1';
         $payData['order_id'] = $order_id;
@@ -469,7 +478,7 @@ class Order extends Base
         $domain = config('domain');
         $wechatModel = new \app\api\model\Wechat();
         $data['pay_order_sn'] = $pay_order_sn;
-        $data['order_amount'] = $order_amount;
+        $data['order_amount'] = 0.01;   //$order_amount; //todo 默认支付金额设置位0.01，方便测试
         $data['open_id'] = $open_id;
         $data['body'] = '商品购买';
         $data['notify_url'] = $domain . '/api/wechat/paynotice';
@@ -586,7 +595,7 @@ class Order extends Base
         $domain = config('domain');
         $wechatModel = new \app\api\model\Wechat();
         $data['pay_order_sn'] = $order['pay_order_sn'];
-        $data['order_amount'] = $order['order_amount'];
+        $data['order_amount'] = 0.01;   //$order['order_amount']; //todo 默认支付金额设置位0.01，方便测试
         $data['open_id'] = $order['open_id'];
         $data['body'] = '商品购买';
         $data['notify_url'] = $domain . '/api/wechat/paynotice';

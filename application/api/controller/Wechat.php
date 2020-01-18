@@ -155,13 +155,23 @@ class Wechat extends Base
         $wechatModel = new \app\api\model\Wechat();
         $result = $wechatModel->queryOrder($pay_order_sn);
         if ($result['code'] == 1) {
-            Db::startTrans();
+            $order = Db::table('mrs_orders')->where('pay_order_sn', '=', $pay_order_sn)->find();
 
+            Db::startTrans();
             try {
                 $time = time();
                 $payData['pay_time'] = $time;
                 $payData['is_pay'] = 1;
                 Db::table('mrs_order_pay_record')->where('wc_order_id', '=', $pay_order_sn)->update($payData);
+
+                //生成订单动作表
+                $actionData['order_id'] = $order['order_id'];
+                $actionData['action_name'] = '用户下单';
+                $actionData['action_user_id'] = $order['user_id'];
+                $actionData['action_user_name'] = $order['user_name'];
+                $actionData['action_remark'] = '用户【'.$order['user_name'].'】支付订单';
+                $actionData['create_time'] = time();
+                Db::table('mrs_order_action')->insert($actionData);
 
                 $orderData['order_status'] = 2;
                 $orderData['pay_status'] = 2;
