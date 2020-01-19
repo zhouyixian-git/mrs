@@ -131,4 +131,213 @@ class Recovery extends Base
 
     }
 
+
+    /**
+     * 获取上门预约记录列表
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function callrecordlist(Request $request)
+    {
+        if ($request->isPost()) {
+            $page = $request->post('page');
+            $user_id = $request->post('user_id');
+
+            if (empty($page)) {
+                $page = 1;
+            }
+            $pageSize = 10;
+
+            $order = 'create_time desc';
+
+            $recordList = Db::table('mrs_call_recovery_record')
+                ->where('user_id', '=', $user_id)
+                ->order($order)
+                ->limit(($page - 1) * $pageSize, $pageSize)
+                ->select();
+
+            $totalCount = Db::table('mrs_call_recovery_record')
+                ->where('user_id', '=', $user_id)
+                ->count();
+
+            if ($recordList) {
+                $total_page = ceil($totalCount / $pageSize);
+
+                foreach ($recordList as $k => $v) {
+                    $recordList[$k]['call_create_time'] = empty($v['call_create_time'])?'-':date('Y-m-d H:i:s', $v['call_create_time']);
+                }
+
+                $data['record_list'] = $recordList;
+                $data['total_page'] = $total_page;
+                echo $this->successJson($data);
+                exit;
+            } else {
+                echo $this->errorJson(1, '没有上门记录信息');
+                exit;
+            }
+        }
+    }
+
+    /**
+     * 生成上门预约记录
+     * @param Request $request
+     */
+    public function callrecovery(Request $request){
+        $user_id = $request->post("user_id");
+        $address = $request->post("address");
+        $lng = $request->post("lng");
+        $lat = $request->post("lat");
+        $user_phone_no = $request->post("user_phone_no");
+        $recovery_cate_id = $request->post("recovery_cate_id");
+        $recovery_cate_name = $request->post("recovery_cate_name");
+        $call_create_time = $request->post("call_create_time");
+        $remark = $request->post("remark");
+
+        if(empty($user_id)){
+            echo $this->errorJson('1','缺少关键参数user_id');
+            exit;
+        }
+
+        if(empty($address)){
+            echo $this->errorJson('1','缺少关键参数address');
+            exit;
+        }
+
+        if(empty($lng)){
+            echo $this->errorJson('1','缺少关键参数$lng');
+            exit;
+        }
+
+        if(empty($lat)){
+            echo $this->errorJson('1','缺少关键参数$lat');
+            exit;
+        }
+
+        if(empty($user_phone_no)){
+            echo $this->errorJson('1','缺少关键参数$user_phone_no');
+            exit;
+        }
+
+        if(empty($recovery_cate_id)){
+            echo $this->errorJson('1','缺少关键参数$recovery_cate_id');
+            exit;
+        }
+
+        if(empty($recovery_cate_name)){
+            echo $this->errorJson('1','缺少关键参数$recovery_cate_name');
+            exit;
+        }
+
+        if(empty(strtotime($call_create_time))){
+            echo $this->errorJson('1','recovery_cate_name格式不正确');
+            exit;
+        }
+
+        if(empty($call_create_time)){
+            echo $this->errorJson('1','缺少关键参数$call_create_time');
+            exit;
+        }
+
+        //查找最近的一个师傅
+        $maxDistance = Db::table("mrs_sys_setting")->where('setting_code', '=','call_recovery_max_distance')->find();
+
+        $where = array();
+        $where[] = ['is_avtived', '=', 1];
+        $where[] = ['distance', '<=', $maxDistance['setting_value']];
+        $master = Db::table('mrs_recovery_master')
+            ->alias('t1')
+            ->where($where)
+            ->field("t1.master_name,t1.lng,t1.lat,t1.address,t1.master_phone_no,
+                    ROUND(
+                        6378.138 * 2 * ASIN(
+                            SQRT(
+                                POW(
+                                    SIN(
+                                        (
+                                            $lat * PI() / 180 - t1.lat * PI() / 180
+                                        ) / 2
+                                    ),
+                                    2
+                                ) + COS($lat * PI() / 180) * COS(t1.lat * PI() / 180) * POW(
+                                    SIN(
+                                        (
+                                            $lng * PI() / 180 - t1.lng * PI() / 180
+                                        ) / 2
+                                    ),
+                                    2
+                                )
+                            )
+                        ) * 1000
+                    ) AS distance
+                ")
+            ->order('distance asc')
+            ->find();
+
+        if(empty($master)){
+            echo $this->errorJson('1', '附近没有可预约的上门人员.');
+            exit;
+        }
+
+        //生成记录
+        $callRecord = array();
+        $callRecord['master_id'] = $master['master_id'];
+        $callRecord['master_name'] = $master['master_name'];
+        $callRecord['master_phone_no'] = $master['master_phone_no'];
+        $callRecord['user_id'] = $user_id;
+        $callRecord['user_phone_no'] = $user_phone_no;
+        $callRecord['address'] = $address;
+        $callRecord['lng'] = $lng;
+        $callRecord['lat'] = $lat;
+        $callRecord['call_create_time'] = strtotime($call_create_time);
+        $callRecord['recovery_cate_id'] = $recovery_cate_id;
+        $callRecord['recovery_cate_name'] = $recovery_cate_name;
+        $callRecord['remark'] = $remark;
+        $callRecord['create_time'] = time();
+        $callRecord['notice_status'] = 0;
+
+        $res = Db::table('mrs_call_recovery_record')->insert($callRecord);
+        if(empty($res)){
+            echo errorJson('1', '系统异常，请稍后再试');
+            exit;
+        }
+        $record_id = Db::table('mrs_call_recovery_record')->getLastInsID();
+
+        //通知上门师傅
+        /* 短信模板内容：  尊敬的师傅： 您好，您有新的预约上门回收订单，地点为“{address}”,联系电话：{user_phone_no},预约上门时间：{call_create_time},备注：{remark},请您按时上门回收，谢谢。 */
+        $patterns = array();
+        $replacements = array();
+
+        $patterns[] = '/{address}/';
+        $patterns[] = '/{user_phone_no}/';
+        $patterns[] = '/{call_create_time}/';
+        $patterns[] = '/{remark}/';
+
+        $replacements[] = $address;
+        $replacements[] = $user_phone_no;
+        $replacements[] = $call_create_time;
+        $replacements[] = empty($remark)?'无':$remark;
+
+        $res = sendSmsCommon($master['master_phone_no'], 'call_master_order', $patterns, $replacements);
+        $result = json_decode($res, true);
+
+        if($result['errcode'] == 1){
+            Db::table('mrs_call_recovery_record')->where('record_id', '=', $record_id)->delete();
+
+            echo errorJson('1', '预约失败，请联系站点工作人员');
+            exit;
+        }else{
+            $data = array();
+            $data['notice_status'] = 1;
+            Db::table('mrs_call_recovery_record')->where('record_id', '=', $record_id)->update($data);
+
+            echo successJson();
+            exit;
+
+        }
+    }
+
+
+
 }

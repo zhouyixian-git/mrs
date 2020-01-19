@@ -125,6 +125,100 @@ function sendSms($phone, $tpl_code)
 }
 
 
+/**
+ * 发送短信通配方法|非验证码
+ * @param $phone
+ * @param $tpl_code
+ * @param $patterns 正则数组
+ * @param $replacements 替换数据数组
+ * @return false|mixed|SimpleXMLElement|string|void
+ *
+ */
+function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements = array())
+{
+
+    $accessKeyId = '';
+    $accessSecret = '';
+    $sign = '';
+
+    $smsApi = Db::table('mrs_api')->where(array('api_code' => 'aliyunsms', 'status' => '1'))->find();
+
+    if (empty($smsApi)) {
+        return errorJson('1', 'Not found the sms api!');
+    }
+    $smsTpl = Db::table('mrs_sms_tpl')->where(array('tpl_code' => $tpl_code))->find();
+    if (empty($smsTpl)) {
+        return errorJson('1', 'Not found the sms template!');
+    }
+
+
+    //生成短信记录
+    $content = preg_replace($patterns, $replacements, $smsTpl['tpl_content']);
+
+    $smsRecordData = array();
+    $smsRecordData['phone'] = $phone;
+    $smsRecordData['sms_content'] = $content;
+    $smsRecordData['valid_date'] = time() + 10 * 60;
+    $smsRecordData['is_use'] = '0';
+    $smsRecordData['record_time'] = time();
+
+    $record_id = Db::table('mrs_sms_record')->insert($smsRecordData);
+
+    $params = Db::table('mrs_api_params')->where(array('api_id' => $smsApi['api_id']))->select();
+    if (is_array($params) && count($params)) {
+        foreach ($params as $k => $param) {
+            if ($param['param_code'] == 'AccessKeyID') {
+                $accessKeyId = $param['param_value'];
+            } else if ($param['param_code'] == 'AccessKeySecret') {
+                $accessSecret = $param['param_value'];
+            } else if ($param['param_code'] == 'sign') {
+                $sign = $param['param_value'];
+            }
+        }
+    }
+
+    if (empty($accessKeyId) || empty($accessSecret) || empty($sign)) {
+        return errorJson('1', '配置参数缺失!');
+    }
+
+    //引进阿里的配置文件
+//    Vendor('api_sdk.vendor.autoload');
+    require_once '../extend/api_sdk/vendor/autoload.php';
+    // TP5.1及以上用require_once
+
+    // 加载区域结点配置
+    \Aliyun\Core\Config::load();
+    $profile = \Aliyun\Core\Profile\DefaultProfile::getProfile('cn-hangzhou', $accessKeyId, $accessSecret);
+    // 增加服务结点
+    \Aliyun\Core\Profile\DefaultProfile::addEndpoint('cn-hangzhou', 'cn-hangzhou', 'Dysmsapi', 'dysmsapi.aliyuncs.com');
+    // 初始化AcsClient用于发起请求
+    $acsClient = new \Aliyun\Core\DefaultAcsClient($profile);
+    // 初始化SendSmsRequest实例用于设置发送短信的参数
+    $request = new \Aliyun\Api\Sms\Request\V20170525\SendSmsRequest();
+    // 必填，设置雉短信接收号码
+    $request->setPhoneNumbers($phone);
+    // 必填，设置签名名称
+    $request->setSignName($sign);
+    // 必填，设置模板CODE
+    $request->setTemplateCode($smsTpl['aliyun_code']);
+    $params = array(
+        'code' => $code,
+    );
+    // 可选，设置模板参数
+    $request->setTemplateParam(json_encode($params));
+    // 可选，设置流水号
+    //if($outId) {
+    //    $request->setOutId($outId);
+    //}
+    // 发起访问请求
+    $acsResponse = $acsClient->getAcsResponse($request);
+    // 打印请求结果
+
+    return successJson();
+
+}
+
+
 //function connectModbus(){
 //
 //    ini_set('memory_limit',"88M");//重置php可以使用的内存大小为64M
