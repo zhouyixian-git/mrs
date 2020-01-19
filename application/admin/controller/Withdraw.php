@@ -25,7 +25,7 @@ class Withdraw extends Base
         $withdraw_sn = $request->param('withdraw_sn');
         $status = $request->param('status');
         $where = [];
-        if (!empty($status)) {
+        if (!empty($withdraw_sn)) {
             $where[] = ['t1.withdraw_sn', 'like', "%$withdraw_sn%"];
         }
         if (!empty($status)) {
@@ -41,13 +41,8 @@ class Withdraw extends Base
             ->order('t1.create_time desc')
             ->paginate(8, false, ['query' => $request->param(), 'type' => 'page\Page', 'var_page' => 'page']);
 
-        $page = $withdrawList->render();
-        $count = Db::table('mrs_withdraw')->alias('t1')->where($where)->count();
-
         $this->assign('status', $status);
         $this->assign('withdraw_sn', $withdraw_sn);
-        $this->assign('page', $page);
-        $this->assign('count', $count);
         $this->assign('withdrawList', $withdrawList);
         return $this->fetch();
     }
