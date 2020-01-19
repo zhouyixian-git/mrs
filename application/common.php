@@ -426,3 +426,14 @@ function arrayToXml($arr)
     $xml .= "</xml>";
     return $xml;
 }
+
+if (!function_exists('dateTime')) {
+    function dateTime($time)
+    {
+        if (empty($time)) {
+            return '';
+        }
+        $ChineseDate = date('Y-m-d H:i', $time);
+        return $ChineseDate;
+    }
+}

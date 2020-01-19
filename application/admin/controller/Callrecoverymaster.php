@@ -15,15 +15,32 @@ use think\Request;
 
 class Callrecoverymaster extends Base
 {
-    public function index(){
+    public function index(Request $request){
+        $master_name = $request->param('master_name');
+        $is_actived = $request->param('is_actived');
+        $master_phone_no = $request->param('master_phone_no');
+        $where = [];
+        if (!empty($master_name)) {
+            $where[] = ['master_name', '=', $master_name];
+        }
+        if (!empty($is_actived)) {
+            $where[] = ['is_actived', '=', $is_actived];
+        }
+        if (!empty($master_phone_no)) {
+            $where[] = ['master_phone_no', '=', $master_phone_no];
+        }
 
         $masterList = Db::table('mrs_call_recovery_master')
             ->order('create_time')
+            ->where($where)
             ->paginate(8, false, [ 'type' => 'page\Page', 'var_page' => 'page']);
 
         $page = $masterList->render();
         $count = Db::table('mrs_call_recovery_master')->count();
 
+        $this->assign('master_name', $master_name);
+        $this->assign('is_actived', $is_actived);
+        $this->assign('master_phone_no', $master_phone_no);
         $this->assign('page', $page);
         $this->assign('count', $count);
         $this->assign('masterList', $masterList);
@@ -50,8 +67,8 @@ class Callrecoverymaster extends Base
             }
 
 
-            $api = new \app\admin\model\Callrecoverymaster();
-            $api->save($data);
+            $masterM = new \app\admin\model\Callrecoverymaster();
+            $masterM->save($data);
 
             echo $this->successJson();
             return;
@@ -62,43 +79,44 @@ class Callrecoverymaster extends Base
 
     public function update(Request $request){
         if ($request->isPost()) {
-            $tpl_id= $request->post('tpl_id');
+            $master_id = $request->post('master_id');
             $data = array();
-            $data['tpl_name']= $request->post('tpl_name');
-            $data['tpl_code']= $request->post('tpl_code');
-            $data['aliyun_code'] = $request->post('aliyun_code');
-            $data['tpl_content'] = $request->post('tpl_content');
+            $data['master_name']= $request->post('master_name');
+            $data['master_phone_no']= $request->post('master_phone_no');
+            $data['lat'] = $request->post('lat');
+            $data['lng'] = $request->post('lng');
+            $data['address'] = $request->post('address');
+            $data['is_actived'] = $request->post('is_actived');
 
-            $validate = new \app\admin\validate\Smstpl();
+            $validate = new \app\admin\validate\Callrecoverymaster();
             if (!$validate->check($data)) {
                 echo $this->errorJson(0, $validate->getError());
                 return;
             }
 
 
-            $api = new \app\admin\model\Smstpl();
-            $api->save($data,['tpl_id' => $tpl_id]);
+            $masterM = new \app\admin\model\Callrecoverymaster();
+            $masterM->save($data,['master_id' => $master_id]);
 
             echo $this->successJson();
             return;
         }
-        $tpl_id = $request->get('tpl_id');
 
-        if(empty($tpl_id)){
-            exit('缺少关键参数');
-            return;
+        $master_id = $request->get('master_id');
+        if(empty($master_id)){
+            $this->error('缺少关键参数');
         }
-        $smsTpl= Db::table("mrs_sms_tpl")
-            ->where(array('tpl_id' => $tpl_id))
+        $master= Db::table("mrs_call_recovery_master")
+            ->where(array('master_id' => $master_id))
             ->find();
 
-        $this->assign('smsTpl', $smsTpl);
+        $this->assign('master', $master);
         return $this->fetch();
     }
 
 
     /**
-     * 删除接口
+     * 删除上门人员
      * @param Request $request
      * @throws Exception
      * @throws \think\exception\PDOException
@@ -106,14 +124,14 @@ class Callrecoverymaster extends Base
     public function delete(Request $request)
     {
         if ($request->isPost()) {
-            $tpl_id = $request->post('tpl_id');
+            $master_id = $request->post('master_id');
 
-            if (empty($tpl_id)) {
+            if (empty($master_id)) {
                 echo $this->errorJson(0, '关键数据错误');
                 exit;
             }
 
-            \app\admin\model\Smstpl::where('tpl_id', $tpl_id)->delete();
+            \app\admin\model\Callrecoverymaster::where('master_id', $master_id)->delete();
 
             echo $this->successJson();
             exit;

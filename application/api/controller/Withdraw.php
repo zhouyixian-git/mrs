@@ -95,7 +95,15 @@ class Withdraw extends Base
                 //$userData['used_integral'] = bcadd($user['used_integral'], $withdraw_integral, 2);
                 $res2 = Db::table('mrs_user')->where('user_id', '=', $user_id)->update($userData);
 
-                if ($res1 && $res2) {
+                //生成积分流水
+                $integralData['user_id'] = $user_id;
+                $integralData['integral_value'] = $withdraw_integral;
+                $integralData['type'] = 2;
+                $integralData['action_desc'] = '积分提现';
+                $integralData['create_time'] = time();
+                $res3 = Db::table('mrs_integral_detail')->insert($integralData);
+
+                if ($res1 && $res2 && $res3) {
                     Db::commit();
                     echo $this->successJson();
                     exit;

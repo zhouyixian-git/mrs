@@ -129,6 +129,7 @@ class Wechat extends Model
         $xml = arrayToXml($data);
         $res = httpPost($url, $xml);
         $arr = xmlToArray($res);
+        recordLog(json_encode($arr), 'wechat.txt');
         if (!empty($arr['transaction_id']) && $arr['trade_state'] == 'SUCCESS') {
             $arr['code'] = 1;
             $arr['pay_time'] = strtotime($arr['time_end']);

@@ -29,8 +29,27 @@
             <div class="ibox float-e-margins">
 
                 <div class="ibox-title">
-                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/apiconfig/index')}">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/callrecoverymaster/index')}">
                         <div class="form-group">
+                            <label class="control-label col-sm-1">是否激活</label>
+                            <div class="col-sm-2">
+                                <select class="form-control" name="is_actived">
+                                    <option value="">全部</option>
+                                    <option value="1" {if condition="$is_actived eq 1"}selected{/if}>是</option>
+                                    <option value="2" {if condition="$is_actived eq 2"}selected{/if}>否</option>
+                                </select>
+                            </div>
+                            <label class="control-label col-sm-1">上门人员</label>
+                            <div class="col-sm-2">
+                                <input type="text" id="master_name" name="master_name" value="{$master_name}" class="form-control">
+                            </div>
+                            <label class="control-label col-sm-1">人员联系号码</label>
+                            <div class="col-sm-2">
+                                <input type="text" id="master_phone_no" name="master_phone_no" value="{$master_phone_no}" class="form-control">
+                            </div>
+                            <div class="col-sm-1" style="text-align:center;">
+                                <button type="submit" class="btn btn-sm btn-white">查询</button>
+                            </div>
                             <div>
                                 {if condition="in_array('master_add',$loginAdmin.buttonData)"}
                                 <button style="margin-left:20px;" type="button"class="btn btn-sm btn-success" onclick="window.location.href='{:url(\'callrecoverymaster/add\')}'">新增</button>
@@ -59,7 +78,7 @@
                                     <button type="button" onclick="toEdit({$masterInfo.master_id})" class="btn btn-sm btn-primary">修改</button>
                                     {/if}
                                     {if condition="in_array('master_delete',$loginAdmin.buttonData)"}
-                                    <button type="button" onclick="delTpl({$masterInfo.master_id})" class="btn btn-sm btn-danger">删除</button>
+                                    <button type="button" onclick="delMaster({$masterInfo.master_id})" class="btn btn-sm btn-danger">删除</button>
                                     {/if}
                                 </td>
                                 <td>{$masterInfo.master_name}</td>

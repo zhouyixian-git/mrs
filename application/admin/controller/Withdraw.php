@@ -25,7 +25,7 @@ class Withdraw extends Base
         $withdraw_sn = $request->param('withdraw_sn');
         $status = $request->param('status');
         $where = [];
-        if (!empty($status)) {
+        if (!empty($withdraw_sn)) {
             $where[] = ['t1.withdraw_sn', 'like', "%$withdraw_sn%"];
         }
         if (!empty($status)) {
@@ -41,13 +41,8 @@ class Withdraw extends Base
             ->order('t1.create_time desc')
             ->paginate(8, false, ['query' => $request->param(), 'type' => 'page\Page', 'var_page' => 'page']);
 
-        $page = $withdrawList->render();
-        $count = Db::table('mrs_withdraw')->alias('t1')->where($where)->count();
-
         $this->assign('status', $status);
         $this->assign('withdraw_sn', $withdraw_sn);
-        $this->assign('page', $page);
-        $this->assign('count', $count);
         $this->assign('withdrawList', $withdrawList);
         return $this->fetch();
     }
@@ -87,6 +82,14 @@ class Withdraw extends Base
                 $userData['able_integral'] = bcadd($withdraw['able_integral'], $withdraw['integral_used'], 2);
                 $userData['frozen_integral'] = bcsub($withdraw['frozen_integral'], $withdraw['integral_used'], 2);
                 Db::table('mrs_user')->where('user_id', '=', $withdraw['user_id'])->update($userData);
+
+                //生成积分流水
+                $integralData['user_id'] = $withdraw['user_id'];
+                $integralData['integral_value'] = $withdraw['integral_used'];
+                $integralData['type'] = 1;
+                $integralData['action_desc'] = '提现失败积分退回';
+                $integralData['create_time'] = time();
+                Db::table('mrs_integral_detail')->insert($integralData);
             }
 
             $data['admin_id'] = parent::$_ADMINID;
@@ -116,6 +119,14 @@ class Withdraw extends Base
                     $userData['able_integral'] = bcadd($withdraw['able_integral'], $withdraw['integral_used'], 2);
                     $userData['frozen_integral'] = bcsub($withdraw['frozen_integral'], $withdraw['integral_used'], 2);
                     Db::table('mrs_user')->where('user_id', '=', $withdraw['user_id'])->update($userData);
+
+                    //生成积分流水
+                    $integralData['user_id'] = $withdraw['user_id'];
+                    $integralData['integral_value'] = $withdraw['integral_used'];
+                    $integralData['type'] = 1;
+                    $integralData['action_desc'] = '提现失败积分退回';
+                    $integralData['create_time'] = time();
+                    Db::table('mrs_integral_detail')->insert($integralData);
 
                     Db::commit();
                     echo $this->errorJson(1, $result['errmsg']);
