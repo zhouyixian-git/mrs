@@ -237,6 +237,7 @@ class Order extends Base
 
         $data = array();
         $data['order_status'] = '4';
+        $data['shipping_status'] = '3';
         $data['confirm_time'] = time();
 
         $res = Db::table('mrs_orders')->where('order_id', $order['order_id'])->update($data);

@@ -121,7 +121,6 @@ function sendSms($phone, $tpl_code)
     // 打印请求结果
 
     return successJson();
-
 }
 
 
