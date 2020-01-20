@@ -35,7 +35,9 @@
         <div class="ibox float-e-margins ">
             <div class="ibox-content clearfix">
                 <div class="ibox-title col-sm-12">
-                    <h3>订单信息</h3>
+                    <h3>订单信息
+                        <button style="float: right;" type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
+                    </h3>
                 </div>
                 <div class="col-sm-12 clearfix">
                     <div class="col-sm-12 form-horizontal clearfix">
@@ -72,11 +74,11 @@
                                     {elseif condition="$order.order_status eq 2"}
                                     <span style="color: #1c84c6;">待发货</span>
                                     {elseif condition="$order.order_status eq 3"}
-                                    <span style="color: #ed5565;">已发货</span>
+                                    <span style="color: #f8ac59;">已发货</span>
                                     {elseif condition="$order.order_status eq 4"}
                                     <span style="color: #1ab394;">已收货</span>
                                     {elseif condition="$order.order_status eq 5"}
-                                    <span style="color: #f8ac59;">已取消</span>
+                                    <span style="color: #ed5565;">已取消</span>
                                     {else/}
                                     <span style="color: yellow;">未知</span>
                                     {/if}
@@ -90,7 +92,7 @@
                                     {if condition="$order.pay_status eq 1"}
                                     <span style="color: #23c6c8;">未付款</span>
                                     {elseif condition="$order.pay_status eq 2"}
-                                    <span style="color: #1ab394;">已付款</span>
+                                    <span style="color: #f8ac59;">已付款</span>
                                     {else/}
                                     <span style="color: yellow;">未知</span>
                                     {/if}
@@ -104,7 +106,7 @@
                                     {if condition="$order.shipping_status eq 1"}
                                     <span style="color: #23c6c8;">未发货</span>
                                     {elseif condition="$order.shipping_status eq 2"}
-                                    <span style="color: #1ab394;">已发货</span>
+                                    <span style="color: #f8ac59;">已发货</span>
                                     {else/}
                                     <span style="color: yellow;">未知</span>
                                     {/if}
@@ -375,6 +377,22 @@
                 </table>
             </div>
 
+            {if condition="in_array($order.order_status, [2, 3, 4])"}
+            <div class="ibox-content clearfix">
+                <div class="ibox-title col-sm-12">
+                    <h3>操作</h3>
+                </div>
+                {if condition="$order.order_status eq 2"}
+                <button type="button"class="btn btn-sm btn-success" onclick="doShipping({$order.order_id})">发货</button>
+                {/if}
+                {if condition="$order.pay_status eq 2 && in_array($order.refund_status, [2, 3])"}
+                <button type="button"class="btn btn-sm btn-success" onclick="doRefund({$order.order_id})">退款</button>
+                {/if}
+                {if condition="$order.shipping_status eq 2 && in_array($order.sales_status, [2, 3])"}
+                <button type="button"class="btn btn-sm btn-success" onclick="doSales({$order.order_id})">退货</button>
+                {/if}
+            </div>
+            {/if}
         </div>
     </div>
 </div>
@@ -386,6 +404,34 @@
 
 <script src="__JS__/plugins/layer/layer.min.js"></script>
 <script>
+    /**
+     * 订单发货
+     * @param order_id
+     */
+    function doShipping(order_id){
+        layer.open({
+            type: 2,
+            title: '订单发货',
+            area: ['400px', '300px'],
+            content: "{:url('admin/admin/order/shipping')}?order_id=" + order_id
+        });
+    }
+
+    /**
+     * 订单退款
+     * @param order_id
+     */
+    function doRefund(order_id){
+
+    }
+
+    /**
+     * 订单退货
+     * @param order_id
+     */
+    function doSales(order_id){
+
+    }
 
 </script>
 </body>

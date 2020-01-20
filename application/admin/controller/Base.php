@@ -17,6 +17,7 @@ use think\facade\Session;
 class Base extends Controller
 {
     protected static $_ADMINID = null;
+    protected static $_ADMINNAME = null;
     public static $loginAdmin = null;
 
     protected function initialize()
@@ -34,6 +35,7 @@ class Base extends Controller
                     return $this->logout();
                 }
                 self::$_ADMINID = $admin['admin_id'];
+                self::$_ADMINNAME = $admin['admin_name'];
                 self::$loginAdmin = $admin;
 
                 $this->assign('loginAdmin', $admin);

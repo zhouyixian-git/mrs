@@ -106,4 +106,111 @@ class Wechat extends Model
         return $ret;
     }
 
+    /**
+     * 微信支付退款
+     * @param $param
+     * @return array
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function refund($param){
+        if (empty($param['out_trade_no'])) {
+            $ret['errcode'] = 1;
+            $ret['errmsg'] = '商户订单号不能为空';
+            return $ret;
+        }
+        if (empty($param['out_refund_no'])) {
+            $ret['errcode'] = 1;
+            $ret['errmsg'] = '退款订单号不能为空';
+            return $ret;
+        }
+        if (empty($param['amount'])) {
+            $ret['errcode'] = 1;
+            $ret['errmsg'] = '退款金额不能为空';
+            return $ret;
+        }
+
+        $wechatInfo = $this->getWechatInfo();
+        $appid = $wechatInfo['app_id'];
+        $mch_id = $wechatInfo['mch_id'];
+        $mch_key = $wechatInfo['mch_key'];
+
+        $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
+        $data = array(
+            'appid' => $appid,
+            'mch_id' => $mch_id,
+            'nonce_str' => createNoncestr(),
+            'out_trade_no' => $param['out_trade_no'],
+            'out_refund_no' => $param['out_refund_no'],
+            'total_fee' => $param['amount'] * 100,
+            'refund_fee' => $param['amount'] * 100
+        );
+        $data['sign'] = sign($data, $mch_key);
+        $xml = arrayToXml($data);
+        $res = httpPostCert($url, $xml);
+        $arr = xmlToArray($res);
+        if (!empty($arr['err_code_des'])) {
+            $ret['errcode'] = 1;
+            $ret['errmsg'] = $arr['err_code_des'];
+            return $ret;
+        }
+        if ($arr['return_code'] == 'FAIL') {
+            $ret['errcode'] = 1;
+            $ret['errmsg'] = $arr['return_msg'];
+            return $ret;
+        }
+
+        $data = array(
+            'errcode' =>  0,
+            'out_trade_no' => $arr['out_trade_no'],
+            'out_refund_no' => $arr['out_refund_no']
+        );
+        return $data;
+    }
+
+    /**
+     * 查询退款订单
+     * @param $out_refund_no
+     * @return mixed
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function queryRefundOrder($out_refund_no){
+        if(empty($pay_order_sn)){
+            $ret['errcode'] = 1;
+            $ret['errmsg'] = '退款单号不能为空';
+            return $ret;
+        }
+
+        $wechatInfo = $this->getWechatInfo();
+        $appid = $wechatInfo['app_id'];
+        $mch_id = $wechatInfo['mch_id'];
+        $mch_key = $wechatInfo['mch_key'];
+
+        $url = 'https://api.mch.weixin.qq.com/pay/refundquery';
+        $data = array(
+            'appid' => $appid,
+            'mch_id' => $mch_id,
+            'nonce_str' => createNoncestr(),//随机字符串
+            'out_refund_no' => $out_refund_no,   //退款订单号
+        );
+        $data['sign'] = sign($data, $mch_key);
+        $xml = arrayToXml($data);
+        $res = httpPost($url, $xml);
+        $arr = xmlToArray($res);
+        recordLog(json_encode($arr), 'wechat.txt');
+        if (!empty($arr['transaction_id']) && $arr['trade_state'] == 'SUCCESS') {
+            $arr['errcode'] = 0;
+            $arr['errmsg'] = 'success';
+            $arr['pay_time'] = strtotime($arr['time_end']);
+        } else {
+            $arr['errcode'] = 1;
+        }
+        // transaction_id   交易号
+        // pay_time  支付时间
+        // code   状态
+        return $arr;
+    }
 }

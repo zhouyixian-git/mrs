@@ -399,8 +399,8 @@ class Order extends Base
         $orderData['pay_type'] = '1';
         $orderData['order_amount'] = $order_amount;
         $orderData['shipping_amount'] = 0;
-        $orderData['integral_amount'] = $order_amount;
-        $orderData['cash_amount'] = 0;
+        $orderData['integral_amount'] = 0;
+        $orderData['cash_amount'] = $order_amount;
         $orderData['consignee'] = $address['consignee'];
         $orderData['telephone'] = $address['telephone'];
         $orderData['province_name'] = $address['province_name'];

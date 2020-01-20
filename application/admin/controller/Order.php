@@ -67,28 +67,163 @@ class Order extends Base
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function view(Request $request){
+    public function view(Request $request)
+    {
         $order_id = $request->get('order_id');
-        if(empty($order_id)){
+        if (empty($order_id)) {
             $this->error('缺少关键参数order_id');
         }
 
         //订单信息
-        $order = Db::table('mrs_orders')->where('order_id','=',$order_id)->find();
-        if(!$order){
+        $order = Db::table('mrs_orders')->where('order_id', '=', $order_id)->find();
+        if (!$order) {
             $this->error('没有找到对应的订单信息');
         }
 
         //订单商品信息
-        $orderGoods = Db::table('mrs_order_goods')->where('order_id','=',$order_id)->select();
+        $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->select();
 
         //订单动作信息
-        $orderAction = Db::table('mrs_order_action')->where('order_id','=',$order_id)->select();
+        $orderAction = Db::table('mrs_order_action')->where('order_id', '=', $order_id)->order('create_time desc')->select();
 
         $order['orderGoods'] = $orderGoods;
         $order['orderAction'] = $orderAction;
 
         $this->assign('order', $order);
         return $this->fetch();
+    }
+
+    /**
+     * 订单发货
+     * @param Request $request
+     * @return mixed
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public function shipping(Request $request)
+    {
+        if ($request->isPost()) {
+            $order_id = $request->post('order_id');
+            $data['courier_company'] = $request->post('courier_company');
+            $data['courier_number'] = $request->post('courier_number');
+
+            if (empty($order_id)) {
+                echo $this->errorJson(1, '缺少关键参数order_id');
+                exit;
+            }
+            if (empty($data['courier_company'])) {
+                echo $this->errorJson(1, '请填写快递公司信息');
+                exit;
+            }
+            if (empty($data['courier_number'])) {
+                echo $this->errorJson(1, '请填写快递单号信息');
+                exit;
+            }
+
+            $data['order_status'] = 3;
+            $data['shipping_status'] = 2;
+            $data['shipping_time'] = time();
+            Db::table('mrs_orders')->where('order_id', '=', $order_id)->update($data);
+
+            echo $this->successJson();
+            exit;
+        }
+
+        $order_id = $request->get('order_id');
+        if (empty($order_id)) {
+            $this->error('缺少关键参数order_id');
+        }
+
+        $this->assign('order_id', $order_id);
+        return $this->fetch();
+    }
+
+    /**
+     * 订单退款
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function doRefund(Request $request)
+    {
+        if ($request->isPost()) {
+            $order_id = $request->post('order_id');
+            if (empty($order_id)) {
+                echo $this->errorJson(1, '缺少关键参数order_id');
+                exit;
+            }
+
+            $order = Db::table('mrs_orders')
+                ->where('order_id', '=', $order_id)
+                ->find();
+
+            if (empty($order)) {
+                echo $this->errorJson(1, '没有找到对应的订单信息');
+                exit;
+            }
+
+            //调用微信支付退款接口
+            $out_refund_no = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
+            $wechatModel = new \app\admin\model\Wechat();
+            $data['out_trade_no'] = $order['pay_order_sn'];
+            $data['out_refund_no'] = $out_refund_no;
+            $data['amount'] = $order['cash_amount'];
+            $result = $wechatModel->refund($data);
+            if ($result['errcode'] == 1) {
+                echo $this->errorJson(1, $result['errmsg']);
+                exit;
+            } else {
+                //调用退款查询接口
+                $refundResult = $wechatModel->queryRefundOrder($out_refund_no);
+                if ($refundResult['errcode'] == 1) { //退款成功
+                    //todo 更新订单表信息、订单动作表、订单退款记录表
+                    //更新订单表数据
+                    Db::startTrans();
+                    try {
+                        $orderData['order_status'] = 5;
+                        $orderData['refund_status'] = 5;
+                        $orderData['refund_order_sn'] = $out_refund_no;
+                        $orderData['refund_time'] = time();
+                        $res1 = Db::table('mrs_orders')
+                            ->where('order_id', '=', $order_id)
+                            ->update($orderData);
+
+                        //生成订单动作表
+                        $actionData['order_id'] = $order_id;
+                        $actionData['action_name'] = '管理员退款操作';
+                        $actionData['action_user_id'] = parent::$_ADMINID;
+                        $actionData['action_user_name'] = parent::$_ADMINNAME;
+                        $actionData['action_remark'] = '管理员【' . parent::$_ADMINNAME . '】处理用户退款';
+                        $actionData['create_time'] = time();
+                        $res2 = Db::table('mrs_order_action')->insert($actionData);
+
+                        //生成退款记录
+                        $refundData['order_id'] = $order_id;
+                        $refundData['money'] = $order['cash_amount'];
+                        $refundData['pay_time'] = time();
+                        $refundData['is_pay'] = 1;
+                        $refundData['wc_order_id'] = $out_refund_no;
+                        $res3 = Db::table('mrs_order_refund_record')->insert($actionData);
+
+                        if ($res1 && $res2 && $res3) {
+                            Db::commit();
+                            echo $this->successJson();
+                            exit;
+                        } else {
+                            Db::rollback();
+                            echo $this->errorJson(1, '退款成功,更新订单数据失败');
+                            exit;
+                        }
+
+                    } catch (Exception $e) {
+                        Db::rollback();
+                        echo $this->errorJson(1, '退款成功,更新订单数据异常');
+                        exit;
+                    }
+
+                }
+            }
+        }
     }
 }
