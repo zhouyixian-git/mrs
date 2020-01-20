@@ -3,12 +3,15 @@ namespace app\api\controller;
 
 use think\Db;
 use think\Request;
+use think\Crypt\Driver\Crypt;
 
 class Index extends Base
 {
     public function index()
     {
-        connectModbus();
+//        $res = openssl_encrypt('18813974700|123123123', "des-ecb", "jiayuanpro123");
+        $data = 'xA1Fw64E+RQGX2AVLbDxUr09umpTDENUTEwt/bvCuPHg008T9dkxxP4z7t3MDgqGqN+ouAdkGUHeywAmnJI0aq0X1xDieKwNu83SkQsjKCZEqGHXtDjOkPsTd/cqaM72VM+XIpU4XkJNMmHs0EKgyG9dR4ebeQfrbM1mc31tYyVSuLF5GR7IPL6beO7jQVoStc2mrD7UTbRNR2WI2GeqTA==';
+        wxDecrypt($data,'+GgcPGh0+4m+k8UbFcL76Q==','/Mr1DifxavaTPZMm36nv6A==');
         exit;
 //        $address = Db::table('mrs_user_address')->where(array('user_id' => 1))->order('is_default desc')->find();
 //        var_dump($address);

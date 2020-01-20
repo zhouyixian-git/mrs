@@ -426,21 +426,29 @@ class User extends Base
             $phone_no = $request->post('phone_no');
             $password = $request->post('password');
             $confirm_password = $request->post('confirm_password');
-            $vcode = $request->post('vcode');
+            $token = $request->post('token');
 
-            if (empty($user_id) || empty($phone_no) || empty($password) || empty($confirm_password) || empty($vcode)) {
+            if (empty($user_id) || empty($phone_no) || empty($password) || empty($confirm_password)) {
                 echo $this->errorJson(1, '缺少关键数据');
                 exit;
             }
+
             if ($password != $confirm_password) {
                 echo $this->errorJson(1, '密码不一致');
                 exit;
             }
+            $res = checkToken($token);
+            $result = json_decode($res, true);
+            if($result['errcode'] == '1'){
+                echo $res;
+                exit;
+            }
+
 
             $where = [];
             $where[] = ['user_id', '=', $user_id];
             $where[] = ['phone_no', '=', $phone_no];
-            $password = md5($phone_no . md5($password));
+            $password = md5($user_id . md5($password));
             Db::table('mrs_user')
                 ->where($where)
                 ->update(['password' => $password]);
@@ -658,15 +666,20 @@ class User extends Base
     public function userlogin(Request $request)
     {
         $phone = $request->post("phone");
+        $user_id = $request->post("user_id");
 
-        if (!preg_match("/^1[3456789]{1}\d{9}$/", $phone)) {
-            echo errorJson('1', '请输入正确的电话');
-            exit;
-        }
 
         $login_type = $request->post("login_type");
         $vcode = $request->post("vcode");
         $password = $request->post("password");
+
+        if ($login_type =='1' && !preg_match("/^1[3456789]{1}\d{9}$/", $phone) ) {
+            echo errorJson('1', '请输入正确的电话');
+            exit;
+        }
+//        $phone = '18578303396';
+//        $login_type = '2';
+//        $password = '123456';
 
         if ($login_type == 1 && empty($vcode)) {
             echo errorJson('1', '请输入验证码');
@@ -678,7 +691,7 @@ class User extends Base
 
         //验证码登录
         if ($login_type == 1) {
-            $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'vcode' => $vcode))->order('record_time desc')->find();
+            $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
             if (empty($smsRecord)) {
                 echo errorJson('1', '验证码不正确');
                 exit;
@@ -708,14 +721,23 @@ class User extends Base
                 }
                 unset($user['password']);
             }
+
+            //使验证码失效
+            Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
+
             $data = array();
             $data['userInfo'] = $user;
 
             echo $this->successJson($data);
             exit;
         } else {
+            if(empty($user_id)){
+                echo errorJson('1', '缺少关键参数$user_id');
+                exit;
+            }
             //密码登录
-            $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
+            $user = Db::table('mrs_user')->where(array('user_id' => $user_id))->find();
+
             if (empty($user)) {
                 echo errorJson('1', '用户名或密码错误');
                 exit;
@@ -725,7 +747,8 @@ class User extends Base
                 echo errorJson('1', '该用户已被禁用');
                 exit;
             }
-            $password = md5($phone . md5($password));
+            $password = md5($user_id . md5($password));
+
             if ($password != $user['password']) {
                 echo errorJson('1', '用户名或密码错误');
                 exit;
@@ -763,5 +786,62 @@ class User extends Base
                 exit;
             }
         }
+    }
+
+    public function checkvcode(Request $request){
+        $phone = $request->post('phone');
+        $vcode = $request->post('vcode');
+
+        if(empty($phone)){
+            echo errorJson('1', '请输入正确的手机号');
+            exit;
+        }
+
+        if(empty($vcode)){
+            echo errorJson('1', '请输入验证码');
+            exit;
+        }
+
+
+        $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
+        if (empty($smsRecord)) {
+            echo errorJson('1', '验证码不正确');
+            exit;
+        } else if ($smsRecord['is_use'] == 1) {
+            echo errorJson('1', '验证码已失效');
+            exit;
+        } else if ($smsRecord['valid_date'] < time()) {
+            echo errorJson('1', '验证码已失效');
+            exit;
+        }
+
+        //使验证码失效
+        Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
+
+        echo successJson();
+        exit;
+    }
+    public function bindphone(Request $request){
+        $user_id = $request->post('user_id');
+        $phone = $request->post('phone');
+
+        if(empty($user_id)){
+            echo errorJson('1', '缺少关键参数user_id');
+            exit;
+        }
+        if(empty($phone)){
+            echo errorJson('1', '缺少关键参数phone');
+            exit;
+        }
+
+        if (!preg_match("/^1[3456789]{1}\d{9}$/", $phone)) {
+            echo errorJson('1', '手机号码格式不正确');
+            exit;
+        }
+
+        //绑定手机号
+        Db::table('mrs_user')->where('user_id','=',$user_id)->update(array('phone_no' => $phone));
+        echo successJson();
+        exit;
     }
 }

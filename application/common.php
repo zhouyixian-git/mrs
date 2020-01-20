@@ -134,7 +134,7 @@ function sendSms($phone, $tpl_code)
  * @return false|mixed|SimpleXMLElement|string|void
  *
  */
-function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements = array())
+function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements = array(), $smsParam= array())
 {
 
     $accessKeyId = '';
@@ -201,11 +201,8 @@ function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements
     $request->setSignName($sign);
     // 必填，设置模板CODE
     $request->setTemplateCode($smsTpl['aliyun_code']);
-    $params = array(
-        'code' => $code,
-    );
     // 可选，设置模板参数
-    $request->setTemplateParam(json_encode($params));
+    $request->setTemplateParam(json_encode($smsParam));
     // 可选，设置流水号
     //if($outId) {
     //    $request->setOutId($outId);
@@ -437,3 +434,51 @@ if (!function_exists('dateTime')) {
         return $ChineseDate;
     }
 }
+
+function checkToken($token){
+    $key = 'jiayuanpro123';
+    $cryptType = 'des-ecb';
+    $res = openssl_decrypt($token, $cryptType, $key);
+    if($res){
+        $result = explode("|",$res);
+
+        if (!preg_match("/^1[3456789]{1}\d{9}$/", $result[0])) {
+            echo errorJson('1', 'Token校验失败');
+            exit;
+        }
+
+        if (time() > $result[1] + 3600 || $result[1]> time()) {
+            echo errorJson('1', 'Token已失效');
+            exit;
+        }
+
+        return successJson();
+    }else{
+       echo errorJson('1', 'Token校验失败');
+       exit;
+    }
+}
+
+function wxDecrypt($encryptedData,$iv,$sessionKey){
+    include_once "../extend/wx_extend/wxBizDataCrypt.php";
+
+    $wechatModel = new \app\api\model\Wechat();
+    $wechatInfo = $wechatModel->getWechatInfo();
+    if (empty($wechatInfo)) {
+        echo $this->errorJson(1, '小程序未绑定');
+        exit;
+    }
+    $appid = $wechatInfo['app_id'];
+
+    $pc = new WXBizDataCrypt($appid, $sessionKey);
+    $errCode = $pc->decryptData($encryptedData, $iv, $data);
+
+    if ($errCode == 0) {
+        return successJson(json_decode($data, true));
+    } else {
+        echo errorJson('1', $errCode);
+    }
+    exit;
+}
+
+

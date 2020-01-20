@@ -59,6 +59,7 @@ class Wechat extends Base
                     }
                     $data['userInfo'] = $userInfo;
                     $data['address'] = $address;
+                    $data['session_key'] = $result_json['session_key'];
 
                     echo $this->successJson($data);
                     exit;
@@ -88,6 +89,7 @@ class Wechat extends Base
 
                     $data['isauth'] = 0;
                     $data['userInfo'] = $userInfo;
+                    $data['session_key'] = $result_json['session_key'];
 
                     echo $this->successJson($data);
                     exit;
@@ -188,5 +190,31 @@ class Wechat extends Base
                 Db::rollback();
             }
         }
+    }
+
+    /**
+     * 小程序解密数据通用方法
+     * @param Request $request
+     */
+    function wxdecrypt(Request $request){
+        $encrypted_data = $request->post('encrypted_data');
+        $iv = $request->post('iv');
+        $session_key = $request->post('session_key');
+
+        if(empty($encrypted_data)){
+            echo errorJson('1', '缺少关键参数$encrypted_data');
+            exit;
+        }
+        if(empty($iv)){
+            echo errorJson('1', '缺少关键参数$iv');
+            exit;
+        }
+        if(empty($session_key)){
+            echo errorJson('1', '缺少关键参数$session_key');
+            exit;
+        }
+
+        echo wxDecrypt($encrypted_data,$iv,$session_key);
+        exit;
     }
 }

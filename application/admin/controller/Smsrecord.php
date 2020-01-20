@@ -29,7 +29,7 @@ class Smsrecord extends Base
             $where [] = ['sms_content', 'like', "%$keyword%"];
         }
         $recordList = Db::table('mrs_sms_record')
-            ->order('record_time')
+            ->order('record_time desc')
             ->where($where)
             ->paginate(8, false, [ 'query' => $request->param(),'type' => 'page\Page', 'var_page' => 'page']);
 

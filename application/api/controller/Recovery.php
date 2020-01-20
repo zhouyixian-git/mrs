@@ -319,7 +319,13 @@ class Recovery extends Base
         $replacements[] = $call_create_time;
         $replacements[] = empty($remark)?'无':$remark;
 
-        $res = sendSmsCommon($master['master_phone_no'], 'call_master_order', $patterns, $replacements);
+        $smsParam = array();
+        $smsParam['address'] = $address;
+        $smsParam['user_phone_no'] = $user_phone_no;
+        $smsParam['call_create_time'] = $call_create_time;
+        $smsParam['remark'] = empty($remark)?'无':$remark;
+
+        $res = sendSmsCommon($master['master_phone_no'], 'call_master_order', $patterns, $replacements,$smsParam);
         $result = json_decode($res, true);
 
         if($result['errcode'] == 1){
@@ -337,6 +343,8 @@ class Recovery extends Base
 
         }
     }
+
+
 
 
 
