@@ -88,7 +88,7 @@
                                 <tr>
                                     {if condition="$key eq 0"}
                                     <td rowspan="{$orderInfo.goodsList|count}">
-                                        <button type="button" class="btn btn-sm btn-warning">查看详情</button>
+                                        <button type="button" class="btn btn-sm btn-warning" onclick="view({$orderInfo.order_id})">查看详情</button>
                                     </td>
                                     <td rowspan="{$orderInfo.goodsList|count}">{$orderInfo.order_sn}</td>
                                     <td rowspan="{$orderInfo.goodsList|count}">{$orderInfo.user_name}</td>
@@ -201,13 +201,8 @@
 
 <!-- Page-Level Scripts -->
 <script>
-    function toAuth(withdraw_id){
-        layer.open({
-            type: 2,
-            title: '提现审核',
-            area: ['400px', '300px'],
-            content: "{:url('admin/admin/withdraw/auth')}?withdraw_id=" + withdraw_id
-        });
+    function view(order_id){
+        window.location.href = "{:url('admin/admin/order/view')}?order_id=" + order_id;
     }
 </script>
 

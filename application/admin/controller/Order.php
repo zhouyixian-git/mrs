@@ -59,4 +59,36 @@ class Order extends Base
         return $this->fetch();
     }
 
+    /**
+     * 订单详情
+     * @param Request $request
+     * @return mixed
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function view(Request $request){
+        $order_id = $request->get('order_id');
+        if(empty($order_id)){
+            $this->error('缺少关键参数order_id');
+        }
+
+        //订单信息
+        $order = Db::table('mrs_orders')->where('order_id','=',$order_id)->find();
+        if(!$order){
+            $this->error('没有找到对应的订单信息');
+        }
+
+        //订单商品信息
+        $orderGoods = Db::table('mrs_order_goods')->where('order_id','=',$order_id)->select();
+
+        //订单动作信息
+        $orderAction = Db::table('mrs_order_action')->where('order_id','=',$order_id)->select();
+
+        $order['orderGoods'] = $orderGoods;
+        $order['orderAction'] = $orderAction;
+
+        $this->assign('order', $order);
+        return $this->fetch();
+    }
 }
