@@ -180,7 +180,7 @@ class Order extends Base
         }
 
         $order = Db::table('mrs_orders')
-            ->field(array('order_id', 'order_sn', 'pay_order_sn', 'consignee', 'telephone', 'province_name', 'city_name', 'district_name', 'city_name', 'town_name', 'address', 'courier_company', 'courier_number', 'shipping_time', 'confirm_time', 'order_status', 'pay_status', 'shipping_status', 'refund_status', 'sales_status', 'accept_status', 'shipping_amount', 'integral_amount', 'cash_amount', 'create_time'))
+            ->field(array('order_id', 'order_sn', 'pay_order_sn', 'consignee', 'telephone', 'province_name', 'city_name', 'district_name', 'city_name', 'town_name', 'address', 'courier_company', 'courier_number', 'shipping_time', 'confirm_time', 'order_status', 'pay_status', 'shipping_status', 'refund_status', 'sales_status', 'accept_status', 'shipping_amount', 'integral_amount', 'cash_amount', 'order_amount', 'create_time'))
             ->where(array('order_id' => $order_id))
             ->find();
 
@@ -461,7 +461,7 @@ class Order extends Base
         $actionData['action_name'] = '用户下单';
         $actionData['action_user_id'] = $user_id;
         $actionData['action_user_name'] = $user['user_name'];
-        $actionData['action_remark'] = '用户【'.$user['user_name'].'】下单';
+        $actionData['action_remark'] = '用户【' . $user['user_name'] . '】下单';
         $actionData['create_time'] = time();
         Db::table('mrs_order_action')->insert($actionData);
 
@@ -529,9 +529,6 @@ class Order extends Base
         $type = $request->post("type");
         $goods_status = $request->post("goods_status");
         $apply_reason = $request->post("apply_reason");
-        $order_id = '1';
-        $goods_status = '未到货';
-        $apply_reason = '不喜欢';
 
         if (empty($order_id)) {
             $result = $this->errorJson(1, '缺少关键参数order_id');
@@ -560,10 +557,14 @@ class Order extends Base
 
         $res = Db::table('mrs_orders')->where('order_id', $order['order_id'])->update($data);
 
-
-        $result = $this->successJson(array());
-        echo $result;
-        exit;
+        if ($res) {
+            $result = $this->successJson(array());
+            echo $result;
+            exit;
+        } else {
+            echo $this->errorJson(1, '退款失败');
+            exit;
+        }
     }
 
     /**
