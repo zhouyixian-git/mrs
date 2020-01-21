@@ -27,7 +27,7 @@ class Crond extends Base
         $where[] = ['refund_status','=','1'];
         $where[] = ['sales_status','=','1'];
         $where[] = ['shipping_time','>','0'];
-        $where[] = ['shipping_time','<=', time() - 86400*$autoConfirmOrderTime];
+        $where[] = ['shipping_time','>=', time() - 86400*$autoConfirmOrderTime];
 
         $orders = Db::table('mrs_orders')->where($where)->select();
         if(is_array($orders) && count($orders) > 0 ){
