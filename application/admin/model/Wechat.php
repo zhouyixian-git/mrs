@@ -114,7 +114,8 @@ class Wechat extends Model
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function refund($param){
+    public function refund($param)
+    {
         if (empty($param['out_trade_no'])) {
             $ret['errcode'] = 1;
             $ret['errmsg'] = '商户订单号不能为空';
@@ -149,7 +150,9 @@ class Wechat extends Model
         $data['sign'] = sign($data, $mch_key);
         $xml = arrayToXml($data);
         $res = httpPostCert($url, $xml);
+        recordLog($res, 'Wechat.txt');
         $arr = xmlToArray($res);
+        recordLog('arr->' . json_encode($arr), 'Wechat.txt');
         if (!empty($arr['err_code_des'])) {
             $ret['errcode'] = 1;
             $ret['errmsg'] = $arr['err_code_des'];
@@ -162,7 +165,7 @@ class Wechat extends Model
         }
 
         $data = array(
-            'errcode' =>  0,
+            'errcode' => 0,
             'out_trade_no' => $arr['out_trade_no'],
             'out_refund_no' => $arr['out_refund_no']
         );
@@ -177,8 +180,9 @@ class Wechat extends Model
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function queryRefundOrder($out_refund_no){
-        if(empty($pay_order_sn)){
+    public function queryRefundOrder($out_refund_no)
+    {
+        if (empty($pay_order_sn)) {
             $ret['errcode'] = 1;
             $ret['errmsg'] = '退款单号不能为空';
             return $ret;

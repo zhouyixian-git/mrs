@@ -126,9 +126,11 @@
                                         </td>
                                         <td rowspan="{$orderInfo.goodsList|count}">
                                             {if condition="$orderInfo.shipping_status eq 1"}
-                                            <span style="color: #23c6c8;">未发货</span>
+                                            <span style="color: #f8ac59;">未发货</span>
                                             {elseif condition="$orderInfo.shipping_status eq 2"}
-                                            <span style="color: #1ab394;">已发货</span>
+                                            <span style="color: #23c6c8;">已发货</span>
+                                            {elseif condition="$orderInfo.shipping_status eq 3"}
+                                            <span style="color: #1ab394;">已收货</span>
                                             {else/}
                                             <span style="color: yellow;">未知</span>
                                             {/if}

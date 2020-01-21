@@ -27,7 +27,7 @@ class Crond extends Base
         $where[] = ['refund_status','=','1'];
         $where[] = ['sales_status','=','1'];
         $where[] = ['shipping_time','>','0'];
-        $where[] = ['shipping_time','<=', time()+86400*$autoConfirmOrderTime];
+        $where[] = ['shipping_time','<=', time() - 86400*$autoConfirmOrderTime];
 
         $orders = Db::table('mrs_orders')->where($where)->select();
         if(is_array($orders) && count($orders) > 0 ){
@@ -37,6 +37,15 @@ class Crond extends Base
                 foreach($orders as $k=>$order){
                     $orderArr[] = $order['order_id'];
                     $confirmOrderCount++;
+
+                    //生成订单动作表
+                    $actionData['order_id'] = $order['order_id'];
+                    $actionData['action_name'] = '系统自动收货';
+                    $actionData['action_user_id'] = 0;
+                    $actionData['action_user_name'] = '系统';
+                    $actionData['action_remark'] = '系统自动收货';
+                    $actionData['create_time'] = time();
+                    Db::table('mrs_order_action')->insert($actionData);
                 }
                 $orderIdStr = implode(',',$orderArr);
 

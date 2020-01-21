@@ -104,9 +104,11 @@
                                 <label class="col-sm-4 control-label">发货状态：</label>
                                 <div class="col-sm-8 control-label" style="text-align: left">
                                     {if condition="$order.shipping_status eq 1"}
-                                    <span style="color: #23c6c8;">未发货</span>
+                                    <span style="color: #f8ac59;">未发货</span>
                                     {elseif condition="$order.shipping_status eq 2"}
-                                    <span style="color: #f8ac59;">已发货</span>
+                                    <span style="color: #23c6c8;">已发货</span>
+                                    {elseif condition="$order.shipping_status eq 3"}
+                                    <span style="color: #1ab394;">已收货</span>
                                     {else/}
                                     <span style="color: yellow;">未知</span>
                                     {/if}
@@ -153,7 +155,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <!--<div class="col-md-6">
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">处理状态：</label>
                                 <div class="col-sm-8 control-label" style="text-align: left">
@@ -166,7 +168,7 @@
                                     {/if}
                                 </div>
                             </div>
-                        </div>
+                        </div>-->
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">支付方式：</label>
@@ -255,6 +257,14 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label class="col-sm-4 control-label">退款订单号：</label>
+                                <div class="col-sm-8 control-label" style="text-align: left">
+                                    {$order.refund_order_sn}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label class="col-sm-4 control-label">创建时间：</label>
                                 <div class="col-sm-8 control-label" style="text-align: left">
                                     {$order.create_time|dateTime}
@@ -290,6 +300,14 @@
                                 <label class="col-sm-4 control-label">确认收货时间：</label>
                                 <div class="col-sm-8 control-label" style="text-align: left">
                                     {$order.confirm_time|dateTime}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">退款时间：</label>
+                                <div class="col-sm-8 control-label" style="text-align: left">
+                                    {$order.refund_time|dateTime}
                                 </div>
                             </div>
                         </div>
@@ -388,7 +406,7 @@
                 {if condition="$order.pay_status eq 2 && in_array($order.refund_status, [2, 3])"}
                 <button type="button"class="btn btn-sm btn-success" onclick="doRefund({$order.order_id})">退款</button>
                 {/if}
-                {if condition="$order.shipping_status eq 2 && in_array($order.sales_status, [2, 3])"}
+                {if condition="$order.shipping_status eq 3 && in_array($order.sales_status, [2, 3])"}
                 <button type="button"class="btn btn-sm btn-success" onclick="doSales({$order.order_id})">退货</button>
                 {/if}
             </div>
@@ -422,7 +440,12 @@
      * @param order_id
      */
     function doRefund(order_id){
-
+        layer.open({
+            type: 2,
+            title: '订单退款',
+            area: ['400px', '300px'],
+            content: "{:url('admin/admin/order/refund')}?order_id=" + order_id
+        });
     }
 
     /**
@@ -430,7 +453,12 @@
      * @param order_id
      */
     function doSales(order_id){
-
+        layer.open({
+            type: 2,
+            title: '订单退货',
+            area: ['400px', '300px'],
+            content: "{:url('admin/admin/order/sales')}?order_id=" + order_id
+        });
     }
 
 </script>
