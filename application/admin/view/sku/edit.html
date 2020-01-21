@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>修改商品规格</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <style>
+        body{overflow-y: hidden;}
+        .ibox-content{height: 480px;}
+    </style>
+</head>
+
+<body class="gray-bg">
+    <div class="row wrapper wrapper-content animated fadeInRight">
+        <div class="col-sm-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>修改商品规格</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-horizontal" id="postForm">
+                        <input type="hidden" id="sku_id" name="sku_id" value="{$sku.sku_id}"/>
+                        <input type="hidden" id="p_sku_name" name="p_sku_name" value="{$sku.p_sku_name}"/>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">父规格：</label>
+                            <div class="col-sm-8">
+                                <select name="p_sku_id" id="p_sku_id" class="form-control" readonly="readonly">
+                                    <option value="">--请选择--</option>
+                                    {volist name="pSkuList" id="pSkuInfo"}
+                                    <option value="{$pSkuInfo.sku_id}" {if condition="$sku.p_sku_id eq $pSkuInfo.sku_id"}selected{/if}>{$pSkuInfo.sku_name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">规格名称：</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="sku_name" value="{$sku.sku_name}" placeholder="规格名称" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">排序：</label>
+                            <div class="col-sm-8">
+                                <input type="text" name="order_no" value="{$sku.order_no}" placeholder="排序" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-8">
+                                <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                                <button type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局js -->
+    <script src="__JS__/jquery.min.js?v=2.1.4"></script>
+    <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+    <script src="__JS__/plugins/layer/layer.min.js"></script>
+    <script>
+        $(function(){
+            $("#save").click(function(){
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: "{:url('admin/sku/edit')}",
+                    data: $('#postForm').serialize(),
+                    success: function (result) {
+                        if (result.errcode == 1) {
+                            layer.msg('修改成功', {icon: 1,time: 1500});
+                            window.setTimeout(function(){
+                                window.location.href = "{:url('admin/sku/index')}";
+                            },1500);
+                        }else{
+                            layer.msg(result.msg, {icon: 2});
+                        }
+                        return false;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

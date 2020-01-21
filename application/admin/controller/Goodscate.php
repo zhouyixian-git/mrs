@@ -113,7 +113,7 @@ class Goodscate extends Base
 
         $cate_id = $request->get('cate_id');
         if (empty($cate_id)) {
-            $this->errorJson('关键数据错误');
+            $this->error('关键数据错误');
         }
         $goodsCate = \app\admin\model\GoodsCate::where('cate_id', $cate_id)->find();
 
