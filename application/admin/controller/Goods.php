@@ -126,7 +126,14 @@ class Goods extends Base
         }
 
         $goodsCateList = \app\admin\model\GoodsCate::where('is_actived', 1)->order('order_no asc,create_time desc')->select();
+
+        $where = [];
+        $where[] = ['is_delete', '=', 2];
+        $where[] = ['p_sku_id', '=', 0];
+        $skuList = \app\admin\model\Sku::where($where)->order('order_no asc,create_time desc')->select();
+
         $this->assign('goodsCateList', $goodsCateList);
+        $this->assign('skuList', $skuList);
         return $this->fetch();
     }
 
@@ -265,6 +272,26 @@ class Goods extends Base
                 ->select();
 
             echo $this->successJson($goodsImageList);
+            return;
+        }
+    }
+
+    /**
+     * 获取子规格列表
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getChildSku(Request $request){
+        if($request->isPost()){
+            $p_sku_id = $request->post('p_sku_id');
+
+            $where = [];
+            $where[] = ['is_delete', '=', 2];
+            $where[] = ['p_sku_id', '=', $p_sku_id];
+            $cSkuList = \app\admin\model\Sku::where($where)->order('order_no asc,create_time desc')->select();
+            echo $this->successJson($cSkuList);
             return;
         }
     }

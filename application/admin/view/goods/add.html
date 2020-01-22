@@ -16,6 +16,7 @@
     <link href="__CSS__/animate.css" rel="stylesheet">
     <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
     <link href="__JS__/plugins/webuploader/webuploader.css" rel="stylesheet">
+    <link href="__CSS__/plugins/chosen/chosen.css" rel="stylesheet">
     <link href="__CSS__/goods/goods_webuploader.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="__CSS__/plugins/simditor/simditor.css" />
     <style>
@@ -115,6 +116,13 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label class="col-sm-3 control-label">商品规格：</label>
+                            <div class="col-sm-8">
+                                <button type="button"class="btn btn-sm btn-success" onclick="addSku()">添加规格</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="goods_detail_div">
                             <div class="ibox-title">
                                 <h5>商品详情</h5>
                             </div>
@@ -144,6 +152,7 @@
 
     <script src="__JS__/plugins/layer/layer.min.js"></script>
     <script src="__JS__/plugins/webuploader/webuploader.js"></script>
+    <script src="__JS__/plugins/chosen/chosen.jquery.js"></script>
     <script src="__JS__/goods/goods_webuploader.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/module.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/uploader.js"></script>
@@ -151,7 +160,9 @@
     <script type="text/javascript" src="__JS__/plugins/simditor/simditor.js"></script>
     <script>
         var path = "{:url('admin/admin/upload/upload')}";
+        var imgpath = '';
         var uploaderSwf = "__JS__/plugins/webuploader/Uploader.swf";
+        var pSkuCount = 0;
         $(function(){
             var toolbar = [ 'title', 'bold', 'italic', 'underline', 'strikethrough',
                 'color', '|', 'ol', 'ul', 'blockquote', 'code', 'table', '|',
@@ -196,6 +207,71 @@
                 });
             });
         });
+
+        function addSku(){
+            pSkuCount++;
+            var pSkuHtml = createPSkuHtml();
+            $("#goods_detail_div").before(pSkuHtml);
+            $(".p-chosen-select-" + pSkuCount).chosen();
+            $('.p-chosen-select-' + pSkuCount).on('change', function(e, params) {
+                var cSkuList = getChildSku(params.selected);
+                var html = createCSkuHtml(cSkuList, pSkuCount);
+                $('.p-chosen-select-' + pSkuCount).parent().parent().after(html);
+                $('.c-chosen-select-' + pSkuCount).chosen();
+            });
+        }
+
+        /* 创建父规格选择器 */
+        function createPSkuHtml(){
+            var html = '';
+            html += '<div class="form-group">';
+            html += '<label class="col-sm-3 control-label"></label>';
+            html += '<div class="col-sm-8 input-group">';
+            html += '<select class="p-chosen-select-' + pSkuCount + '" style="width:120px;">';
+            html += '<option value="">请选择父规格</option>';
+            {volist name="skuList" id="skuInfo"}
+                html += '<option value="{$skuInfo.sku_id}">{$skuInfo.sku_name}</option>';
+            {/volist}
+            html += '</select>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+
+        /* 创建子规格选择器 */
+        function createCSkuHtml(cSkuList, pSkuCount){
+            var html = '';
+            html += '<div class="form-group">';
+            html += '<label class="col-sm-3 control-label"></label>';
+            html += '<div class="col-sm-8 input-group">';
+            html += '<select data-placeholder="请选择子规格" class="c-chosen-select-' + pSkuCount + '" style="width:100%;" multiple>';
+            for (var i = 0; i < cSkuList.length; i++) {
+                html += '<option value="' + cSkuList[i].sku_id + '">' + cSkuList[i].sku_name + '</option>';
+            }
+            html += '</select>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+
+        /* 获取子规格列表 */
+        function getChildSku(p_sku_id){
+            cSkuList = [];
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                async: false,
+                url: "{:url('admin/admin/goods/getChildSku')}" ,
+                data: {'p_sku_id': p_sku_id},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        cSkuList = result.data;
+                    }
+                }
+            });
+            return cSkuList;
+        }
+
     </script>
 </body>
 
