@@ -98,9 +98,11 @@ class Goods extends Base
 
             Db::startTrans();
             try {
+                //添加商品信息
                 Db::table('mrs_goods')->insert($data);
                 $goods_id = Db::getLastInsID();
 
+                //添加商品图片信息
                 $goods_img = [];
                 foreach ($goodsImageList as $k => $v) {
                     $goods_img[] = [
@@ -110,8 +112,212 @@ class Goods extends Base
                         'create_time' => time()
                     ];
                 }
-
                 Db::table('mrs_goods_img')->insertAll($goods_img);
+
+                //添加商品规格信息
+                $pCount = $request->post('pCount');
+                if ($pCount == 1) { //单规格
+                    $pSkuId = $request->post('pSkuId');
+                    $pSkuName = $request->post('pSkuName');
+                    $cSkuCount = $request->post('cSkuCount');
+
+                    for ($i = 0; $i < $cSkuCount; $i++) {
+                        $skuGroupData = [];
+                        $cSkuId = $request->post('cSkuId_' . ($i + 1));
+                        $cSkuName = $request->post('cSkuName_' . ($i + 1));
+                        $shopPrice = $request->post('shop_price_' . $cSkuId);
+                        $goodsStock = $request->post('goods_stock_' . $cSkuId);
+
+                        $skuGroupData['goods_id'] = $goods_id;
+                        $skuGroupData['parent_sku_id'] = $pSkuId;
+                        $skuGroupData['parent_sku_name'] = $pSkuName;
+                        $skuGroupData['sku_name'] = $cSkuName;
+                        $skuGroupData['sku_id'] = $cSkuId;
+                        $skuGroupData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+
+                        $childJson['cSkuId'] = $cSkuId;
+                        $childJson['cSkuName'] = $cSkuName;
+
+                        $parentJson[0]['pSkuId'] = $pSkuId;
+                        $parentJson[0]['pSkuName'] = $pSkuName;
+                        $parentJson[0]['child'] = $childJson;
+
+                        $skuJson['parentSku'] = $parentJson;
+                        $skuJson['shopPrice'] = $shopPrice;
+                        $skuJson['goodsStock'] = $goodsStock;
+                        $skuJson['unionId'] = $cSkuId;
+
+                        $skuInfo['skuInfo'] = $skuJson;
+                        $skuDetailData = [];
+                        $skuDetailData['goods_id'] = $goods_id;
+                        $skuDetailData['sku_json'] = json_encode($skuInfo);
+                        $skuDetailData['shop_price'] = $shopPrice;
+                        $skuDetailData['goods_stock'] = $goodsStock;
+                        $skuDetailData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_detail')->insert($skuDetailData);
+                    }
+                } else if ($pCount == 2) { //双规格
+                    $firstPSkuId = $request->post("pSkuId_1");    //第一级父规格
+                    $firstPSkuName = $request->post("pSkuName_1");//第一级父规格名称
+                    $secondPSkuId = $request->post("pSkuId_2");    //第二级父规格
+                    $secondPSkuName = $request->post("pSkuName_2");//第二级父规格名称
+
+                    $firstCSkuCount = $request->post("cSkuCount_1");//第一级子规格数量
+                    $secondCSkuCount = $request->post("cSkuCount_2");//第二级子规格数量
+
+                    $orderNo = 0;
+                    for ($i = 0; $i < $firstCSkuCount; $i++) {
+                        $firstCSkuId = $request->post("firstCSkuId_" . ($i + 1));    //第一级子规格id
+                        $firstCSkuName = $request->post("firstCSkuName_" . ($i + 1));    //第一级子规格name
+
+                        $skuGroupData = [];
+                        $skuGroupData['goods_id'] = $goods_id;
+                        $skuGroupData['parent_sku_id'] = $firstPSkuId;
+                        $skuGroupData['parent_sku_name'] = $firstPSkuName;
+                        $skuGroupData['sku_name'] = $firstCSkuName;
+                        $skuGroupData['sku_id'] = $firstCSkuId;
+                        $skuGroupData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+
+                        for ($j = 0; $j < $secondCSkuCount; $j++) {
+                            $orderNo++;
+                            $secondCSkuId = $request->post("secondCSkuId_" . ($j + 1));    //第二级子规格id
+                            $secondCSkuName = $request->post("secondCSkuName_" . ($j + 1));    //第二级子规格name
+                            if ($i == 0) {
+                                $skuGroupData = [];
+                                $skuGroupData['goods_id'] = $goods_id;
+                                $skuGroupData['parent_sku_id'] = $secondPSkuId;
+                                $skuGroupData['parent_sku_name'] = $secondPSkuName;
+                                $skuGroupData['sku_name'] = $secondCSkuName;
+                                $skuGroupData['sku_id'] = $secondCSkuId;
+                                $skuGroupData['order_no'] = $j + 1;
+                                Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+                            }
+
+                            $shopPrice = $request->post("shop_price_" . $firstCSkuId . "_" . $secondCSkuId);
+                            $goodsStock = $request->post("goods_stock_" . $firstCSkuId . "_" . $secondCSkuId);
+
+                            $childJson['cSkuId'] = $firstCSkuId;
+                            $childJson['cSkuName'] = $firstCSkuName;
+                            $parentJson[0]['pSkuId'] = $firstPSkuId;
+                            $parentJson[0]['pSkuName'] = $firstPSkuName;
+                            $parentJson[0]['child'] = $childJson;
+
+                            $childJson['cSkuId'] = $secondCSkuId;
+                            $childJson['cSkuName'] = $secondCSkuName;
+                            $parentJson[1]['pSkuId'] = $secondPSkuId;
+                            $parentJson[1]['pSkuName'] = $secondPSkuName;
+                            $parentJson[1]['child'] = $childJson;
+
+                            $skuJson['parentSku'] = $parentJson;
+                            $skuJson['shopPrice'] = $shopPrice;
+                            $skuJson['goodsStock'] = $goodsStock;
+                            $skuJson['unionId'] = $firstCSkuId . '_' . $secondCSkuId;
+
+                            $skuInfo['skuInfo'] = $skuJson;
+                            $skuDetailData = [];
+                            $skuDetailData['goods_id'] = $goods_id;
+                            $skuDetailData['sku_json'] = json_encode($skuInfo);
+                            $skuDetailData['shop_price'] = $shopPrice;
+                            $skuDetailData['goods_stock'] = $goodsStock;
+                            $skuDetailData['order_no'] = $orderNo;
+                            Db::table('mrs_goods_sku_detail')->insert($skuDetailData);
+                        }
+                    }
+                } else if ($pCount == 3) {
+                    $firstPSkuId = $request->post("pSkuId_1");    //第一级父规格
+                    $firstPSkuName = $request->post("pSkuName_1");//第一级父规格名称
+                    $secondPSkuId = $request->post("pSkuId_2");    //第二级父规格
+                    $secondPSkuName = $request->post("pSkuName_2");//第二级父规格名称
+                    $thirdPSkuId = $request->post("pSkuId_3");    //第三级父规格
+                    $thirdPSkuName = $request->post("pSkuName_3");//第三级父规格名称
+
+                    $firstCSkuCount = $request->post("cSkuCount_1");//第一级子规格数量
+                    $secondCSkuCount = $request->post("cSkuCount_2");//第二级子规格数量
+                    $thirdCSkuCount = $request->post("cSkuCount_3");//第三级子规格数量
+
+                    $orderNo = 0;
+                    for ($i = 0; $i < $firstCSkuCount; $i++) {
+                        $firstCSkuId = $request->post("firstCSkuId_" . ($i + 1));    //第一级子规格id
+                        $firstCSkuName = $request->post("firstCSkuName_" . ($i + 1));    //第一级子规格name
+
+                        $skuGroupData = [];
+                        $skuGroupData['goods_id'] = $goods_id;
+                        $skuGroupData['parent_sku_id'] = $firstPSkuId;
+                        $skuGroupData['parent_sku_name'] = $firstPSkuName;
+                        $skuGroupData['sku_name'] = $firstCSkuName;
+                        $skuGroupData['sku_id'] = $firstCSkuId;
+                        $skuGroupData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+
+                        for ($j = 0; $j < $secondCSkuCount; $j++) {
+                            $secondCSkuId = $request->post("secondCSkuId_" . ($j + 1));    //第二级子规格id
+                            $secondCSkuName = $request->post("secondCSkuName_" . ($j + 1));    //第二级子规格name
+                            if ($i == 0) {
+                                $skuGroupData = [];
+                                $skuGroupData['goods_id'] = $goods_id;
+                                $skuGroupData['parent_sku_id'] = $secondPSkuId;
+                                $skuGroupData['parent_sku_name'] = $secondPSkuName;
+                                $skuGroupData['sku_name'] = $secondCSkuName;
+                                $skuGroupData['sku_id'] = $secondCSkuId;
+                                $skuGroupData['order_no'] = $j + 1;
+                                Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+                            }
+
+                            for ($k = 0; $k < $thirdCSkuCount; $k++) {
+                                $orderNo++;
+                                $thirdCSkuId = $request->post("thirdCSkuId_" . ($k + 1));    //第三级子规格id
+                                $thirdCSkuName = $request->post("thirdCSkuName_" . ($k + 1));    //第三级子规格name
+                                if ($i == 0 && $j == 0) {
+                                    $skuGroupData = [];
+                                    $skuGroupData['goods_id'] = $goods_id;
+                                    $skuGroupData['parent_sku_id'] = $thirdPSkuId;
+                                    $skuGroupData['parent_sku_name'] = $thirdPSkuName;
+                                    $skuGroupData['sku_name'] = $thirdCSkuName;
+                                    $skuGroupData['sku_id'] = $thirdCSkuId;
+                                    $skuGroupData['order_no'] = $j + 1;
+                                    Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+                                }
+
+                                $shopPrice = $request->post("shop_price_" . $firstCSkuId . "_" . $secondCSkuId . "_" . $thirdCSkuId);
+                                $goodsStock = $request->post("goods_stock_" . $firstCSkuId . "_" . $secondCSkuId . "_" . $thirdCSkuId);
+
+                                $childJson['cSkuId'] = $firstCSkuId;
+                                $childJson['cSkuName'] = $firstCSkuName;
+                                $parentJson[0]['pSkuId'] = $firstPSkuId;
+                                $parentJson[0]['pSkuName'] = $firstPSkuName;
+                                $parentJson[0]['child'] = $childJson;
+
+                                $childJson['cSkuId'] = $secondCSkuId;
+                                $childJson['cSkuName'] = $secondCSkuName;
+                                $parentJson[1]['pSkuId'] = $secondPSkuId;
+                                $parentJson[1]['pSkuName'] = $secondPSkuName;
+                                $parentJson[1]['child'] = $childJson;
+
+                                $childJson['cSkuId'] = $thirdCSkuId;
+                                $childJson['cSkuName'] = $thirdCSkuName;
+                                $parentJson[2]['pSkuId'] = $thirdPSkuId;
+                                $parentJson[2]['pSkuName'] = $thirdPSkuName;
+                                $parentJson[2]['child'] = $childJson;
+
+                                $skuJson['parentSku'] = $parentJson;
+                                $skuJson['shopPrice'] = $shopPrice;
+                                $skuJson['goodsStock'] = $goodsStock;
+                                $skuJson['unionId'] = $firstCSkuId . '_' . $secondCSkuId . '_' . $thirdCSkuId;
+
+                                $skuInfo['skuInfo'] = $skuJson;
+                                $skuDetailData = [];
+                                $skuDetailData['goods_id'] = $goods_id;
+                                $skuDetailData['sku_json'] = json_encode($skuInfo);
+                                $skuDetailData['shop_price'] = $shopPrice;
+                                $skuDetailData['goods_stock'] = $goodsStock;
+                                $skuDetailData['order_no'] = $orderNo;
+                                Db::table('mrs_goods_sku_detail')->insert($skuDetailData);
+                            }
+                        }
+                    }
+                }
                 // 提交事务
                 Db::commit();
             } catch (\Exception $e) {
@@ -184,8 +390,10 @@ class Goods extends Base
 
             Db::startTrans();
             try {
+                //修改商品信息
                 Db::table('mrs_goods')->where('goods_id', $goods_id)->update($data);
 
+                //修改商品图片
                 Db::table('mrs_goods_img')->where('goods_id', $goods_id)->delete();
 
                 $goods_img = [];
@@ -198,6 +406,215 @@ class Goods extends Base
                     ];
                 }
                 Db::table('mrs_goods_img')->insertAll($goods_img);
+
+                //删除商品规格
+                Db::table('mrs_goods_sku_group')->where('goods_id', '=', $goods_id)->delete();
+                Db::table('mrs_goods_sku_detail')->where('goods_id', '=', $goods_id)->delete();
+
+                //添加商品规格信息
+                $pCount = $request->post('pCount');
+                if ($pCount == 1) { //单规格
+                    $pSkuId = $request->post('pSkuId');
+                    $pSkuName = $request->post('pSkuName');
+                    $cSkuCount = $request->post('cSkuCount');
+
+                    for ($i = 0; $i < $cSkuCount; $i++) {
+                        $skuGroupData = [];
+                        $cSkuId = $request->post('cSkuId_' . ($i + 1));
+                        $cSkuName = $request->post('cSkuName_' . ($i + 1));
+                        $shopPrice = $request->post('shop_price_' . $cSkuId);
+                        $goodsStock = $request->post('goods_stock_' . $cSkuId);
+
+                        $skuGroupData['goods_id'] = $goods_id;
+                        $skuGroupData['parent_sku_id'] = $pSkuId;
+                        $skuGroupData['parent_sku_name'] = $pSkuName;
+                        $skuGroupData['sku_name'] = $cSkuName;
+                        $skuGroupData['sku_id'] = $cSkuId;
+                        $skuGroupData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+
+                        $childJson['cSkuId'] = $cSkuId;
+                        $childJson['cSkuName'] = $cSkuName;
+
+                        $parentJson[0]['pSkuId'] = $pSkuId;
+                        $parentJson[0]['pSkuName'] = $pSkuName;
+                        $parentJson[0]['child'] = $childJson;
+
+                        $skuJson['parentSku'] = $parentJson;
+                        $skuJson['shopPrice'] = $shopPrice;
+                        $skuJson['goodsStock'] = $goodsStock;
+                        $skuJson['unionId'] = $cSkuId;
+
+                        $skuInfo['skuInfo'] = $skuJson;
+                        $skuDetailData = [];
+                        $skuDetailData['goods_id'] = $goods_id;
+                        $skuDetailData['sku_json'] = json_encode($skuInfo);
+                        $skuDetailData['shop_price'] = $shopPrice;
+                        $skuDetailData['goods_stock'] = $goodsStock;
+                        $skuDetailData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_detail')->insert($skuDetailData);
+                    }
+                } else if ($pCount == 2) { //双规格
+                    $firstPSkuId = $request->post("pSkuId_1");    //第一级父规格
+                    $firstPSkuName = $request->post("pSkuName_1");//第一级父规格名称
+                    $secondPSkuId = $request->post("pSkuId_2");    //第二级父规格
+                    $secondPSkuName = $request->post("pSkuName_2");//第二级父规格名称
+
+                    $firstCSkuCount = $request->post("cSkuCount_1");//第一级子规格数量
+                    $secondCSkuCount = $request->post("cSkuCount_2");//第二级子规格数量
+
+                    $orderNo = 0;
+                    for ($i = 0; $i < $firstCSkuCount; $i++) {
+                        $firstCSkuId = $request->post("firstCSkuId_" . ($i + 1));    //第一级子规格id
+                        $firstCSkuName = $request->post("firstCSkuName_" . ($i + 1));    //第一级子规格name
+
+                        $skuGroupData = [];
+                        $skuGroupData['goods_id'] = $goods_id;
+                        $skuGroupData['parent_sku_id'] = $firstPSkuId;
+                        $skuGroupData['parent_sku_name'] = $firstPSkuName;
+                        $skuGroupData['sku_name'] = $firstCSkuName;
+                        $skuGroupData['sku_id'] = $firstCSkuId;
+                        $skuGroupData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+
+                        for ($j = 0; $j < $secondCSkuCount; $j++) {
+                            $orderNo++;
+                            $secondCSkuId = $request->post("secondCSkuId_" . ($j + 1));    //第二级子规格id
+                            $secondCSkuName = $request->post("secondCSkuName_" . ($j + 1));    //第二级子规格name
+                            if ($i == 0) {
+                                $skuGroupData = [];
+                                $skuGroupData['goods_id'] = $goods_id;
+                                $skuGroupData['parent_sku_id'] = $secondPSkuId;
+                                $skuGroupData['parent_sku_name'] = $secondPSkuName;
+                                $skuGroupData['sku_name'] = $secondCSkuName;
+                                $skuGroupData['sku_id'] = $secondCSkuId;
+                                $skuGroupData['order_no'] = $j + 1;
+                                Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+                            }
+
+                            $shopPrice = $request->post("shop_price_" . $firstCSkuId . "_" . $secondCSkuId);
+                            $goodsStock = $request->post("goods_stock_" . $firstCSkuId . "_" . $secondCSkuId);
+
+                            $childJson['cSkuId'] = $firstCSkuId;
+                            $childJson['cSkuName'] = $firstCSkuName;
+                            $parentJson[0]['pSkuId'] = $firstPSkuId;
+                            $parentJson[0]['pSkuName'] = $firstPSkuName;
+                            $parentJson[0]['child'] = $childJson;
+
+                            $childJson['cSkuId'] = $secondCSkuId;
+                            $childJson['cSkuName'] = $secondCSkuName;
+                            $parentJson[1]['pSkuId'] = $secondPSkuId;
+                            $parentJson[1]['pSkuName'] = $secondPSkuName;
+                            $parentJson[1]['child'] = $childJson;
+
+                            $skuJson['parentSku'] = $parentJson;
+                            $skuJson['shopPrice'] = $shopPrice;
+                            $skuJson['goodsStock'] = $goodsStock;
+                            $skuJson['unionId'] = $firstCSkuId . '_' . $secondCSkuId;
+
+                            $skuInfo['skuInfo'] = $skuJson;
+                            $skuDetailData = [];
+                            $skuDetailData['goods_id'] = $goods_id;
+                            $skuDetailData['sku_json'] = json_encode($skuInfo);
+                            $skuDetailData['shop_price'] = $shopPrice;
+                            $skuDetailData['goods_stock'] = $goodsStock;
+                            $skuDetailData['order_no'] = $orderNo;
+                            Db::table('mrs_goods_sku_detail')->insert($skuDetailData);
+                        }
+                    }
+                } else if ($pCount == 3) {
+                    $firstPSkuId = $request->post("pSkuId_1");    //第一级父规格
+                    $firstPSkuName = $request->post("pSkuName_1");//第一级父规格名称
+                    $secondPSkuId = $request->post("pSkuId_2");    //第二级父规格
+                    $secondPSkuName = $request->post("pSkuName_2");//第二级父规格名称
+                    $thirdPSkuId = $request->post("pSkuId_3");    //第三级父规格
+                    $thirdPSkuName = $request->post("pSkuName_3");//第三级父规格名称
+
+                    $firstCSkuCount = $request->post("cSkuCount_1");//第一级子规格数量
+                    $secondCSkuCount = $request->post("cSkuCount_2");//第二级子规格数量
+                    $thirdCSkuCount = $request->post("cSkuCount_3");//第三级子规格数量
+
+                    $orderNo = 0;
+                    for ($i = 0; $i < $firstCSkuCount; $i++) {
+                        $firstCSkuId = $request->post("firstCSkuId_" . ($i + 1));    //第一级子规格id
+                        $firstCSkuName = $request->post("firstCSkuName_" . ($i + 1));    //第一级子规格name
+
+                        $skuGroupData = [];
+                        $skuGroupData['goods_id'] = $goods_id;
+                        $skuGroupData['parent_sku_id'] = $firstPSkuId;
+                        $skuGroupData['parent_sku_name'] = $firstPSkuName;
+                        $skuGroupData['sku_name'] = $firstCSkuName;
+                        $skuGroupData['sku_id'] = $firstCSkuId;
+                        $skuGroupData['order_no'] = $i + 1;
+                        Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+
+                        for ($j = 0; $j < $secondCSkuCount; $j++) {
+                            $secondCSkuId = $request->post("secondCSkuId_" . ($j + 1));    //第二级子规格id
+                            $secondCSkuName = $request->post("secondCSkuName_" . ($j + 1));    //第二级子规格name
+                            if ($i == 0) {
+                                $skuGroupData = [];
+                                $skuGroupData['goods_id'] = $goods_id;
+                                $skuGroupData['parent_sku_id'] = $secondPSkuId;
+                                $skuGroupData['parent_sku_name'] = $secondPSkuName;
+                                $skuGroupData['sku_name'] = $secondCSkuName;
+                                $skuGroupData['sku_id'] = $secondCSkuId;
+                                $skuGroupData['order_no'] = $j + 1;
+                                Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+                            }
+
+                            for ($k = 0; $k < $thirdCSkuCount; $k++) {
+                                $orderNo++;
+                                $thirdCSkuId = $request->post("thirdCSkuId_" . ($k + 1));    //第三级子规格id
+                                $thirdCSkuName = $request->post("thirdCSkuName_" . ($k + 1));    //第三级子规格name
+                                if ($i == 0 && $j == 0) {
+                                    $skuGroupData = [];
+                                    $skuGroupData['goods_id'] = $goods_id;
+                                    $skuGroupData['parent_sku_id'] = $thirdPSkuId;
+                                    $skuGroupData['parent_sku_name'] = $thirdPSkuName;
+                                    $skuGroupData['sku_name'] = $thirdCSkuName;
+                                    $skuGroupData['sku_id'] = $thirdCSkuId;
+                                    $skuGroupData['order_no'] = $j + 1;
+                                    Db::table('mrs_goods_sku_group')->insert($skuGroupData);
+                                }
+
+                                $shopPrice = $request->post("shop_price_" . $firstCSkuId . "_" . $secondCSkuId . "_" . $thirdCSkuId);
+                                $goodsStock = $request->post("goods_stock_" . $firstCSkuId . "_" . $secondCSkuId . "_" . $thirdCSkuId);
+
+                                $childJson['cSkuId'] = $firstCSkuId;
+                                $childJson['cSkuName'] = $firstCSkuName;
+                                $parentJson[0]['pSkuId'] = $firstPSkuId;
+                                $parentJson[0]['pSkuName'] = $firstPSkuName;
+                                $parentJson[0]['child'] = $childJson;
+
+                                $childJson['cSkuId'] = $secondCSkuId;
+                                $childJson['cSkuName'] = $secondCSkuName;
+                                $parentJson[1]['pSkuId'] = $secondPSkuId;
+                                $parentJson[1]['pSkuName'] = $secondPSkuName;
+                                $parentJson[1]['child'] = $childJson;
+
+                                $childJson['cSkuId'] = $thirdCSkuId;
+                                $childJson['cSkuName'] = $thirdCSkuName;
+                                $parentJson[2]['pSkuId'] = $thirdPSkuId;
+                                $parentJson[2]['pSkuName'] = $thirdPSkuName;
+                                $parentJson[2]['child'] = $childJson;
+
+                                $skuJson['parentSku'] = $parentJson;
+                                $skuJson['shopPrice'] = $shopPrice;
+                                $skuJson['goodsStock'] = $goodsStock;
+                                $skuJson['unionId'] = $firstCSkuId . '_' . $secondCSkuId . '_' . $thirdCSkuId;
+
+                                $skuInfo['skuInfo'] = $skuJson;
+                                $skuDetailData = [];
+                                $skuDetailData['goods_id'] = $goods_id;
+                                $skuDetailData['sku_json'] = json_encode($skuInfo);
+                                $skuDetailData['shop_price'] = $shopPrice;
+                                $skuDetailData['goods_stock'] = $goodsStock;
+                                $skuDetailData['order_no'] = $orderNo;
+                                Db::table('mrs_goods_sku_detail')->insert($skuDetailData);
+                            }
+                        }
+                    }
+                }
 
                 // 提交事务
                 Db::commit();
@@ -217,10 +634,23 @@ class Goods extends Base
             $this->error('关键数据错误');
         }
         $goods = \app\admin\model\Goods::where('goods_id', $goods_id)->find();
-
         $goodsCateList = \app\admin\model\GoodsCate::where('is_actived', 1)->order('order_no asc,create_time desc')->select();
+
+        $where = [];
+        $where[] = ['is_delete', '=', 2];
+        $where[] = ['p_sku_id', '=', 0];
+        $skuList = \app\admin\model\Sku::where($where)->order('order_no asc,create_time desc')->select();
+
+        $goodsPSkuIdList = Db::table('mrs_goods_sku_group')->field('DISTINCT(parent_sku_id)')->where('goods_id', '=', $goods_id)->select();
+        $goodsGroupList = Db::table('mrs_goods_sku_group')->where('goods_id', '=', $goods_id)->order('order_no asc,group_id asc')->select();
+        $goodsSkuDetailList = Db::table('mrs_goods_sku_detail')->where('goods_id', '=', $goods_id)->order('order_no asc,detail_id asc')->select();
+
         $this->assign('goods', $goods);
         $this->assign('goodsCateList', $goodsCateList);
+        $this->assign('skuList', $skuList);
+        $this->assign('goodsPSkuIdList', $goodsPSkuIdList);
+        $this->assign('goodsGroupList', $goodsGroupList);
+        $this->assign('goodsSkuDetailList', $goodsSkuDetailList);
         return $this->fetch();
     }
 
@@ -242,6 +672,8 @@ class Goods extends Base
             try {
                 Db::table('mrs_goods_img')->where(['goods_id' => $goods_id])->delete();
                 Db::table('mrs_goods')->where(['goods_id' => $goods_id])->delete();
+                Db::table('mrs_goods_sku_group')->where(['goods_id' => $goods_id])->delete();
+                Db::table('mrs_goods_sku_detail')->where(['goods_id' => $goods_id])->delete();
                 // 提交事务
                 Db::commit();
             } catch (\Exception $e) {
@@ -283,8 +715,9 @@ class Goods extends Base
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function getChildSku(Request $request){
-        if($request->isPost()){
+    public function getChildSku(Request $request)
+    {
+        if ($request->isPost()) {
             $p_sku_id = $request->post('p_sku_id');
 
             $where = [];
