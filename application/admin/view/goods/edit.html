@@ -16,13 +16,15 @@
     <link href="__CSS__/animate.css" rel="stylesheet">
     <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
     <link href="__JS__/plugins/webuploader/webuploader.css" rel="stylesheet">
+    <link href="__CSS__/plugins/chosen/chosen.css" rel="stylesheet">
     <link href="__CSS__/goods/goods_webuploader.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="__CSS__/plugins/simditor/simditor.css" />
     <style>
         body{overflow-y: hidden;}
         .ibox-content{height: 480px;overflow-y: auto;}
-        .thumbnail{border: none;}
+        .p-div:hover{background-color: #F5F5F5;}
         #filePicker{text-align: center;}
+        .btn-circle{border: none !important;}
     </style>
 </head>
 
@@ -116,6 +118,13 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label class="col-sm-3 control-label">商品规格：</label>
+                            <div class="col-sm-8">
+                                <button id="add_sku_btn" type="button"class="btn btn-sm btn-success" onclick="addSku()">添加规格</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="goods_detail_div">
                             <div class="ibox-title">
                                 <h5>商品详情</h5>
                             </div>
@@ -146,6 +155,7 @@
 
     <script src="__JS__/plugins/layer/layer.min.js"></script>
     <script src="__JS__/plugins/webuploader/webuploader.js"></script>
+    <script src="__JS__/plugins/chosen/chosen.jquery.js"></script>
     <script src="__JS__/goods/goods_webuploader.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/module.js"></script>
     <script type="text/javascript" src="__JS__/plugins/simditor/uploader.js"></script>
@@ -155,6 +165,9 @@
         var path = "{:url('admin/admin/upload/upload')}";
         var imgpath = "{:url('admin/admin/goods/getgoodsimg')}";
         var uploaderSwf = "__JS__/plugins/webuploader/Uploader.swf";
+        var pSkuIndex = 0;
+        var pSkuIds = [];
+        var pCount = 0;
         $(function(){
             var toolbar = [ 'title', 'bold', 'italic', 'underline', 'strikethrough',
                 'color', '|', 'ol', 'ul', 'blockquote', 'code', 'table', '|',
@@ -176,9 +189,36 @@
                 radioClass: 'iradio_square-green',
             });
 
+            {foreach $goodsPSkuIdList as $key => $v}
+                addSku();
+                $('.p-chosen-select-' + ({$key} + 1)).val({$v.parent_sku_id});
+                $('.p-chosen-select-' + ({$key} + 1)).trigger("chosen:updated");
+                initSku({$v.parent_sku_id});
+                var cSkuArr = [];
+                {foreach $goodsGroupList as $key1 => $v1}
+                    if({$v.parent_sku_id} == {$v1.parent_sku_id}){
+                        cSkuArr.push({$v1.sku_id});
+                    }
+                {/foreach}
+                $('#c_sku_value_' + {$v.parent_sku_id}).val(cSkuArr);
+                $('#c_sku_value_' + {$v.parent_sku_id}).trigger("chosen:updated");
+                createTable();
+            {/foreach}
+
+            {foreach $goodsSkuDetailList as $key2 => $v2}
+                var skuJsonStr = '{$v2.sku_json|raw}';
+                var skuJson = JSON.parse(skuJsonStr);
+                $("#skuTable input[name='shop_price_"+skuJson.skuInfo.unionId+"']").val(skuJson.skuInfo.shopPrice);
+                $("#skuTable input[name='goods_stock_"+skuJson.skuInfo.unionId+"']").val(skuJson.skuInfo.goodsStock);
+            {/foreach}
+
             $("#save").click(function(){
                 $("#goods_detail").val(editor.getValue());
                 $("#cate_name").val($("#cate_id").find("option:selected").text());
+
+                if(!checkSku()){
+                    return;
+                }
 
                 $.ajax({
                     type: "post",
@@ -199,6 +239,358 @@
                 });
             });
         });
+
+        function addSku(){
+            if (pSkuIndex > 0 && $('.c-chosen-select-' + pSkuIndex).length < 1 && pCount == pSkuIndex) {
+                layer.msg('请先选择父规格', {icon: 2});
+                return false;
+            }
+            pSkuIndex++;
+            pCount++;
+            if(pCount == 3){
+                $("#add_sku_btn").hide();
+            }
+            var pSkuHtml = createPSkuHtml();
+            if($("#skuTable").length > 0){
+                $("#skuTable").before(pSkuHtml);
+            }else{
+                $("#goods_detail_div").before(pSkuHtml);
+            }
+            $(".p-chosen-select-" + pSkuIndex).chosen();
+            $('.p-chosen-select-' + pSkuIndex).on('change', function (e, params) {
+                initSku(params.selected);
+            });
+        }
+
+        function initSku(pSkuId){
+            $("#skuTable").remove();
+            if (pSkuId == '') {
+                $('#c-div-' + pSkuIndex).remove();
+                return false;
+            }
+
+            // && params.selected != $("#p_sku_value_"+pSkuIndex).val()
+            if (pSkuIds.length > 0 && pSkuIds.indexOf(pSkuId) > -1) { //选中的父规格已经存在
+                $('.p-chosen-select-' + pSkuIndex).val("");
+                $('.p-chosen-select-' + pSkuIndex).trigger("chosen:updated");
+                $('#c-div-' + pSkuIndex).remove();
+                layer.msg('该规格已存在', {icon: 2});
+                getPSkuIds();
+                return false;
+            }
+            getPSkuIds();
+            var cSkuList = getChildSku(pSkuId);
+            var html = createCSkuHtml(pSkuId, cSkuList, pSkuIndex);
+            $('#c-div-' + pSkuIndex).remove();
+            $('.p-chosen-select-' + pSkuIndex).parent().parent().after(html);
+            $('.c-chosen-select-' + pSkuIndex).chosen();
+
+            $('.c-chosen-select-' + pSkuIndex).on('change', function (e1, params1) {
+                createTable();
+            });
+        }
+
+        /* 创建父规格选择器 */
+        function createPSkuHtml(){
+            var html = '';
+            html += '<div class="form-group" id="p-div-'+pSkuIndex+'">';
+            html += '<label class="col-sm-3 control-label"></label>';
+            html += '<div class="col-sm-8 input-group p-div">';
+            html += '<button onclick="removeSku('+pSkuIndex+')" class="btn btn-default btn-circle" style="float: right;" type="button"><i class="fa fa-times"></i></button>';
+            html += '<select class="p-chosen-select-' + pSkuIndex + '" style="width:120px;">';
+            html += '<option value="">请选择父规格</option>';
+            {volist name="skuList" id="skuInfo"}
+            html += '<option value="{$skuInfo.sku_id}">{$skuInfo.sku_name}</option>';
+            {/volist}
+                html += '</select>';
+                html += '</div>';
+                html += '</div>';
+                return html;
+            }
+
+            /* 创建子规格选择器 */
+            function createCSkuHtml(pSkuId, cSkuList, pSkuIndex){
+                var html = '';
+                html += '<div class="form-group" id="c-div-'+pSkuIndex+'">';
+                html += '<input type="hidden" value="'+pSkuId+'" pindex="'+pSkuIndex+'" id="p_sku_value_'+pSkuIndex+'"/>'
+                html += '<label class="col-sm-3 control-label"></label>';
+                html += '<div class="col-sm-8 input-group">';
+                html += '<select data-placeholder="请选择子规格" id="c_sku_value_'+pSkuId+'" class="c-chosen-select-' + pSkuIndex + '" style="width:100%;" multiple>';
+                for (var i = 0; i < cSkuList.length; i++) {
+                    html += '<option value="' + cSkuList[i].sku_id + '">' + cSkuList[i].sku_name + '</option>';
+                }
+                html += '</select>';
+                html += '</div>';
+                html += '</div>';
+                return html;
+            }
+
+            /* 获取子规格列表 */
+            function getChildSku(p_sku_id){
+                cSkuList = [];
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    async: false,
+                    url: "{:url('admin/admin/goods/getChildSku')}" ,
+                    data: {'p_sku_id': p_sku_id},
+                    success: function (result) {
+                        if (result.errcode == 1) {
+                            cSkuList = result.data;
+                        }
+                    }
+                });
+                return cSkuList;
+            }
+
+            function removeSku(pSkuIndex){
+                $('#p-div-' + pSkuIndex).remove();
+                $('#c-div-' + pSkuIndex).remove();
+
+                pCount--;
+                getPSkuIds();
+                $("#skuTable").remove();
+                createTable();
+                if(pCount < 3){
+                    $("#add_sku_btn").show();
+                }
+            }
+
+            function getPSkuIds(){
+                pSkuIds = [];
+                $("select[class^=p-chosen-select-]").each(function(){
+                    pSkuIds.push($(this).val());
+                });
+            }
+
+            function createTable(){
+                var tableHtml = '';
+                var hiddenHtml = '';
+                tableHtml += '<div class="form-group" id="skuTable">';
+                tableHtml += '<label class="col-sm-3 control-label"></label>';
+                tableHtml += '<div class="col-sm-8">';
+                tableHtml += '<table class="table table-bordered table-hover">';
+                hiddenHtml += '<input type="hidden" name="pCount" id="pCount" value="'+pCount+'"/>';
+
+                if(pCount == 1){
+                    $("[id^='p_sku_value_']").each(function(){
+                        var pSkuId = $(this).val();
+                        var pindex = $(this).attr('pindex');
+                        var pSkuName = $(".p-chosen-select-"+pindex).find("option:selected").text();
+
+                        var childSkus = $(".c-chosen-select-"+pindex).val();
+                        var childSkusText = [];
+                        $(".c-chosen-select-"+pindex).find('option:selected').each(function(index){
+                            childSkusText.push($(this).text());
+                        });
+
+                        hiddenHtml += '<input type="hidden" name="pSkuId" id="pSkuId" value="'+pSkuId+'"/>';
+                        hiddenHtml += '<input type="hidden" name="pSkuName" id="pSkuName" value="'+pSkuName+'"/>';
+                        hiddenHtml += '<input type="hidden" name="cSkuCount" id="cSkuCount" value="'+childSkus.length+'"/>';
+
+                        if(childSkus != null && childSkus.length > 0){
+                            tableHtml += '<thead>';
+                            tableHtml += '<tr>';
+                            tableHtml += '<th style="width: 33.3%;">'+pSkuName+'</th>';
+                            tableHtml += '<th style="width: 33.3%;">销售价</th>';
+                            tableHtml += '<th style="width: 33.3%;">库存</th>';
+                            tableHtml += '</tr>';
+                            tableHtml += '</thead>';
+                            tableHtml += '<tbody>';
+
+                            for(var i = 0; i < childSkus.length; i++){
+                                hiddenHtml += '<input type="hidden" name="cSkuId_'+(i+1)+'" id="cSkuId_'+(i+1)+'" value="'+childSkus[i]+'"/>';
+                                hiddenHtml += '<input type="hidden" name="cSkuName_'+(i+1)+'" id="cSkuNmae_'+(i+1)+'" value="'+childSkusText[i]+'"/>';
+                                tableHtml += '<tr>';
+                                tableHtml += '<td>'+childSkusText[i]+'</td>';
+                                tableHtml += '<td><input type="text" name="shop_price_'+childSkus[i]+'" class="form-control"></td>';
+                                tableHtml += '<td><input type="number" min="0" name="goods_stock_'+childSkus[i]+'" class="form-control"></td>';
+                                tableHtml += '</tr>';
+                            }
+                            tableHtml += '</tbody>';
+                        }
+                    });
+                }else if(pCount == 2){
+                    var firstPSkuId = $("[class^='p-chosen-select-']:eq(0)").val();//第一个父规格id
+                    var firstPSkuText = $("[class^='p-chosen-select-']:eq(0)").find("option:selected").text();//第一个父规格名称
+                    var secondPSkuId = $("[class^='p-chosen-select-']:eq(1)").val();//第二个父规格id
+                    var secondPSkuText = $("[class^='p-chosen-select-']:eq(1)").find("option:selected").text();//第二个父规格名称
+
+                    var firstCSkus = $("#c_sku_value_"+firstPSkuId).val();
+                    var secondCSkus = $("#c_sku_value_"+secondPSkuId).val();
+
+                    var firstCSkusText = [];
+                    $("#c_sku_value_"+firstPSkuId).find('option:selected').each(function(index){
+                        firstCSkusText.push($(this).text());
+                    });
+                    var secondCSkusText = [];
+                    $("#c_sku_value_"+secondPSkuId).find('option:selected').each(function(index){
+                        secondCSkusText.push($(this).text());
+                    });
+
+                    hiddenHtml += '<input type="hidden" name="pSkuId_1" id="pSkuId_1" value="'+firstPSkuId+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuName_1" id="pSkuName_1" value="'+firstPSkuText+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuId_2" id="pSkuId_2" value="'+secondPSkuId+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuName_2" id="pSkuName_2" value="'+secondPSkuText+'"/>';
+                    hiddenHtml += '<input type="hidden" name="cSkuCount_1" id="cSkuCount_1" value="'+firstCSkus.length+'"/>';
+                    hiddenHtml += '<input type="hidden" name="cSkuCount_2" id="cSkuCount_2" value="'+secondCSkus.length+'"/>';
+
+                    if(firstCSkus != null && firstCSkus.length > 0 && secondCSkus != null && secondCSkus.length > 0){
+                        tableHtml += '<thead>';
+                        tableHtml += '<tr>';
+                        tableHtml += '<th style="width: 25%;">'+firstPSkuText+'</th>';
+                        tableHtml += '<th style="width: 25%;">'+secondPSkuText+'</th>';
+                        tableHtml += '<th style="width: 25%;">销售价</th>';
+                        tableHtml += '<th style="width: 25%;">库存</th>';
+                        tableHtml += '</tr>';
+                        tableHtml += '</thead>';
+                        tableHtml += '<tbody>';
+
+                        for(var i = 0; i < firstCSkus.length; i++){
+                            hiddenHtml += '<input type="hidden" name="firstCSkuId_'+(i+1)+'" id="firstCSkuId_'+(i+1)+'" value="'+firstCSkus[i]+'"/>';
+                            hiddenHtml += '<input type="hidden" name="firstCSkuName_'+(i+1)+'" id="firstCSkuName_'+(i+1)+'" value="'+firstCSkusText[i]+'"/>';
+                            for(var j = 0; j < secondCSkus.length; j++){
+                                tableHtml += '<tr>';
+                                if(i == 0){
+                                    hiddenHtml += '<input type="hidden" name="secondCSkuId_'+(j+1)+'" id="secondCSkuId_'+(j+1)+'" value="'+secondCSkus[j]+'"/>';
+                                    hiddenHtml += '<input type="hidden" name="secondCSkuName_'+(j+1)+'" id="secondCSkuName_'+(j+1)+'" value="'+secondCSkusText[j]+'"/>';
+                                }
+                                if(j == 0){
+                                    tableHtml += '<td rowspan="'+secondCSkus.length+'">'+firstCSkusText[i]+'</td>';
+                                }
+                                tableHtml += '<td>'+secondCSkusText[j]+'</td>';
+                                tableHtml += '<td><input type="text" name="shop_price_'+firstCSkus[i]+'_'+secondCSkus[j]+'" class="form-control"></td>';
+                                tableHtml += '<td><input type="number" min="0" name="goods_stock_'+firstCSkus[i]+'_'+secondCSkus[j]+'" class="form-control"></td>';
+                                tableHtml += '</tr>';
+                            }
+                        }
+                        tableHtml += '</tbody>';
+                    }
+
+                }else if(pCount == 3){
+                    var firstPSkuId = $("[class^='p-chosen-select-']:eq(0)").val();//第一个父规格id
+                    var firstPSkuText = $("[class^='p-chosen-select-']:eq(0)").find("option:selected").text();//第一个父规格名称
+                    var secondPSkuId = $("[class^='p-chosen-select-']:eq(1)").val();//第二个父规格id
+                    var secondPSkuText = $("[class^='p-chosen-select-']:eq(1)").find("option:selected").text();//第二个父规格名称
+                    var thirdPSkuId = $("[class^='p-chosen-select-']:eq(2)").val();//第三个父规格id
+                    var thirdPSkuText = $("[class^='p-chosen-select-']:eq(2)").find("option:selected").text();//第三个父规格名称
+
+                    var firstCSkus = $("#c_sku_value_"+firstPSkuId).val();
+                    var secondCSkus = $("#c_sku_value_"+secondPSkuId).val();
+                    var thirdCSkus = $("#c_sku_value_"+thirdPSkuId).val();
+
+                    var firstCSkusText = [];
+                    $("#c_sku_value_"+firstPSkuId).find('option:selected').each(function(index){
+                        firstCSkusText.push($(this).text());
+                    });
+                    var secondCSkusText = [];
+                    $("#c_sku_value_"+secondPSkuId).find('option:selected').each(function(index){
+                        secondCSkusText.push($(this).text());
+                    });
+                    var thirdCSkusText = [];
+                    $("#c_sku_value_"+thirdPSkuId).find('option:selected').each(function(index){
+                        thirdCSkusText.push($(this).text());
+                    });
+
+                    hiddenHtml += '<input type="hidden" name="pSkuId_1" id="pSkuId_1" value="'+firstPSkuId+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuName_1" id="pSkuName_1" value="'+firstPSkuText+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuId_2" id="pSkuId_2" value="'+secondPSkuId+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuName_2" id="pSkuName_2" value="'+secondPSkuText+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuId_3" id="pSkuId_3" value="'+thirdPSkuId+'"/>';
+                    hiddenHtml += '<input type="hidden" name="pSkuName_3" id="pSkuName_3" value="'+thirdPSkuText+'"/>';
+                    hiddenHtml += '<input type="hidden" name="cSkuCount_1" id="cSkuCount_1" value="'+firstCSkus.length+'"/>';
+                    hiddenHtml += '<input type="hidden" name="cSkuCount_2" id="cSkuCount_2" value="'+secondCSkus.length+'"/>';
+                    hiddenHtml += '<input type="hidden" name="cSkuCount_3" id="cSkuCount_3" value="'+thirdCSkus.length+'"/>';
+
+                    if(firstCSkus != null && firstCSkus.length > 0 && secondCSkus != null && secondCSkus.length > 0 && thirdCSkus != null && thirdCSkus.length > 0){
+                        tableHtml += '<thead>';
+                        tableHtml += '<tr>';
+                        tableHtml += '<th style="width: 20%;">'+firstPSkuText+'</th>';
+                        tableHtml += '<th style="width: 20%;">'+secondPSkuText+'</th>';
+                        tableHtml += '<th style="width: 20%;">'+thirdPSkuText+'</th>';
+                        tableHtml += '<th style="width: 20%;">销售价</th>';
+                        tableHtml += '<th style="width: 20%;">库存</th>';
+                        tableHtml += '</tr>';
+                        tableHtml += '</thead>';
+                        tableHtml += '<tbody>';
+
+                        for(var i = 0; i < firstCSkus.length; i++){
+                            hiddenHtml += '<input type="hidden" name="firstCSkuId_'+(i+1)+'" id="firstCSkuId_'+(i+1)+'" value="'+firstCSkus[i]+'"/>';
+                            hiddenHtml += '<input type="hidden" name="firstCSkuName_'+(i+1)+'" id="firstCSkuName_'+(i+1)+'" value="'+firstCSkusText[i]+'"/>';
+                            for(var j = 0; j < secondCSkus.length; j++){
+
+                                if(i == 0){
+                                    hiddenHtml += '<input type="hidden" name="secondCSkuId_'+(j+1)+'" id="secondCSkuId_'+(j+1)+'" value="'+secondCSkus[j]+'"/>';
+                                    hiddenHtml += '<input type="hidden" name="secondCSkuName_'+(j+1)+'" id="secondCSkuName_'+(j+1)+'" value="'+secondCSkusText[j]+'"/>';
+                                }
+
+                                for(var k = 0; k < thirdCSkus.length; k++){
+                                    tableHtml += '<tr>';
+                                    if(i == 0){
+                                        hiddenHtml += '<input type="hidden" name="thirdCSkuId_'+(k+1)+'" id="thirdCSkuId_'+(k+1)+'" value="'+thirdCSkus[k]+'"/>';
+                                        hiddenHtml += '<input type="hidden" name="thirdCSkuName_'+(k+1)+'" id="thirdCSkuName_'+(k+1)+'" value="'+thirdCSkusText[k]+'"/>';
+                                    }
+
+                                    if(j == 0 && k == 0){
+                                        tableHtml += "<td rowspan='"+(secondCSkus.length*thirdCSkus.length)+"'>"+firstCSkusText[i]+"</td>";
+                                    }
+                                    if(k == 0){
+                                        tableHtml += "<td rowspan='"+thirdCSkus.length+"'>"+secondCSkusText[j]+"</td>";
+                                    }
+
+                                    tableHtml += '<td>'+thirdCSkusText[k]+'</td>';
+                                    tableHtml += '<td><input type="text" name="shop_price_'+firstCSkus[i]+'_'+secondCSkus[j]+'_'+thirdCSkus[k]+'" class="form-control"></td>';
+                                    tableHtml += '<td><input type="number" min="0" name="goods_stock_'+firstCSkus[i]+'_'+secondCSkus[j]+'_'+thirdCSkus[k]+'" class="form-control"></td>';
+                                    tableHtml += '</tr>';
+                                }
+                            }
+                        }
+                        tableHtml += '</tbody>';
+                    }
+                }
+
+                tableHtml += '</table>';
+                tableHtml += '</div>';
+                tableHtml += '</div>';
+
+                $("#skuTable").remove();
+                $("#goods_detail_div").before(tableHtml);
+                $("#goods_detail_div").before(hiddenHtml);
+            }
+
+            function checkSku(){
+                var checkFlag = true;
+                if($("#skuTable input[type='text']").length == 0){
+                    layer.msg('请添加商品规格信息！', {icon: 2});
+                    checkFlag = false;
+                }
+                var exp = /^([1-9][\d]{0,7}|0)(\.[\d]{1,2})?$/;
+                $("#skuTable input[type='text']").each(function(){
+                    if($(this).val() == ""){
+                        layer.msg('商品规格信息不完整！', {icon: 2});
+                        checkFlag = false;
+                        return checkFlag;
+                    }
+                    if(!exp.test($(this).val())){
+                        layer.msg('请输入正确的价格！', {icon: 2});
+                        checkFlag = false;
+                        return checkFlag;
+                    }
+                });
+                $("#skuTable input[type='number']").each(function(){
+                    if($(this).val() == ""){
+                        layer.msg('商品库存信息不能为空！', {icon: 2});
+                        checkFlag = false;
+                        return checkFlag;
+                    }
+                    if($(this).val() < 0){
+                        layer.msg('商品库存值不能小于0！', {icon: 2});
+                        checkFlag = false;
+                        return checkFlag;
+                    }
+                });
+                return checkFlag;
+            }
     </script>
 </body>
 

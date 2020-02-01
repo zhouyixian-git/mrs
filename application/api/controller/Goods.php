@@ -129,6 +129,49 @@ class Goods extends Base
                 $goods['is_incart'] = 1;
             }
 
+            //商品规格
+            $pSkuList = Db::table('mrs_goods_sku_group')
+                ->field('DISTINCT(parent_sku_id),parent_sku_name')
+                ->where('goods_id', '=', $goods_id)
+                ->order('order_no asc,group_id asc')
+                ->select();
+            $cSkuList = Db::table('mrs_goods_sku_group')
+                ->field('parent_sku_id,sku_id,sku_name')
+                ->where('goods_id', '=', $goods_id)
+                ->order('order_no asc,group_id asc')
+                ->select();
+            $skuPriceList = Db::table('mrs_goods_sku_detail')
+                ->where('goods_id', '=', $goods_id)
+                ->order('order_no asc,detail_id asc')
+                ->select();
+            $pSkuArr = [];
+            foreach ($pSkuList as $k1 => $v1) {
+                $cSkuArr = [];
+                foreach ($cSkuList as $k2 => $v2) {
+                    if ($v1['parent_sku_id'] == $v2['parent_sku_id']) {
+                        $cSkuArr[] = [
+                            'sku_id' => $v2['sku_id'],
+                            'sku_name' => $v2['sku_name']
+                        ];
+                    }
+                }
+                $pSkuArr[] = [
+                    'parent_sku_id' => $v1['parent_sku_id'],
+                    'parent_sku_name' => $v1['parent_sku_name'],
+                    'childSku' => $cSkuArr
+                ];
+            }
+            $sPrice = [];
+            foreach ($skuPriceList as $k2 => $v2) {
+                $skuInfo = json_decode($v2['sku_json'], true);
+                $sPrice[$skuInfo['skuInfo']['unionId']] = [
+                    'shopPrice' => $skuInfo['skuInfo']['shopPrice'],
+                    'goodsStock' => $skuInfo['skuInfo']['goodsStock']
+                ];
+            }
+
+            $goods['goods_sku']['goods_sku_list'] = $pSkuArr;
+            $goods['goods_sku']['goods_sku_detail'] = $sPrice;
             if ($goods) {
                 echo $this->successJson($goods);
                 exit;
