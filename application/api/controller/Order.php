@@ -145,11 +145,21 @@ class Order extends Base
                 $where = [];
                 $where[] = ['order_id', '=', $order['order_id']];
                 $goodsList = Db::table('mrs_order_goods')
-                    ->field('goods_name,goods_num,goods_m_list_image,goods_price')
+                    ->field('goods_name,goods_num,goods_m_list_image,goods_price,sku_json')
                     ->where($where)->select();
 
                 foreach ($goodsList as $k1 => $v1) {
                     $goodsList[$k1]['goods_m_list_image'] = $domain . $v1['goods_m_list_image'];
+
+                    $goods_sku = '';
+                    if(!empty($v1['sku_json'])){
+                        $skuJson = json_decode(json_decode($v1['sku_json'], true), true);
+                        foreach ($skuJson as $key => $value){
+                            $goods_sku .= $value['sku_name'] . '-';
+                        }
+                        $goods_sku = substr($goods_sku, 0, -1);
+                    }
+                    $goodsList[$k1]['goods_sku'] = $goods_sku;
                 }
 
                 $orders[$k]['goods'] = $goodsList;
@@ -333,11 +343,16 @@ class Order extends Base
         $goods_num = $request->post('goods_num');
         $order_remark = $request->post('order_remark');
         $open_id = $request->post('open_id');
-
+        $goods_sku = $request->post('goods_sku');
         $goods_num = empty($goods_num) ? 1 : $goods_num;
 
         if (empty($cart_ids) && empty($goods_id)) {
-            $result = $this->errorJson(1, '缺少关键参数$cart_ids、$goods_id');
+            $result = $this->errorJson(1, '缺少关键参数cart_ids、goods_id');
+            echo $result;
+            exit;
+        }
+        if (empty($cart_ids) && !empty($goods_id) && empty($goods_sku)) {
+            $result = $this->errorJson(1, '缺少关键参数goods_sku');
             echo $result;
             exit;
         }
@@ -369,7 +384,7 @@ class Order extends Base
         if (is_array($cart_ids) && count($cart_ids) > 0) {
             foreach ($cart_ids as $v) {
                 $cart = Db::table('mrs_carts')
-                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num'))
+                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num', 'sku_json'))
                     ->where(array('cart_id' => $v))
                     ->find();
 
@@ -429,7 +444,8 @@ class Order extends Base
                     'goods_m_list_image' => $v['goods_image'],
                     'user_id' => $user_id,
                     'user_name' => $user['user_name'],
-                    'goods_price' => $v['goods_price']
+                    'goods_price' => $v['goods_price'],
+                    'sku_json' => $v['sku_json']
                 ];
             }
         } else {
@@ -441,7 +457,8 @@ class Order extends Base
                 'goods_m_list_image' => $goods['goods_img'],
                 'user_id' => $user_id,
                 'user_name' => $user['user_name'],
-                'goods_price' => $goods['goods_price']
+                'goods_price' => $goods['goods_price'],
+                'sku_json' => json_encode($goods_sku)
             ];
         }
         $res = Db::table('mrs_order_goods')->insertAll($orderGoodsData);

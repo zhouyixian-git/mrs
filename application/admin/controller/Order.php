@@ -82,6 +82,17 @@ class Order extends Base
 
         //订单商品信息
         $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->select();
+        foreach ($orderGoods as $k => $v){
+            $goods_sku = '';
+            if(!empty($v['sku_json'])){
+                $skuJson = json_decode(json_decode($v['sku_json'], true), true);
+                foreach ($skuJson as $key => $value){
+                    $goods_sku .= $value['sku_name'] . '-';
+                }
+                $goods_sku = substr($goods_sku, 0, -1);
+            }
+            $orderGoods[$k]['goods_sku'] = $goods_sku;
+        }
 
         //订单动作信息
         $orderAction = Db::table('mrs_order_action')->where('order_id', '=', $order_id)->order('create_time desc')->select();
