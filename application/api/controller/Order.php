@@ -152,9 +152,9 @@ class Order extends Base
                     $goodsList[$k1]['goods_m_list_image'] = $domain . $v1['goods_m_list_image'];
 
                     $goods_sku = '';
-                    if(!empty($v1['sku_json'])){
+                    if (!empty($v1['sku_json'])) {
                         $skuJson = json_decode(json_decode($v1['sku_json'], true), true);
-                        foreach ($skuJson as $key => $value){
+                        foreach ($skuJson as $key => $value) {
                             $goods_sku .= $value['sku_name'] . '-';
                         }
                         $goods_sku = substr($goods_sku, 0, -1);
@@ -199,11 +199,21 @@ class Order extends Base
             $where = [];
             $where[] = ['order_id', '=', $order['order_id']];
             $goodsList = Db::table('mrs_order_goods')
-                ->field(array('goods_name', 'goods_num', 'goods_m_list_image', 'goods_price'))
+                ->field(array('goods_name', 'goods_num', 'goods_m_list_image', 'goods_price', 'sku_json'))
                 ->where($where)->select();
 
             foreach ($goodsList as $k => $v) {
                 $goodsList[$k]['goods_m_list_image'] = $domain . $v['goods_m_list_image'];
+
+                $goods_sku = '';
+                if (!empty($v['sku_json'])) {
+                    $skuJson = json_decode(json_decode($v['sku_json'], true), true);
+                    foreach ($skuJson as $key => $value) {
+                        $goods_sku .= $value['sku_name'] . '-';
+                    }
+                    $goods_sku = substr($goods_sku, 0, -1);
+                }
+                $goodsList[$k]['goods_sku'] = $goods_sku;
             }
 
             $order['goods'] = $goodsList;
@@ -269,6 +279,7 @@ class Order extends Base
         $user_id = intval($request->post('user_id'));
         $cart_ids = $request->post('cart_ids');
         $goods_id = $request->post('goods_id');
+        $goods_sku_str = $request->post('goods_sku');
 
 //        $cart_ids = '10,9,8,6';
 //        $user_id = '2';
@@ -282,6 +293,11 @@ class Order extends Base
         }
         if (!empty($cart_ids)) {
             $cart_ids = explode(',', $cart_ids);
+        }
+        if (empty($cart_ids) && !empty($goods_id) && empty($goods_sku_str)) {
+            $result = $this->errorJson(1, '缺少关键参数goods_sku');
+            echo $result;
+            exit;
         }
 
         if (empty($user_id)) {
@@ -308,11 +324,20 @@ class Order extends Base
             foreach ($cart_ids as $v) {
                 $cart = Db::table('mrs_carts')
                     ->where(array('cart_id' => $v))
-                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num'))
+                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num', 'sku_json'))
                     ->find();
 
                 $cart['goods_image'] = SERVER_HOST . $cart['goods_image'];
 
+                $goods_sku = '';
+                if (!empty($cart['sku_json'])) {
+                    $skuJson = json_decode(json_decode($cart['sku_json'], true), true);
+                    foreach ($skuJson as $key => $value) {
+                        $goods_sku .= $value['sku_name'] . '-';
+                    }
+                    $goods_sku = substr($goods_sku, 0, -1);
+                }
+                $cart['goods_sku'] = $goods_sku;
                 $data['total_goods_price'] += $cart['goods_price'] * $cart['goods_num'];
                 $data['goodslist'][] = $cart;
             }
@@ -323,6 +348,15 @@ class Order extends Base
             $goods['goods_num'] = 1;
             $goods['goods_image'] = SERVER_HOST . $goods['goods_img'];
 
+            $goods_sku = '';
+            if (!empty($goods_sku_str)) {
+                $skuJson = json_decode($goods_sku_str, true);
+                foreach ($skuJson as $key => $value) {
+                    $goods_sku .= $value['sku_name'] . '-';
+                }
+                $goods_sku = substr($goods_sku, 0, -1);
+            }
+            $goods['goods_sku'] = $goods_sku;
             unset($goods['goods_img']);
 
             $data['goodslist'][] = $goods;
