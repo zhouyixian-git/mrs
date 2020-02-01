@@ -417,6 +417,10 @@ class User extends Base
                 ->where('user_id', '=', $user_id)
                 ->update(['face_img' => $face_img]);
 
+            //更新人脸库
+            $userM = new \app\api\model\User();
+            $userM->faceset($user_id);
+
             echo $this->successJson();
             exit;
         }
@@ -860,4 +864,40 @@ class User extends Base
         echo successJson();
         exit;
     }
+
+
+    /**
+     * 人脸登录
+     * @param Request $request
+     */
+    public function facelogin(Request $request){
+        $image_path = $request->post("image_path");
+
+        if(empty($image_path)){
+            echo errorJson('1', '缺少关键参数image_path');
+            exit;
+        }
+
+        $userM = new \app\api\model\User();
+        $res = $userM->searchFace($image_path);
+
+        $result = json_decode($res, true);
+        if($result['error_code'] == 0){
+            $user_id = $result['result']['user_list'][0]['user_id'];
+            $user = $userM->where('user_id','=',$user_id)->find();
+            if(empty($user)){
+                echo errorJson('1', '登录失败，不存在人脸对应用户。');
+                exit;
+            }else{
+                unset($user['password']);
+                $data = array();
+                $data['userInfo'] = $user;
+                echo successJson($data);
+            }
+        }else{
+            echo errorJson('1', '登录失败，不存在人脸对应用户。');
+            exit;
+        }
+    }
+
 }

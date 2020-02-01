@@ -192,7 +192,7 @@ class Recovery extends Base
         $user_phone_no = $request->post("user_phone_no");
         $recovery_cate_id = $request->post("recovery_cate_id");
         $recovery_cate_name = $request->post("recovery_cate_name");
-        $call_create_time = $request->post("call_create_time");
+        $call_create_time = ($request->post("call_create_time"));
         $remark = $request->post("remark");
 
         if(empty($user_id)){
@@ -230,26 +230,21 @@ class Recovery extends Base
             exit;
         }
 
-        if(empty(strtotime($call_create_time))){
-            echo $this->errorJson('1','recovery_cate_name格式不正确');
-            exit;
-        }
-
         if(empty($call_create_time)){
-            echo $this->errorJson('1','缺少关键参数$call_create_time');
+            echo $this->errorJson('1','$call_create_time格式不正确');
             exit;
         }
 
         //查找最近的一个师傅
-        $maxDistance = Db::table("mrs_sys_setting")->where('setting_code', '=','call_recovery_max_distance')->find();
+        $maxDistance = Db::table("mrs_system_setting")->where('setting_code', '=','call_recovery_max_distance')->find();
 
         $where = array();
-        $where[] = ['is_avtived', '=', 1];
-        $where[] = ['distance', '<=', $maxDistance['setting_value']];
-        $master = Db::table('mrs_recovery_master')
+        $where[] = ['is_actived', '=', 1];
+//        $where[] = ['distance', '<=', $maxDistance['setting_value']];
+        $master = Db::table('mrs_call_recovery_master')
             ->alias('t1')
             ->where($where)
-            ->field("t1.master_name,t1.lng,t1.lat,t1.address,t1.master_phone_no,
+            ->field("t1.master_id,t1.master_name,t1.lng,t1.lat,t1.address,t1.master_phone_no,
                     ROUND(
                         6378.138 * 2 * ASIN(
                             SQRT(
@@ -274,6 +269,13 @@ class Recovery extends Base
                 ")
             ->order('distance asc')
             ->find();
+
+//        var_dump($master);
+//        exit;
+        if($master['distance'] > $maxDistance['setting_value']){
+            echo $this->errorJson('1', '附近没有可预约的上门人员.');
+            exit;
+        }
 
         if(empty($master)){
             echo $this->errorJson('1', '附近没有可预约的上门人员.');
@@ -329,14 +331,14 @@ class Recovery extends Base
         $result = json_decode($res, true);
 
         if($result['errcode'] == 1){
-            Db::table('mrs_call_recovery_record')->where('record_id', '=', $record_id)->delete();
+            Db::table('mrs_call_recovery_record')->where('call_recovery_record_id', '=', $record_id)->delete();
 
             echo errorJson('1', '预约失败，请联系站点工作人员');
             exit;
         }else{
             $data = array();
             $data['notice_status'] = 1;
-            Db::table('mrs_call_recovery_record')->where('record_id', '=', $record_id)->update($data);
+            Db::table('mrs_call_recovery_record')->where('call_recovery_record_id', '=', $record_id)->update($data);
 
             echo successJson();
             exit;
@@ -344,6 +346,15 @@ class Recovery extends Base
         }
     }
 
+    public function getcallcate(Request $request){
+
+        $cate = new \app\api\model\Callrecoverycate();
+        $cateData = $cate->getCateTree(0);
+
+
+        echo json_encode($cateData);
+        exit;
+    }
 
 
 

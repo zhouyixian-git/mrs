@@ -150,7 +150,6 @@ function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements
         return errorJson('1', 'Not found the sms template!');
     }
 
-
     //生成短信记录
     $content = preg_replace($patterns, $replacements, $smsTpl['tpl_content']);
 
@@ -480,4 +479,32 @@ function wxDecrypt($encryptedData,$iv,$sessionKey){
     exit;
 }
 
+/**
+ * 获取图片的Base64编码(不支持url)
+ * @date 2020年2月1日15:43:40
+ *
+ * @param $img_file 传入本地图片地址
+ *
+ * @return string
+ */
+function imgToBase64($img_file) {
+
+    $img_base64 = '';
+    if (file_exists($img_file)) {
+        $app_img_file = $img_file; // 图片路径
+        $img_info = getimagesize($app_img_file); // 取得图片的大小，类型等
+
+        //echo '<pre>' . print_r($img_info, true) . '</pre><br>';
+        $fp = fopen($app_img_file, "r"); // 图片是否可读权限
+
+        if ($fp) {
+            $filesize = filesize($app_img_file);
+            $content = fread($fp, $filesize);
+            $file_content = chunk_split(base64_encode($content)); // base64编码
+        }
+        fclose($fp);
+    }
+
+    return $file_content; //返回图片的base64
+}
 
