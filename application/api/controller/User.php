@@ -871,15 +871,15 @@ class User extends Base
      * @param Request $request
      */
     public function facelogin(Request $request){
-        $image_path = $request->post("image_path");
+        $base64_image = $request->post("base64_image");
 
-        if(empty($image_path)){
-            echo errorJson('1', '缺少关键参数image_path');
+        if(empty($base64_image)){
+            echo errorJson('1', '缺少关键参数$base64_image');
             exit;
         }
 
         $userM = new \app\api\model\User();
-        $res = $userM->searchFace($image_path);
+        $res = $userM->searchFace($base64_image);
 
         $result = json_decode($res, true);
         if($result['error_code'] == 0){

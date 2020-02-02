@@ -87,19 +87,19 @@ class User extends Model
         return $res;
     }
 
-    public function searchFace($image_path){
+    public function searchFace($base64_image){
         $res = $this->getFaceApiParam();
         $token = $res['access_token'];
 
         $url = 'https://aip.baidubce.com/rest/2.0/face/v3/search?access_token=' . $token;
 
-        if(empty($image_path)){
+        if(empty($base64_image)){
             return false;
         }
 
         $data = array();
-        $image = imgToBase64(APP_ROOT_PATH . $image_path);
-        $data["image"]=$image;
+//        $image = imgToBase64(APP_ROOT_PATH . $image_path);
+        $data["image"]=$base64_image;
         $data["image_type"]="BASE64";
         $data["group_id_list"]=$res['group_id'];
         $data["quality_control"]="LOW";
