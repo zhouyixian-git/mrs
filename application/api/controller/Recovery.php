@@ -352,7 +352,7 @@ class Recovery extends Base
         $cateData = $cate->getCateTree(0);
 
 
-        echo json_encode($cateData);
+        echo successJson($cateData);
         exit;
     }
 
