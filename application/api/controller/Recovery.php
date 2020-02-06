@@ -39,10 +39,11 @@ class Recovery extends Base
             }
             $pageSize = 10;
 
-            $where = [];
+            $whereOr = [];
             if (!empty($key_word)) {
-                $where[] = [
-                    ['site_address', 'like', "%$key_word%"]
+                $whereOr = [
+                    ['t1.site_name', 'like', "%$key_word%"],
+                    ['t1.site_address', 'like', "%$key_word%"]
                 ];
             }
 
@@ -71,13 +72,14 @@ class Recovery extends Base
                         ) * 1000
                     ) AS distance
                 ")
-                ->where($where)
+                ->whereOr($whereOr)
                 ->limit(($page - 1) * $pageSize, $pageSize)
                 ->order('distance asc')
                 ->select();
 
             $totalCount = Db::table('mrs_site')
-                ->where($where)
+                ->alias('t1')
+                ->whereOr($whereOr)
                 ->count();
 
             if ($siteList) {
