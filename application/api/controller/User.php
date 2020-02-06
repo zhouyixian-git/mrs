@@ -196,10 +196,12 @@ class User extends Base
                 foreach ($goodsList as $k => $v) {
                     $goodsList[$k]['goods_image'] = $domain . $v['goods_image'];
                     $goods_sku = '';
-                    if(!empty($v['sku_json'])){
+                    if (!empty($v['sku_json'])) {
                         $skuJson = json_decode(json_decode($v['sku_json'], true), true);
-                        foreach ($skuJson as $key => $value){
-                            $goods_sku .= $value['sku_name'] . '-';
+                        if (!empty($skuJson)) {
+                            foreach ($skuJson as $key => $value) {
+                                $goods_sku .= $value['sku_name'] . '-';
+                            }
                         }
                         $goods_sku = substr($goods_sku, 0, -1);
                     }
@@ -452,7 +454,7 @@ class User extends Base
             }
             $res = checkToken($token);
             $result = json_decode($res, true);
-            if($result['errcode'] == '1'){
+            if ($result['errcode'] == '1') {
                 echo $res;
                 exit;
             }
@@ -693,7 +695,7 @@ class User extends Base
         $vcode = $request->post("vcode");
         $password = $request->post("password");
 
-        if ($login_type =='1' && !preg_match("/^1[3456789]{1}\d{9}$/", $phone) ) {
+        if ($login_type == '1' && !preg_match("/^1[3456789]{1}\d{9}$/", $phone)) {
             echo errorJson('1', '请输入正确的电话');
             exit;
         }
@@ -751,7 +753,7 @@ class User extends Base
             echo $this->successJson($data);
             exit;
         } else {
-            if(empty($user_id)){
+            if (empty($user_id)) {
                 echo errorJson('1', '缺少关键参数$user_id');
                 exit;
             }
@@ -808,16 +810,17 @@ class User extends Base
         }
     }
 
-    public function checkvcode(Request $request){
+    public function checkvcode(Request $request)
+    {
         $phone = $request->post('phone');
         $vcode = $request->post('vcode');
 
-        if(empty($phone)){
+        if (empty($phone)) {
             echo errorJson('1', '请输入正确的手机号');
             exit;
         }
 
-        if(empty($vcode)){
+        if (empty($vcode)) {
             echo errorJson('1', '请输入验证码');
             exit;
         }
@@ -841,15 +844,17 @@ class User extends Base
         echo successJson();
         exit;
     }
-    public function bindphone(Request $request){
+
+    public function bindphone(Request $request)
+    {
         $user_id = $request->post('user_id');
         $phone = $request->post('phone');
 
-        if(empty($user_id)){
+        if (empty($user_id)) {
             echo errorJson('1', '缺少关键参数user_id');
             exit;
         }
-        if(empty($phone)){
+        if (empty($phone)) {
             echo errorJson('1', '缺少关键参数phone');
             exit;
         }
@@ -860,7 +865,7 @@ class User extends Base
         }
 
         //绑定手机号
-        Db::table('mrs_user')->where('user_id','=',$user_id)->update(array('phone_no' => $phone));
+        Db::table('mrs_user')->where('user_id', '=', $user_id)->update(array('phone_no' => $phone));
         echo successJson();
         exit;
     }
@@ -870,31 +875,32 @@ class User extends Base
      * 人脸登录
      * @param Request $request
      */
-    public function facelogin(Request $request){
-        $base64_image = $request->post("base64_image");
+    public function facelogin(Request $request)
+    {
+        $image_path = $request->post("image_path");
 
-        if(empty($base64_image)){
-            echo errorJson('1', '缺少关键参数$base64_image');
+        if (empty($image_path)) {
+            echo errorJson('1', '缺少关键参数image_path');
             exit;
         }
 
         $userM = new \app\api\model\User();
-        $res = $userM->searchFace($base64_image);
+        $res = $userM->searchFace($image_path);
 
         $result = json_decode($res, true);
-        if($result['error_code'] == 0){
+        if ($result['error_code'] == 0) {
             $user_id = $result['result']['user_list'][0]['user_id'];
-            $user = $userM->where('user_id','=',$user_id)->find();
-            if(empty($user)){
+            $user = $userM->where('user_id', '=', $user_id)->find();
+            if (empty($user)) {
                 echo errorJson('1', '登录失败，不存在人脸对应用户。');
                 exit;
-            }else{
+            } else {
                 unset($user['password']);
                 $data = array();
                 $data['userInfo'] = $user;
                 echo successJson($data);
             }
-        }else{
+        } else {
             echo errorJson('1', '登录失败，不存在人脸对应用户。');
             exit;
         }

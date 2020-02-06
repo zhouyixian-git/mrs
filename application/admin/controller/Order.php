@@ -86,8 +86,10 @@ class Order extends Base
             $goods_sku = '';
             if(!empty($v['sku_json'])){
                 $skuJson = json_decode(json_decode($v['sku_json'], true), true);
-                foreach ($skuJson as $key => $value){
-                    $goods_sku .= $value['sku_name'] . '-';
+                if(!empty($skuJson)) {
+                    foreach ($skuJson as $key => $value) {
+                        $goods_sku .= $value['sku_name'] . '-';
+                    }
                 }
                 $goods_sku = substr($goods_sku, 0, -1);
             }
