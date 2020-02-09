@@ -753,12 +753,8 @@ class User extends Base
             echo $this->successJson($data);
             exit;
         } else {
-            if (empty($user_id)) {
-                echo errorJson('1', '缺少关键参数$user_id');
-                exit;
-            }
             //密码登录
-            $user = Db::table('mrs_user')->where(array('user_id' => $user_id))->find();
+            $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
 
             if (empty($user)) {
                 echo errorJson('1', '用户名或密码错误');
@@ -769,7 +765,7 @@ class User extends Base
                 echo errorJson('1', '该用户已被禁用');
                 exit;
             }
-            $password = md5($user_id . md5($password));
+            $password = md5($user['user_id'] . md5($password));
 
             if ($password != $user['password']) {
                 echo errorJson('1', '用户名或密码错误');
