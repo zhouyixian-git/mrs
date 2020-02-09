@@ -66,6 +66,7 @@
                     <table class="table table-bordered table-hover">
                         <thead>
                         <tr>
+                            <th>操作</th>
                             <th>用户姓名</th>
                             <th>微信头像</th>
                             <th>微信昵称</th>
@@ -81,9 +82,17 @@
                         <tbody>
                         {volist name="userList" id="userInfo"}
                             <tr>
+                                <td>
+                                    {if condition="$userInfo.user_type eq 1"}
+                                    <button type="button" onclick="updateUserType({$userInfo.user_id})" class="btn btn-sm btn-info">置为现场维护人员</button>
+                                    {/if}
+                                    {if condition="$userInfo.user_type eq 2"}
+                                    <button type="button" onclick="configAuth({$userInfo.user_id})" class="btn btn-sm btn-info">配置用户权限</button>
+                                    {/if}
+                                </td>
                                 <td>{$userInfo.user_name}</td>
                                 <td>
-                                    <a href="{$userInfo.head_img}" target="_blank"><img src="{$userInfo.head_img}" style="width: 200px;height: 50px;"></a>
+                                    <a href="{$userInfo.head_img}" target="_blank"><img src="{$userInfo.head_img}" style="width: 60px;height: 60px;"></a>
                                 </td>
                                 <td>{$userInfo.nick_name}</td>
                                 <td>{$userInfo.phone_no}</td>
@@ -126,7 +135,39 @@
 
 <!-- Page-Level Scripts -->
 <script>
+    function updateUserType(user_id){
+        layer.confirm('是否确定将该用户修改为现场维护人员？', {
+            btn: ['确定','我再想想'] //按钮
+        }, function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('admin/user/updateusertype')}" ,
+                data: {'user_id': user_id},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg("操作成功", {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            window.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        }, function(){
+        });
+    }
 
+    function configAuth(user_id){
+        layer.open({
+            type: 2,
+            title: '配置权限',
+            area: ['400px', '300px'],
+            content: "{:url('admin/admin/user/auth')}?user_id=" + user_id
+        });
+    }
 </script>
 
 </body>

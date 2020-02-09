@@ -134,6 +134,12 @@ class Wechat extends Base
             $userInfo['head_img'] = $data['head_img'];
             $userInfo['sex'] = $data['sex'];
 
+            if (empty($userInfo['user_auth'])) {
+                $userInfo['user_auth_arr'] = [];
+            } else {
+                $userInfo['user_auth_arr'] = explode(",", $userInfo['user_auth']);
+            }
+
             echo $this->successJson($userInfo);
             exit;
         }
@@ -144,7 +150,7 @@ class Wechat extends Base
     {
         $param = file_get_contents('php://input');
         $data = xmlToArray($param);
-        recordLog('data->'.json_encode($data), 'wechat.txt');
+        recordLog('data->' . json_encode($data), 'wechat.txt');
         if (!empty($data['out_trade_no'])) {
             $this->paysuccess($data['out_trade_no']);
         }
@@ -156,7 +162,7 @@ class Wechat extends Base
     {
         $wechatModel = new \app\api\model\Wechat();
         $result = $wechatModel->queryOrder($pay_order_sn);
-        recordLog('result->'.json_encode($result), 'wechat.txt');
+        recordLog('result->' . json_encode($result), 'wechat.txt');
         if ($result['code'] == 1) {
             $order = Db::table('mrs_orders')->where('pay_order_sn', '=', $pay_order_sn)->find();
 
@@ -172,7 +178,7 @@ class Wechat extends Base
                 $actionData['action_name'] = '用户下单';
                 $actionData['action_user_id'] = $order['user_id'];
                 $actionData['action_user_name'] = $order['user_name'];
-                $actionData['action_remark'] = '用户【'.$order['user_name'].'】支付订单';
+                $actionData['action_remark'] = '用户【' . $order['user_name'] . '】支付订单';
                 $actionData['create_time'] = time();
                 Db::table('mrs_order_action')->insert($actionData);
 
@@ -196,25 +202,26 @@ class Wechat extends Base
      * 小程序解密数据通用方法
      * @param Request $request
      */
-    function wxdecrypt(Request $request){
+    function wxdecrypt(Request $request)
+    {
         $encrypted_data = $request->post('encrypted_data');
         $iv = $request->post('iv');
         $session_key = $request->post('session_key');
 
-        if(empty($encrypted_data)){
+        if (empty($encrypted_data)) {
             echo errorJson('1', '缺少关键参数$encrypted_data');
             exit;
         }
-        if(empty($iv)){
+        if (empty($iv)) {
             echo errorJson('1', '缺少关键参数$iv');
             exit;
         }
-        if(empty($session_key)){
+        if (empty($session_key)) {
             echo errorJson('1', '缺少关键参数$session_key');
             exit;
         }
 
-        echo wxDecrypt($encrypted_data,$iv,$session_key);
+        echo wxDecrypt($encrypted_data, $iv, $session_key);
         exit;
     }
 }

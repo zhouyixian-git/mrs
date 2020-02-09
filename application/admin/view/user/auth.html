@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>配置用户权限</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <style>
+        body{overflow-y: hidden;}
+        .i-checks label{margin-top: -15px !important;margin-bottom: 20px !important;}
+    </style>
+</head>
+
+<body class="gray-bg">
+    <div class="row wrapper wrapper-content animated fadeInRight">
+        <div class="col-sm-8">
+            <div class="ibox float-e-margins">
+                <form class="form-horizontal" id="postForm">
+                    <input type="hidden" value="{$user_id}" id="user_id" name="user_id"/>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">选择权限模块：</label>
+                        <div class="radio i-checks">
+                            <label><input type="checkbox" {if condition='in_array(1,$user_auth_arr)'}checked{/if} name="user_auth[]" value="1"> <i></i> 投放门</label>
+                            <label><input type="checkbox" {if condition='in_array(2,$user_auth_arr)'}checked{/if} name="user_auth[]" value="2"> <i></i> 维护门</label>
+                            <label><input type="checkbox" {if condition='in_array(3,$user_auth_arr)'}checked{/if} name="user_auth[]" value="3"> <i></i> 溢满状态</label>
+                            <label><input type="checkbox" {if condition='in_array(4,$user_auth_arr)'}checked{/if} name="user_auth[]" value="4"> <i></i> 称重校准</label>
+                            <label><input type="checkbox" {if condition='in_array(5,$user_auth_arr)'}checked{/if} name="user_auth[]" value="5"> <i></i> 温度信息</label>
+                            <label><input type="checkbox" {if condition='in_array(6,$user_auth_arr)'}checked{/if} name="user_auth[]" value="6"> <i></i> 风扇状态</label>
+                            <label><input type="checkbox" {if condition='in_array(7,$user_auth_arr)'}checked{/if} name="user_auth[]" value="7"> <i></i> 照明状态</label>
+                            <label><input type="checkbox" {if condition='in_array(8,$user_auth_arr)'}checked{/if} name="user_auth[]" value="8"> <i></i> 设备管理</label>
+                            <label><input type="checkbox" {if condition='in_array(9,$user_auth_arr)'}checked{/if} name="user_auth[]" value="9"> <i></i> 移动称重</label>
+                            <label><input type="checkbox" {if condition='in_array(10,$user_auth_arr)'}checked{/if} name="user_auth[]" value="10"> <i></i> 杀菌灯</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-8">
+                            <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局js -->
+    <script src="__JS__/jquery.min.js?v=2.1.4"></script>
+    <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+    <script src="__JS__/plugins/iCheck/icheck.min.js"></script>
+
+    <script src="__JS__/plugins/layer/layer.min.js"></script>
+    <script>
+        $(function(){
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green'
+            });
+
+            $("#save").click(function(){
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: "{:url('admin/admin/user/auth')}",
+                    data: $('#postForm').serialize(),
+                    success: function (result) {
+                        if (result.errcode == 1) {
+                            layer.msg('操作成功', {icon: 1,time: 1500});
+                            window.setTimeout(function(){
+                                parent.location.reload();
+                            },1500);
+                        }else{
+                            layer.msg(result.msg, {icon: 2,time: 1500});
+                        }
+                        return false;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

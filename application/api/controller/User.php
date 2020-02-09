@@ -748,6 +748,11 @@ class User extends Base
             Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
 
             $data = array();
+            if (empty($user['user_auth'])) {
+                $user['user_auth_arr'] = [];
+            } else {
+                $user['user_auth_arr'] = explode(",", $user['user_auth']);
+            }
             $data['userInfo'] = $user;
 
             echo $this->successJson($data);
@@ -774,6 +779,11 @@ class User extends Base
 
             unset($user['password']);
             $data = array();
+            if (empty($user['user_auth'])) {
+                $user['user_auth_arr'] = [];
+            } else {
+                $user['user_auth_arr'] = explode(",", $user['user_auth']);
+            }
             $data['userInfo'] = $user;
 
             echo $this->successJson($data);
@@ -800,6 +810,12 @@ class User extends Base
                 echo $this->errorJson(1, '未找到用户信息');
                 exit;
             } else {
+                $user['create_time'] = date('Y-m-d H:i', $user['create_time']);
+                if (empty($user['user_auth'])) {
+                    $user['user_auth_arr'] = [];
+                } else {
+                    $user['user_auth_arr'] = explode(",", $user['user_auth']);
+                }
                 echo $this->successJson($user);
                 exit;
             }
@@ -893,6 +909,11 @@ class User extends Base
             } else {
                 unset($user['password']);
                 $data = array();
+                if (empty($user['user_auth'])) {
+                    $user['user_auth_arr'] = [];
+                } else {
+                    $user['user_auth_arr'] = explode(",", $user['user_auth']);
+                }
                 $data['userInfo'] = $user;
                 echo successJson($data);
             }

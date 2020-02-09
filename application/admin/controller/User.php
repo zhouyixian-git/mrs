@@ -20,7 +20,8 @@ class User extends Base
      * @param Request $request
      * @return mixed
      */
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         $status = $request->param('status');
         $user_name = $request->param('user_name');
         $ic_num = $request->param('ic_num');
@@ -56,6 +57,77 @@ class User extends Base
         $this->assign('page', $page);
         $this->assign('count', $count);
         $this->assign('userList', $userList);
+        return $this->fetch();
+    }
+
+    /**
+     * 修改用户类型
+     * @param Request $request
+     */
+    public function updateusertype(Request $request)
+    {
+        if ($request->isPost()) {
+            $user_id = $request->post('user_id');
+
+            if (empty($user_id)) {
+                echo $this->errorJson(0, '关键数据错误');
+                exit;
+            }
+
+            $user = Db::table('mrs_user')->where('user_id', '=', $user_id)->find();
+            if (!$user) {
+                echo $this->errorJson(0, '未找到用户信息');
+                exit;
+            }
+
+            Db::table('mrs_user')->where('user_id', '=', $user_id)->update(['user_type' => 2]);
+            echo $this->successJson();
+            exit;
+        }
+    }
+
+    /**
+     * 配置用户权限
+     * @param Request $request
+     * @return mixed
+     */
+    public function auth(Request $request)
+    {
+        if ($request->isPost()) {
+            $user_id = $request->post('user_id');
+            $user_auth_arr = $request->post('user_auth');
+
+            if (empty($user_id)) {
+                echo $this->errorJson(0, '缺少关键参数user_id');
+                exit;
+            }
+
+            if (empty($user_auth_arr)) {
+                echo $this->errorJson(0, '请先选择权限模块');
+                exit;
+            }
+
+            $user_auth = implode(",", $user_auth_arr);
+
+            Db::table('mrs_user')->where('user_id', '=', $user_id)->update(['user_auth' => $user_auth]);
+            echo $this->successJson();
+            exit;
+        }
+
+        $user_id = $request->get('user_id');
+        if (empty($user_id)) {
+            $this->error('关键数据错误');
+        }
+
+        $user_auth = Db::table('mrs_user')->where('user_id', '=', $user_id)->value('user_auth');
+
+        if (empty($user_auth)) {
+            $this->assign('user_auth_arr', []);
+        } else {
+            $user_auth_arr = explode(",", $user_auth);
+            $this->assign('user_auth_arr', $user_auth_arr);
+        }
+        $this->assign('user_id', $user_id);
         return $this->fetch();
     }
 
