@@ -61,6 +61,8 @@ class Banner extends Base
             $data['banner_title'] = $request->post('banner_title');
             $data['image_url'] = $request->post('image_url');
             $data['link_url'] = $request->post('link_url');
+            $data['file_type'] = $request->post('file_type');
+            $data['file_url'] = $request->post('file_url');
             $data['order_no'] = $request->post('order_no');
             $data['type'] = $request->post('type');
             $data['is_actived'] = $request->post('is_actived');
@@ -68,6 +70,14 @@ class Banner extends Base
             $validate = new \app\admin\validate\Banner();
             if (!$validate->check($data)) {
                 echo $this->errorJson(0, $validate->getError());
+                return;
+            }
+            if($data['file_type'] == 1 && empty($data['image_url'])){
+                echo $this->errorJson(0, 'banner图片不能为空');
+                return;
+            }
+            if($data['file_type'] == 2 && empty($data['file_url'])){
+                echo $this->errorJson(0, 'banner视频文件不能为空');
                 return;
             }
 
@@ -97,6 +107,8 @@ class Banner extends Base
             $data['banner_title'] = $request->post('banner_title');
             $data['image_url'] = $request->post('image_url');
             $data['link_url'] = $request->post('link_url');
+            $data['file_type'] = $request->post('file_type');
+            $data['file_url'] = $request->post('file_url');
             $data['order_no'] = $request->post('order_no');
             $data['type'] = $request->post('type');
             $data['is_actived'] = $request->post('is_actived');
@@ -104,6 +116,14 @@ class Banner extends Base
             $validate = new \app\admin\validate\Banner();
             if (!$validate->check($data)) {
                 echo $this->errorJson(0, $validate->getError());
+                return;
+            }
+            if($data['file_type'] == 1 && empty($data['image_url'])){
+                echo $this->errorJson(0, 'banner图片不能为空');
+                return;
+            }
+            if($data['file_type'] == 2 && empty($data['file_url'])){
+                echo $this->errorJson(0, 'banner视频文件不能为空');
                 return;
             }
 

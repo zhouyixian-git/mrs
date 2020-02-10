@@ -25,20 +25,24 @@ class Home extends Base
     {
         if ($request->isPost()) {
             $type = $request->post('type');
-            $type = empty($type)?'1':$type;
+            $type = empty($type) ? '1' : $type;
             $where = [];
             $where[] = ['is_actived', '=', 1];
             $where[] = ['type', '=', $type];
             $bannerList = Db::table('mrs_home_banner')
                 ->where($where)
-                ->field('banner_title,link_url,image_url')
+                ->field('banner_title,link_url,image_url,file_type,file_url')
                 ->order('order_no asc,create_time desc')
                 ->select();
 
             if ($bannerList) {
                 $domain = config('domain');
                 foreach ($bannerList as $k => $v) {
-                    $bannerList[$k]['image_url'] = $domain . $v['image_url'];
+                    if ($v['file_type'] == 1) {
+                        $bannerList[$k]['image_url'] = $domain . $v['image_url'];
+                    } else {
+                        $bannerList[$k]['file_url'] = $domain . $v['file_url'];
+                    }
                 }
 
                 echo $this->successJson($bannerList);

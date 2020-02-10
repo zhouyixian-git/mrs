@@ -18,9 +18,9 @@
     <link href="__JS__/plugins/webuploader/webuploader.css" rel="stylesheet">
     <style>
         body{overflow-y: hidden;}
-        .ibox-content{height: 480px;}
+        .ibox-content{height: 480px;overflow-y: auto;}
         .thumbnail{border: none;}
-        #filePicker{text-align: center;}
+        #filePicker,#videoPicker{text-align: center;}
     </style>
 </head>
 
@@ -35,8 +35,9 @@
                     <form class="form-horizontal" id="postForm">
                         <input type="hidden" id="banner_id" name="banner_id" value="{$banner.banner_id}"/>
                         <input type="hidden" id="image_url" name="image_url" value="{$banner.image_url}"/>
-                        <div class="form-group">
-                            <div >
+                        <input type="hidden" id="file_url" name="file_url" value="{$banner.file_url}"/>
+                        <div class="form-group" id="photoDiv">
+                            <div>
                                 <!--用来存放item-->
                                 <div id="fileList" class="uploader-list">
                                     <div class="file-item thumbnail">
@@ -44,6 +45,25 @@
                                     </div>
                                 </div>
                                 <div id="filePicker">选择banner图片</div>
+                            </div>
+                        </div>
+                        <div class="form-group" id="videoDiv">
+                            <div>
+                                <!--用来存放item-->
+                                <div id="videoList" class="uploader-list">
+                                    <div class="file-item thumbnail">
+                                        <video src="{$banner.file_url}" controls="controls" style="width: 400px;height: 120px;">
+                                        </video>
+                                    </div>
+                                </div>
+                                <div id="videoPicker">选择视频文件</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">文件类型：</label>
+                            <div class="radio i-checks">
+                                <label><input type="radio" {if condition='$banner.file_type eq 1'}checked{/if} value="1" name="file_type"> <i></i> 图片</label>
+                                <label><input type="radio" {if condition='$banner.file_type eq 2'}checked{/if} value="2" name="file_type"> <i></i> 视频</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -108,35 +128,161 @@
     <script src="__JS__/plugins/webuploader/webuploader.js"></script>
     <script>
         $(function(){
-            var uploader = WebUploader.create({
-                // 选完文件后，是否自动上传。
-                auto: true,
-                // swf文件路径
-                swf: '__JS__/plugins/webuploader/Uploader.swf',
-                // 文件接收服务端。
-                server: "{:url('admin/upload/upload')}",
-                // 选择文件的按钮。可选。
-                // 内部根据当前运行是创建，可能是input元素，也可能是flash.
-                pick: '#filePicker',
-                formData: {"imageCate" : "banner"},
-                // 只允许选择图片文件。
-                accept: {
-                    title: 'Images',
-                    extensions: 'gif,jpg,jpeg,bmp,png',
-                    mimeTypes: 'image/*'
-                },
-                duplicate:true
-            });
-
-            // 文件上传成功，给item添加成功class, 用样式标记上传成功。
-            uploader.on( 'uploadSuccess', function( file,data ) {
-                $("#image_url").val(data.filePath);
-                $("#fileList").find('img').attr('src', data.filePath);
-            });
+            var uploader1;
+            var uploader;
 
             $('.i-checks').iCheck({
                 radioClass: 'iradio_square-green',
             });
+
+            $('input[name="file_type"]').on('ifChecked', function(event){
+                if($(this).val() == 1){
+                    $("#photoDiv").show();
+                    $("#videoDiv").hide();
+
+                    if(uploader != undefined) {
+                        uploader.destroy();
+                    }
+
+                    uploader = WebUploader.create({
+                        // 选完文件后，是否自动上传。
+                        auto: true,
+                        // swf文件路径
+                        swf: '__JS__/plugins/webuploader/Uploader.swf',
+                        // 文件接收服务端。
+                        server: "{:url('admin/upload/upload')}",
+                        // 选择文件的按钮。可选。
+                        // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+                        pick: '#filePicker',
+                        formData: {"imageCate" : "banner"},
+                        // 只允许选择图片文件。
+                        accept: {
+                            title: 'Images',
+                            extensions: 'gif,jpg,jpeg,bmp,png',
+                            mimeTypes: 'image/*'
+                        },
+                        duplicate:true
+                    });
+
+                    // 文件上传成功，给item添加成功class, 用样式标记上传成功。
+                    uploader.on( 'uploadSuccess', function( file,data ) {
+                        $("#image_url").val(data.filePath);
+                        $("#fileList").find('img').attr('src', data.filePath);
+                    });
+                }else{
+                    $("#videoDiv").show();
+                    $("#photoDiv").hide();
+                    if(uploader1 != undefined) {
+                        uploader1.destroy();
+                    }
+                    uploader1 = WebUploader.create({
+                        // 选完文件后，是否自动上传。
+                        auto: true,
+                        // swf文件路径
+                        swf: '__JS__/plugins/webuploader/Uploader.swf',
+                        // 文件接收服务端。
+                        server: "{:url('admin/upload/upload')}",
+                        // 选择文件的按钮。可选。
+                        // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+                        pick: '#videoPicker',
+                        formData: {"imageCate" : "banner"},
+                        // 只允许选择图片文件。
+                        accept: {
+                            title: 'Videos',
+                            extensions: 'mp4,rmvb,mov,avi,m4v',
+                            mimeTypes: 'video/*'
+                        }
+                    });
+
+                    uploader1.on( 'uploadSuccess', function( file,data ) {
+                        layer.msg('上传成功', {icon: 1,time: 1500});
+                        $("#file_url").val(data.filePath);
+                        $("#videoList").find('video').attr('src', data.filePath);
+                    });
+
+                    uploader1.on('fileQueued', function(file){
+                        loadIndex = layer.load(0, {shade: 0.5,title: '上传中'});
+                    });
+
+                    uploader1.on('uploadComplete', function(file) {
+                        layer.close(loadIndex);
+                    });
+                }
+            });
+
+            if({$banner.file_type} == 1){
+                $("#photoDiv").show();
+                $("#videoDiv").hide();
+
+                if(uploader != undefined) {
+                    uploader.destroy();
+                }
+
+                uploader = WebUploader.create({
+                    // 选完文件后，是否自动上传。
+                    auto: true,
+                    // swf文件路径
+                    swf: '__JS__/plugins/webuploader/Uploader.swf',
+                    // 文件接收服务端。
+                    server: "{:url('admin/upload/upload')}",
+                    // 选择文件的按钮。可选。
+                    // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+                    pick: '#filePicker',
+                    formData: {"imageCate" : "banner"},
+                    // 只允许选择图片文件。
+                    accept: {
+                        title: 'Images',
+                        extensions: 'gif,jpg,jpeg,bmp,png',
+                        mimeTypes: 'image/*'
+                    },
+                    duplicate:true
+                });
+
+                // 文件上传成功，给item添加成功class, 用样式标记上传成功。
+                uploader.on( 'uploadSuccess', function( file,data ) {
+                    $("#image_url").val(data.filePath);
+                    $("#fileList").find('img').attr('src', data.filePath);
+                });
+
+            }else{
+                $("#videoDiv").show();
+                $("#photoDiv").hide();
+                if(uploader1 != undefined) {
+                    uploader1.destroy();
+                }
+                uploader1 = WebUploader.create({
+                    // 选完文件后，是否自动上传。
+                    auto: true,
+                    // swf文件路径
+                    swf: '__JS__/plugins/webuploader/Uploader.swf',
+                    // 文件接收服务端。
+                    server: "{:url('admin/upload/upload')}",
+                    // 选择文件的按钮。可选。
+                    // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+                    pick: '#videoPicker',
+                    formData: {"imageCate" : "banner"},
+                    // 只允许选择图片文件。
+                    accept: {
+                        title: 'Videos',
+                        extensions: 'mp4,rmvb,mov,avi,m4v',
+                        mimeTypes: 'video/*'
+                    }
+                });
+
+                uploader1.on( 'uploadSuccess', function( file,data ) {
+                    layer.msg('上传成功', {icon: 1,time: 1500});
+                    $("#file_url").val(data.filePath);
+                    $("#videoList").find('video').attr('src', data.filePath);
+                });
+
+                uploader1.on('fileQueued', function(file){
+                    loadIndex = layer.load(0, {shade: 0.5,title: '上传中'});
+                });
+
+                uploader1.on('uploadComplete', function(file) {
+                    layer.close(loadIndex);
+                });
+            }
 
             $("#save").click(function(){
                 $.ajax({

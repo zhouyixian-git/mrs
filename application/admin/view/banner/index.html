@@ -80,7 +80,15 @@
                                 </td>
                                 <td>{$bannerInfo.banner_title}</td>
                                 <td>
-                                    <a href="{$bannerInfo.image_url}" target="_blank"><img src="{$bannerInfo.image_url}" style="width: 200px;height: 50px;"></a>
+                                    {if condition="$bannerInfo.file_type eq 1"}
+                                    <a href="{$bannerInfo.image_url}" target="_blank">
+                                        <img src="{$bannerInfo.image_url}" style="width: 200px;height: 50px;">
+                                    </a>
+                                    {else}
+                                        <a href="{$bannerInfo.file_url}" target="_blank">
+                                            <button class="btn btn-sm btn-white" type="button"><i class="fa fa-video-camera"></i>&nbsp;查看视频</button>
+                                        </a>
+                                    {/if}
                                 </td>
                                 <td>
                                     <a href="{$bannerInfo.link_url}" target="_blank"><button class="btn btn-sm btn-white" type="button"><i class="fa fa-search"></i>&nbsp;链接</button></a>

@@ -27,14 +27,25 @@ class Upload extends Base
         $imageCate = $this->request->param('imageCate');
         $file = $this->request->file('file');//file是传文件的名称，这是webloader插件固定写入的。因为webloader插件会写入一个隐藏input，这里与TP5的写法有点区别
         $date = date('Ymd');
-        if (empty($imageCate)) {
-            $folder = 'images/avator/' . $date;
-        } else {
-            $folder = 'images/' . $imageCate . '/' . $date;
+        $name = $file->getInfo('name');
+        $fileInfo = pathinfo($name);
+        $ext = $fileInfo['extension'];
+        if (in_array($ext, ['gif', 'jpg', 'jpeg', 'bmp', 'png'])) {
+            if (empty($imageCate)) {
+                $folder = 'images/avator/' . $date;
+            } else {
+                $folder = 'images/' . $imageCate . '/' . $date;
+            }
+        }else{
+            if (empty($imageCate)) {
+                $folder = 'files/avator/' . $date;
+            } else {
+                $folder = 'files/' . $imageCate . '/' . $date;
+            }
         }
-
         $path = '/uploads/' . $folder;
-        $filename = date('YmdHis') . rand(9999, 99999) . '.png';
+        $filename = date('YmdHis') . rand(9999, 99999) . '.' . $ext;
+
         if (!is_dir(PUBLIC_PATH . $path)) {
             mkdir(PUBLIC_PATH . $path, 0777, true);
         }
