@@ -433,7 +433,7 @@ if (!function_exists('dateTime')) {
     }
 }
 
-function checkToken($token){
+function checkPhoneToken($token){
     $key = 'jiayuanpro123';
     $cryptType = 'des-ecb';
     $res = openssl_decrypt($token, $cryptType, $key);
@@ -452,8 +452,41 @@ function checkToken($token){
 
         return successJson();
     }else{
-       echo errorJson('1', 'Token校验失败');
+        return errorJson('1', 'Token校验失败');
        exit;
+    }
+}
+
+
+function createToken(){
+    $key = 'jiayuanpro123';
+    $cryptType = 'des-ecb';
+    $str = rand(100000 , 999999);
+    $str .= '|';
+    $str .= time();
+
+    $res = openssl_encrypt($str , $cryptType, $key);
+
+    return $res;
+}
+
+
+function checkToken($token){
+    $key = 'jiayuanpro123';
+    $cryptType = 'des-ecb';
+    $res = openssl_decrypt($token, $cryptType, $key);
+    if($res){
+        $result = explode("|",$res);
+
+        if (time() > $result[1] + 3600 || $result[1]> time()) {
+            echo errorJson('1', 'Token已失效');
+            exit;
+        }
+
+        return true;
+    }else{
+        return false;
+        exit;
     }
 }
 

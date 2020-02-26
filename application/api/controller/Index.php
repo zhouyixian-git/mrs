@@ -9,6 +9,13 @@ class Index extends Base
 {
     public function index()
     {
+        $token = 'unG4VEip1Nivqc4tYLcAd0mOwUzaMxHx';
+        $res = checkToken($token);
+        echo $res;exit;
+
+        $token = createToken();
+        echo $token;
+        exit;
 
         echo imgToBase64(APP_ROOT_PATH . '/uploads/images/other/20200121/2020012115212775856.png');
         exit;

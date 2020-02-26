@@ -452,7 +452,7 @@ class User extends Base
                 echo $this->errorJson(1, '密码不一致');
                 exit;
             }
-            $res = checkToken($token);
+            $res = checkPhoneToken($token);
             $result = json_decode($res, true);
             if ($result['errcode'] == '1') {
                 echo $res;
@@ -921,6 +921,162 @@ class User extends Base
             echo errorJson('1', '登录失败，不存在人脸对应用户。');
             exit;
         }
+    }
+
+    public function getqrlogin(){
+        $domain = config('domain');
+        $login_url = $domain . "/api/user/qrcodelogin";
+
+        $token = createToken();
+        $login_url .= "?token=".urlencode($token);
+
+        $qrcodeRecord = array();
+        $qrcodeRecord['token'] = $token;
+        $qrcodeRecord['create_time'] = time();
+
+        Db::table('mrs_qrcode_login_record')->insert($qrcodeRecord);
+
+        $data = array();
+        $data['token'] = $token;
+        $data['login_url'] = $login_url;
+
+        echo successJson($data);
+        exit;
+    }
+
+    public function qrcodelogin(Request $request){
+        $token = $request->get('token');
+        $res = checkToken($token);
+        if(!$res){
+            echo errorJson('1', 'Toekn校验失败');
+            exit;
+        }
+
+        $where = array();
+        $where[] = ['token','=',$token];
+        $where[] = ['user_id','=','0'];
+        $record = Db::table('mrs_qrcode_login_record')->where('token','=',$token)->find();
+
+        if(empty($record)){
+            echo errorJson('1', '系统异常，请稍后再试');
+            exit;
+        }
+
+        $wechatModel = new \app\api\model\Wechat();
+        $wechatInfo = $wechatModel->getWechatInfo();
+        if (empty($wechatInfo)) {
+            echo $this->errorJson(1, '小程序未绑定');
+            exit;
+        }
+//        $appid = $wechatInfo['app_id'];
+//        $appsecret = $wechatInfo['app_secret'];
+
+        //通过code获得openid
+        if (!isset($_GET['code'])) {
+            //触发微信返回code码
+            $baseUrl = urlencode('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+            $url = $this->_CreateOauthUrlForCode($baseUrl , $wechatInfo);
+            Header("Location: $url");
+            exit();
+        } else {
+            //获取code码，以获取openid
+            $code = $_GET['code'];
+            $openid = $this->getOpenidFromMp($code , $wechatInfo);
+
+            echo "open_id = ".$openid;
+        }
+        exit;
+    }
+
+
+    /**
+     *
+     * 构造获取code的url连接
+     * @param string $redirectUrl 微信服务器回跳的url，需要url编码
+     *
+     * @return 返回构造好的url
+     */
+    private function _CreateOauthUrlForCode($redirectUrl , $wechatInfo)
+    {
+        $urlObj["appid"] = $wechatInfo['app_id'];
+        $urlObj["redirect_uri"] = "$redirectUrl";
+        $urlObj["response_type"] = "code";
+        $urlObj["scope"] = "snsapi_base";
+        $urlObj["state"] = "STATE" . "#wechat_redirect";
+        $bizString = $this->ToUrlParams($urlObj);
+        return "https://open.weixin.qq.com/connect/oauth2/authorize?" . $bizString;
+    }
+
+
+    public function GetOpenidFromMp($code , $wechatInfo)
+    {
+        $url = $this->__CreateOauthUrlForOpenid($code , $wechatInfo);
+
+        //初始化curl
+        $ch = curl_init();
+        $curlVersion = curl_version();
+        $ua = "WXPaySDK/3.0.9 (" . PHP_OS . ") PHP/" . PHP_VERSION . " CURL/" . $curlVersion['version'] . " " . C('MERCHANTID');
+
+        //设置超时
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->curl_timeout);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_USERAGENT, $ua);
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+        $proxyHost = "0.0.0.0";
+        $proxyPort = 0;
+        if ($proxyHost != "0.0.0.0" && $proxyPort != 0) {
+            curl_setopt($ch, CURLOPT_PROXY, $proxyHost);
+            curl_setopt($ch, CURLOPT_PROXYPORT, $proxyPort);
+        }
+        //运行curl，结果以jason形式返回
+        $res = curl_exec($ch);
+        curl_close($ch);
+        //取出openid
+        $data = json_decode($res, true);
+        $openid = $data['openid'];
+        return $openid;
+    }
+
+
+    /**
+     *
+     * 构造获取open和access_toke的url地址
+     * @param string $code，微信跳转带回的code
+     *
+     * @return 请求的url
+     */
+    private function __CreateOauthUrlForOpenid($code , $wechatInfo)
+    {
+        $urlObj["appid"] = $wechatInfo['app_id'];
+        $urlObj["secret"] = $wechatInfo['app_secret'];
+        $urlObj["code"] = $code;
+        $urlObj["grant_type"] = "authorization_code";
+        $bizString = $this->ToUrlParams($urlObj);
+        return "https://api.weixin.qq.com/sns/oauth2/access_token?" . $bizString;
+    }
+
+    /**
+     *
+     * 拼接签名字符串
+     * @param array $urlObj
+     *
+     * @return 返回已经拼接好的字符串
+     */
+    private function ToUrlParams($urlObj)
+    {
+        $buff = "";
+        foreach ($urlObj as $k => $v) {
+            if ($k != "sign") {
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+
+        $buff = trim($buff, "&");
+        return $buff;
     }
 
 }

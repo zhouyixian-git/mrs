@@ -187,7 +187,6 @@ class Apiconfig extends Base
             $param_id = $request->post('param_id');
 
             $data = array();
-            $data['api_id']= $request->post('api_id');
             $data['param_name'] = $request->post('param_name');
             $data['param_desc'] = $request->post('param_desc');
             $data['param_code'] = $request->post('param_code');
