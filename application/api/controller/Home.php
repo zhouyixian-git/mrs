@@ -25,10 +25,15 @@ class Home extends Base
     {
         if ($request->isPost()) {
             $type = $request->post('type');
+            $file_type = $request->post('file_type');
             $type = empty($type) ? '1' : $type;
+            $file_type = empty($file_type) ? '1' : $file_type;
             $where = [];
             $where[] = ['is_actived', '=', 1];
             $where[] = ['type', '=', $type];
+            if (!empty($file_type)) {
+                $where[] = ['file_type', '=', $file_type];
+            }
             $bannerList = Db::table('mrs_home_banner')
                 ->where($where)
                 ->field('banner_title,link_url,image_url,file_type,file_url')
