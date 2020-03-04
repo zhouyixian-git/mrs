@@ -9,23 +9,21 @@ class Index extends Base
 {
     public function index()
     {
-        $token = 'unG4VEip1Nivqc4tYLcAd0mOwUzaMxHx';
-        $res = checkToken($token);
-        echo $res;exit;
+        $sendbuf = array();
+//        $str = '00 00 00 00 00 00 01 fa 00 00 00 00 00 00 00 00 00 00 00 00 01 fa cc dd';
 
-        $token = createToken();
-        echo $token;
-        exit;
 
-        echo imgToBase64(APP_ROOT_PATH . '/uploads/images/other/20200121/2020012115212775856.png');
+        $str = '01 31 54 11 00 00 01 f5 00 00 00 00 00 00 00 00 00 00 00 00';
+        echo $crc = calcCRC($str);
         exit;
-        $userM = new \app\api\model\User();
-        $res = $userM->searchFace('/uploads/images/other/20200121/2020012115212775856.png');
-        var_dump($res);
-        exit;
-        $res = getFaceApiAccessToken();
-        echo $res;
-        exit;
+    }
+
+    function strToHex($str){
+        $hex="";
+        for($i=0;$i<strlen($str);$i++)
+            $hex.=dechex(ord($str[$i]));
+        $hex=strtoupper($hex);
+        return $hex;
     }
 
     // 短信测试接口

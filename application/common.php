@@ -541,3 +541,26 @@ function imgToBase64($img_file) {
     return $file_content; //返回图片的base64
 }
 
+/**
+ * @param $str 报文内容，不包括包头包尾
+ */
+function calcCRC($str){
+//    00000000000001fa000000000000000000000000
+    $sendbuf['device'] = (hexdec('0x'.substr($str, 0, 8)));
+    $sendbuf['order'] = (hexdec('0x'.substr($str, 8, 8)));
+    $sendbuf['weight'] = (hexdec('0x'.substr($str, 16, 8)));
+    $sendbuf['temp'] = (hexdec('0x'.substr($str, 24, 8)));
+    $sendbuf['card_id'] = (hexdec('0x'.substr($str, 32, 8)));
+
+    $crc = dechex($sendbuf['device'] ^ $sendbuf['order'] ^ $sendbuf['weight'] ^ $sendbuf['temp'] ^ $sendbuf['card_id'] );
+    $crc = substr($crc, -4);
+    return $crc = str_pad($crc,4,"0",STR_PAD_LEFT);
+}
+
+/**
+ * Str2Hex
+ */
+function str2Hex($str){
+    $hex = dechex($str);
+    return $hex = str_pad($hex,8,"0",STR_PAD_LEFT);
+}

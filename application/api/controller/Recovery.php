@@ -357,6 +357,82 @@ class Recovery extends Base
         echo successJson($cateData);
         exit;
     }
+    public function createserialdata(Request $request){
+        $mach_id = $request->post("mach_id");
+        $order = $request->post("order");
+        $weight = $request->post("weight");
+        $temp = $request->post("temp");
+        $card_id = $request->post("card_id");
+
+        if(empty($mach_id)){
+            echo errorJson('1', '缺少关键参数mach_id');
+            exit;
+        }
+
+//        aabb00000000000001fa00000000000000000000000001faccdd
+        $retData = '';
+        $mach_id = str2Hex(date("ym").$mach_id);
+//        $mach_id = str2Hex($mach_id);
+        $order = str2Hex($order);
+        $weight = str2Hex($weight);
+        $temp = str2Hex($temp);
+        $card_id = str2Hex($card_id);
+
+        $retData = $mach_id;
+        $retData .= $order;
+        $retData .= $weight;
+        $retData .= $temp;
+        $retData .= $card_id;
+
+        $crc = calcCRC($retData);
+        $retData .= $crc;
+
+        $retData = 'aabb'.$retData.'ccdd';
+
+        echo successJson($retData);
+        exit;
+    }
+
+    public function analyserial(Request $request){
+        $serial_data = $request->post("serial_data");
+
+        //报文校验
+        $preg = '/^ffee(.*?)ccdd$/i';
+        preg_match($preg,$serial_data,$matches);
+        if(empty($matches[1])){
+            echo errorJson('1', '报文格式错误，无法解析。');
+            exit;
+        }
+
+        //报文内容
+        #主设备ID
+        $serial_data = $matches[1];
+        $main_mach_id = substr($serial_data, 0, 8);
+        $serial_data = substr($serial_data, 8);
+
+        #子设备列表
+        $i = 0;
+        $machList = array();
+        while(strlen($serial_data) >= 24){
+            $machData = substr($serial_data, 0, 24);
+            $serial_data = substr($serial_data, 24);
+
+            $machList[$i]['mach_id'] = substr($machData, 0, 8);
+            $machList[$i]['total_wight'] = hexdec('0x'.substr($machData, 8, 8));
+            $machList[$i]['mach_state'] = substr($machData, 16, 2);
+            $machList[$i]['line_state'] = substr($machData, 18, 2);
+            $machList[$i]['type'] = hexdec('0x'.substr($machData, 20, 4));
+
+            $i++;
+        }
+
+        $data = array();
+        $data['main_mach_id'] = $main_mach_id;
+        $data['machines'] = $machList;
+
+        echo successJson($data);
+        exit;
+    }
 
 
 
