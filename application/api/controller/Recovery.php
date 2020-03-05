@@ -364,10 +364,10 @@ class Recovery extends Base
         $temp = $request->post("temp");
         $card_id = $request->post("card_id");
 
-        if(empty($mach_id)){
-            echo errorJson('1', '缺少关键参数mach_id');
-            exit;
-        }
+//        if(empty($mach_id)){
+//            echo errorJson('1', '缺少关键参数mach_id');
+//            exit;
+//        }
 
 //        aabb00000000000001fa00000000000000000000000001faccdd
         $retData = '';
