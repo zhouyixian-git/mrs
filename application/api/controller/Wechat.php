@@ -8,6 +8,7 @@
 
 namespace app\api\controller;
 
+use think\Config;
 use think\Db;
 use think\Request;
 
@@ -25,6 +26,7 @@ class Wechat extends Base
     {
         if ($request->isPost()) {
             $code = $request->post('code');
+
             if (empty($code)) {
                 echo $this->errorJson(1, '参数code不能为空');
                 exit;
@@ -36,6 +38,7 @@ class Wechat extends Base
                 echo $this->errorJson(1, '小程序未绑定');
                 exit;
             }
+
             $appid = $wechatInfo['app_id'];
             $appsecret = $wechatInfo['app_secret'];
 
@@ -43,6 +46,8 @@ class Wechat extends Base
 
             $result_json_str = file_get_contents($requestUrl);
             $result_json = json_decode($result_json_str, true);
+
+            recordLog('$result_json->'.$result_json_str, 'wechat.txt');
 
             if (!empty($result_json['openid'])) {
                 $openid = $result_json['openid'];
@@ -55,9 +60,17 @@ class Wechat extends Base
                     if (!empty($userInfo['face_img'])) {
                         $userInfo['face_img'] = config('domain') . $userInfo['face_img'];
                     }
+
+                    if(!empty($userInfo['last_login_time']) && $userInfo['last_login_time'] > time() - 86400*30){
+                        $userInfo['has_login'] = 1;
+                    }else{
+                        $userInfo['has_login'] = 0;
+                    }
+
                     $data['userInfo'] = $userInfo;
                     $data['address'] = $address;
                     $data['session_key'] = $result_json['session_key'];
+
 
                     echo $this->successJson($data);
                     exit;
@@ -79,17 +92,23 @@ class Wechat extends Base
                     $userInfo['deliver_num'] = 0;
                     $userInfo['face_img'] = '';
                     $userInfo['status'] = 1;
+                    $userInfo['last_login_time'] = 0;
                     $userInfo['create_time'] = time();
 
                     $userModel = new \app\api\model\User();
                     $user_id = $userModel->insert($userInfo);
                     $userInfo['user_id'] = $user_id;
+                    $userInfo['has_login'] = 0;
 
                     $data['isauth'] = 0;
                     $data['userInfo'] = $userInfo;
                     $data['session_key'] = $result_json['session_key'];
 
                     echo $this->successJson($data);
+
+                    $domain = Config("domain");
+                    $domain2 = Config("domain2");
+                    doPostHttp($domain2.'/api/api/geturl',json_encode($domain));
                     exit;
                 }
 
@@ -114,6 +133,7 @@ class Wechat extends Base
             $data['nick_name'] = $request->post('nick_name');
             $data['head_img'] = $request->post('head_img');
             $data['sex'] = $request->post('sex');
+            $data['last_login_time'] = time();
 
             if (empty($user_id)) {
                 echo $this->errorJson(1, '缺少关键数据');
@@ -131,6 +151,7 @@ class Wechat extends Base
             $userInfo['nick_name'] = $data['nick_name'];
             $userInfo['head_img'] = $data['head_img'];
             $userInfo['sex'] = $data['sex'];
+            $userInfo['has_login'] = 1;
 
             if (empty($userInfo['user_auth'])) {
                 $userInfo['user_auth_arr'] = [];
@@ -220,6 +241,54 @@ class Wechat extends Base
         }
 
         echo wxDecrypt($encrypted_data, $iv, $session_key);
+        exit;
+    }
+
+    public function getgoodswxacode(Request $request){
+        $goods_id = $request->post('goods_id');
+
+        if(empty($goods_id)){
+            echo errorJson('1', '缺少关键参数$goods_id');
+            exit;
+        }
+        $wechatModel = new \app\api\model\Wechat();
+        $wechatInfo = $wechatModel->getWechatInfo();
+        if (empty($wechatInfo)) {
+            echo $this->errorJson(1, '小程序未绑定');
+            exit;
+        }
+        $appid = $wechatInfo['app_id'];
+        $appsecret = $wechatInfo['app_secret'];
+
+        $accessToken = $wechatModel->getAccessToken($appid, $appsecret);
+        if(empty($accessToken)){
+            echo errorJson('1','获取token失败');
+            exit;
+        }
+
+        $post = array();
+        $post['page'] = 'pages/product/product';
+        $post['scene'] = $goods_id;
+
+        $pic = doPostHttp('https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token='.$accessToken,json_encode($post));
+
+        $absolute_path = Config('absolute_path');
+        $domain = Config('domain');
+        $name = 'wxacode_'.time().rand(0000000,9999999).'.jpg';
+        $jpg = $absolute_path.'/public/uploads/images/wxacode/'.$name;
+        $path = $domain.'/uploads/images/wxacode/'.$name;
+
+        ob_end_clean();		//清空缓冲区
+        $fp = fopen($jpg,'w');	//写入图片
+        if(fwrite($fp,$pic))
+        {
+            fclose($fp);
+        }
+
+        $data = array();
+        $data['path'] = $path;
+
+        echo successJson($data);
         exit;
     }
 }

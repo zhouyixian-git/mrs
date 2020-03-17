@@ -242,7 +242,6 @@ class Recovery extends Base
 
         $where = array();
         $where[] = ['is_actived', '=', 1];
-//        $where[] = ['distance', '<=', $maxDistance['setting_value']];
         $master = Db::table('mrs_call_recovery_master')
             ->alias('t1')
             ->where($where)
@@ -272,8 +271,7 @@ class Recovery extends Base
             ->order('distance asc')
             ->find();
 
-//        var_dump($master);
-//        exit;
+
         if($master['distance'] > $maxDistance['setting_value']){
             echo $this->errorJson('1', '附近没有可预约的上门人员.');
             exit;
@@ -371,15 +369,15 @@ class Recovery extends Base
 
 //        aabb00000000000001fa00000000000000000000000001faccdd
         $retData = '';
-        $mach_id = str2Hex(date("ym").$mach_id);
+        $mach_id = str2Hex($mach_id);
 //        $mach_id = str2Hex($mach_id);
-        $order = str2Hex($order);
+        $order = str2Hex($order, 4);
         $weight = str2Hex($weight);
         $temp = str2Hex($temp);
         $card_id = str2Hex($card_id);
 
         $retData = $mach_id;
-        $retData .= $order;
+        $retData .= $order.'0000';
         $retData .= $weight;
         $retData .= $temp;
         $retData .= $card_id;
@@ -389,50 +387,256 @@ class Recovery extends Base
 
         $retData = 'aabb'.$retData.'ccdd';
 
+        recordLog('$retData-->'.$retData,'createserialdata.txt');
         echo successJson($retData);
         exit;
     }
 
+
     public function analyserial(Request $request){
         $serial_data = $request->post("serial_data");
+        recordLog('serial_data-->'.$serial_data,'analyserialData.txt');
 
+//        $serial_data = bin2Bin($serial_data);
         //报文校验
-        $preg = '/^ffee(.*?)ccdd$/i';
-        preg_match($preg,$serial_data,$matches);
-        if(empty($matches[1])){
-            echo errorJson('1', '报文格式错误，无法解析。');
-            exit;
-        }
+        //获取各传感器数据
 
         //报文内容
         #主设备ID
-        $serial_data = $matches[1];
-        $main_mach_id = substr($serial_data, 0, 8);
-        $serial_data = substr($serial_data, 8);
-
-        #子设备列表
-        $i = 0;
-        $machList = array();
-        while(strlen($serial_data) >= 24){
-            $machData = substr($serial_data, 0, 24);
-            $serial_data = substr($serial_data, 24);
-
-            $machList[$i]['mach_id'] = substr($machData, 0, 8);
-            $machList[$i]['total_wight'] = hexdec('0x'.substr($machData, 8, 8));
-            $machList[$i]['mach_state'] = substr($machData, 16, 2);
-            $machList[$i]['line_state'] = substr($machData, 18, 2);
-            $machList[$i]['type'] = hexdec('0x'.substr($machData, 20, 4));
-
-            $i++;
-        }
 
         $data = array();
-        $data['main_mach_id'] = $main_mach_id;
-        $data['machines'] = $machList;
+        $mach_id = reverseStr(substr($serial_data, 0, 8));
+        $order = reverseStr(substr($serial_data, 8, 4));
+        $senser = reverseStr(substr($serial_data, 12, 4));
+        $weight = reverseStr(substr($serial_data, 16, 8));
+        $temp = reverseStr(substr($serial_data, 24, 8));
+        $card = reverseStr(substr($serial_data, 32, 8));
+        $crc = reverseStr(substr($serial_data, 40, 4));
+
+        $new_serial_data = $mach_id.$order.$senser.$weight.$temp.$card.$crc;
+        recordLog('$new_serial_data-->'.$new_serial_data,'analyserialData.txt');
+
+
+        $data['mach_id'] = hexdec('0x'.$mach_id);
+        $data['order'] = hexdec('0x'.$order);
+        $data['weight'] = hexdec('0x'.$weight);
+        $data['temp'] = hexdec('0x'.$temp);
+        $data['card'] = hexdec('0x'.$card);
+
+        $sysCrc = calcCRC($new_serial_data);
+
+//        recordLog('$sysCrc-->'.$sysCrc,'analyserialData.txt');
+        if(strtolower($crc) != strtolower($sysCrc)){
+            echo errorJson('1', '报文校验失败，请检查报文校验码');
+            exit;
+        }
+
+        //传感器数据解析
+        $binStr = decbin(hexdec('0x'.$senser));
+        $binStr = substr($binStr,-8);
+        $binStr = str_pad($binStr,8,"0",STR_PAD_LEFT);
+
+        $senser_state = array();
+        $senser_state['clip_guard'] = $binStr[0];
+        $senser_state['open_putway'] = $binStr[1];
+        $senser_state['close_putway'] = $binStr[2];
+        $senser_state['open_maintain'] = $binStr[3];
+        $senser_state['smoke'] = $binStr[7];
+        if($binStr[4] || $binStr[5] || $binStr[6]){
+            $senser_state['overflow'] = 1;
+        }else{
+            $senser_state['overflow'] = 0;
+        }
+        $data['senser_state'] = $senser_state;
 
         echo successJson($data);
         exit;
     }
+
+    public function analymach(Request $request){
+        $serial_data = $request->post("serial_data");
+        recordLog('serial_data-->'.$serial_data,'analymach.txt');
+
+//        $serial_data = bin2Bin($serial_data);
+        //报文校验
+
+        //报文内容
+        #主设备ID
+//            $serial_data = $matches[1];
+        $main_mach_id = reverseStr(substr($serial_data, 0, 8));
+
+//        echo $main_mach_id;exit;
+        $serial_data = (substr($serial_data, 8));
+
+        #子设备列表
+        $i = 0;
+        $machList = array();
+        $domain = Config("domain");
+        while (strlen($serial_data) >= 24) {
+            $machData = (substr($serial_data, 0, 24));
+            $serial_data = (substr($serial_data, 24));
+
+            $machList[$i]['mach_id'] = hexdec('0x' .reverseStr(substr($machData, 0, 8)));
+            $machList[$i]['total_wight'] = hexdec('0x' . reverseStr(substr($machData, 8, 8)));
+            $senser = reverseStr(substr($machData, 16, 2));
+            $machList[$i]['line_state'] = reverseStr(substr($machData, 18, 2));
+            $cate_code = hexdec('0x' . reverseStr(substr($machData, 20, 4)));
+            $machList[$i]['cate_code'] = $cate_code;
+
+            //查询对应分类信息
+            $recoveryCate = Db::table('mrs_recovery_cate')->where('cate_code', '=', $cate_code)->find();
+            if (!empty($recoveryCate)) {
+                $recoveryCate['bg_icon_img'] = $domain . $recoveryCate['bg_icon_img'];
+                $machList[$i]['recoveryCate'] = $recoveryCate;
+            }
+
+            //传感器数据解析
+            $binStr = decbin(hexdec('0x' . $senser));
+            $binStr = str_pad($binStr, 8, "0", STR_PAD_LEFT);
+
+            $senser_state = array();
+            $senser_state['clip_guard'] = $binStr[0];
+            $senser_state['open_putway'] = $binStr[1];
+            $senser_state['close_putway'] = $binStr[2];
+            $senser_state['open_maintain'] = $binStr[3];
+            $senser_state['smoke'] = $binStr[7];
+            if ($binStr[4] || $binStr[5] || $binStr[6]) {
+                $senser_state['overflow'] = 1;
+            } else {
+                $senser_state['overflow'] = 0;
+            }
+            $machList[$i]['senser_state'] = $senser_state;
+
+            $i++;
+        }
+
+        $crc = $serial_data;
+
+        $data = array();
+        $data['callback_type'] = '1';
+        $data['machines'] = $machList;
+
+        recordLog('retData-->' . json_encode($data), 'analymach.txt');
+
+        echo successJson($data);
+        exit;
+
+    }
+
+
+    public function recoveryaction(Request $request){
+        $user_id = $request->post("user_id");
+        $site_id = $request->post("site_id");
+        $details = $request->post("details");
+
+        if(empty($user_id)){
+            echo errorJson('1','缺少关键参数$user_id');
+            exit;
+        }
+
+        $user = Db::table('mrs_user')->where("user_id","=",$user_id)->find();
+        if(empty($user)){
+            echo errorJson('1','该用户不存在');
+            exit;
+        }
+
+        if(empty($site_id)){
+            echo errorJson('1','缺少关键参数$site_id');
+            exit;
+        }
+
+        $site = Db::table('mrs_site')->where("site_id","=",$site_id)->find();
+        if(empty($site)){
+            echo errorJson('1','站点信息不存在');
+            exit;
+        }
+
+        if(empty($details)){
+            echo errorJson('1','缺少关键参数$details');
+            exit;
+        }
+
+        //生成回收记录
+        $details = json_decode($details, true);
+        $recordDetails = array();
+        $record = array();
+        $record['recovery_record_sn'] = date("YmdHis", time()).rand(0000000,9999999);
+        $record['site_id'] = $site["site_id"];
+        $record['user_id'] = $user["user_id"];
+        $record['site_name'] = $site["site_name"];
+        $record['recovery_time'] = time();
+        $record['total_integral'] =0;
+        $record['total_weight'] =0;
+
+        Db::startTrans();
+        $res1 = Db::table('mrs_recovery_record')->insert($record);
+        $record_id = Db::table('mrs_recovery_record')->getLastInsID();
+
+        $total_integral = 0;
+        $total_weight = 0;
+
+        if(is_array($details) && count($details) > 0){
+            foreach ($details as $k=>$v){
+                $cate = Db::table("mrs_recovery_cate")->where("cate_id","=",$v['cate_id'])->find();
+                if(empty($cate)){
+                    echo errorJson('1','分类信息错误，无法生成回收记录');
+                    exit;
+                }
+                //计算积分值
+                $integral = $cate['integral'] * $v['weight']/$cate['unit_weight'];
+
+                //计算总重量、总积分
+                $total_integral += $integral;
+                $total_weight += $v['weight'];
+
+                $recordDetails[$k]['recovery_record_id'] = $record_id;
+                $recordDetails[$k]['recovery_cate_id'] = $cate['cate_id'];
+                $recordDetails[$k]['recovery_cate_name'] = $cate['cate_name'];
+                $recordDetails[$k]['price'] = $cate['integral'];
+                $recordDetails[$k]['weight'] = $v['weight'];
+                $recordDetails[$k]['integral'] = $integral;
+            }
+
+            $data = array();
+            $data['total_integral'] = $total_integral;
+            $data['total_weight'] = $total_weight;
+            $res2 = Db::table('mrs_recovery_record')->where("recovery_record_id","=",$record_id)->update($data);
+
+            $res3 = Db::table("mrs_recovery_record_detail")->insertAll($recordDetails);
+
+            //对应用户增加积分
+            $userData= array();
+            $userData['total_integral'] = $user['total_integral'] + $total_integral;
+            $userData['able_integral'] = $user['able_integral'] + $total_integral;
+            Db::table('mrs_user')->where('user_id','=',$user_id)->update($userData);
+
+            //增加对应用户积分明细
+            $integralDetail = array();
+            $integralDetail['user_id'] = $user['user_id'];
+            $integralDetail['integral_value'] = $total_integral;
+            $integralDetail['type'] = 1;
+            $integralDetail['action_desc'] = '回收物品增加积分';
+            $integralDetail['invalid_time'] = time() + 86400*3650;
+            $integralDetail['create_time'] = time();
+            $res4 = Db::table('mrs_integral_detail')->insert($integralDetail);
+
+
+            if($res1 && $res2 && $res3 && $res4){
+                Db::commit();
+                echo successJson();
+            }else{
+                Db::rollback();
+                echo errorJson('1', '系统异常，请稍后再试。');
+            }
+            exit;
+
+        }else{
+            echo errorJson('1','数据缺失，无法生成回收记录');
+            exit;
+        }
+
+    }
+
 
 
 

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>回收清单列表</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+
+    <style>
+        .col-sm-1{width: auto;}
+        .form-group label{padding-right: 2px;}
+        .col-sm-2{width: 12%;}
+        .ibox{overflow-x: auto;}
+        .ibox-content,.table{width: 100%;overflow-x: auto;}
+    </style>
+
+</head>
+
+<body class="gray-bg">
+<div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/admin/recovery/index')}">
+                        <div class="form-group">
+                            <label class="control-label col-sm-1">单号</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="recovery_record_sn" name="recovery_record_sn" value="{$recovery_record_sn}" class="form-control">
+                            </div>
+                            <label class="control-label col-sm-1">手机号</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="phone_no" name="phone_no" value="{$phone_no}" class="form-control">
+                            </div>
+                            <label class="control-label col-sm-1">站点名称</label>
+                            <div class="col-sm-3">
+                                <input type="text" id="site_name" name="site_name" value="{$site_name}" class="form-control">
+                            </div>
+                            <div class="col-sm-1" style="text-align:center;">
+                                <button type="submit" class="btn btn-sm btn-white">查询</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="ibox-content">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th style="width: 60px;">操作</th>
+                            <th style="width: 120px;">单号</th>
+                            <th style="width: 70px;">用户昵称</th>
+                            <th style="width: 70px;">用户手机号</th>
+                            <th style="width: 70px;">回收获得积分</th>
+                            <th style="width: 70px;">总重量</th>
+                            <th style="width: 70px;">站点名称</th>
+                            <th style="width: 70px;">回收时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {foreach $recoveryList as $recoveryInfo}
+                                <tr>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-warning" onclick="view({$recoveryInfo.recovery_record_id})">查看详情</button>
+                                    </td>
+                                    <td>{$recoveryInfo.recovery_record_sn}</td>
+                                    <td>{$recoveryInfo.nick_name}</td>
+                                    <td>{$recoveryInfo.phone_no}</td>
+                                    <td>{$recoveryInfo.total_integral}</td>
+                                    <td>{$recoveryInfo.total_weight}</td>
+                                    <td>{$recoveryInfo.site_name}</td>
+                                    <td>{$recoveryInfo.recovery_time|dateTime}</td>
+                                </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                    {$recoveryList|raw}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局js -->
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+
+<script src="__JS__/plugins/layer/layer.min.js"></script>
+
+<!-- Page-Level Scripts -->
+<script>
+    function view(record_id){
+        layer.open({
+            type: 2,
+            title: '清单详情',
+            area: ['600px', '400px'],
+            content: "{:url('admin/admin/recovery/detail')}?record_id=" + record_id
+        });
+    }
+</script>
+
+</body>
+
+</html>

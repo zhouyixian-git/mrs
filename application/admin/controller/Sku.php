@@ -111,6 +111,8 @@ class Sku extends Base
     {
         if ($request->isPost()) {
             $sku_id = $request->post('sku_id');
+            $data['p_sku_id'] = $request->post('p_sku_id');
+            $data['p_sku_name'] = $request->post('p_sku_name');
             $data['sku_name'] = $request->post('sku_name');
             $data['order_no'] = $request->post('order_no');
             $data['is_actived'] = $request->post('is_actived');

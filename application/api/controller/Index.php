@@ -9,14 +9,27 @@ class Index extends Base
 {
     public function index()
     {
-        $sendbuf = array();
-//        $str = '00 00 00 00 00 00 01 fa 00 00 00 00 00 00 00 00 00 00 00 00 01 fa cc dd';
+        $wechatModel = new \app\api\model\Wechat();
+        $wechatInfo = $wechatModel->getWechatInfo();
+        if (empty($wechatInfo)) {
+            echo $this->errorJson(1, '小程序未绑定');
+            exit;
+        }
+        $appid = $wechatInfo['app_id'];
+        $appsecret = $wechatInfo['app_secret'];
 
+        $accessToken = $wechatModel->getAccessToken($appid, $appsecret);
+        if(empty($accessToken)){
+            echo 'get accessToken fail' ;exit;
+        }
 
-        $str = '01 31 54 11 00 00 01 f5 00 00 00 00 00 00 00 00 00 00 00 00';
-        echo $crc = calcCRC($str);
+        $url = 'https://api.weixin.qq.com/sns/userinfo?access_token='.$accessToken.'&openid=ouxag4n8-9_J4DdCq5hQmEOR0dSg';
+        $res = doPostHttp($url, json_encode(array()));
+        echo $res;
+
         exit;
     }
+
 
     function strToHex($str){
         $hex="";

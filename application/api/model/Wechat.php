@@ -143,5 +143,14 @@ class Wechat extends Model
     }
 
 
+    public function getAccessToken($app_id, $app_secret){
+        $res = doPostHttp("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=$app_id&secret=$app_secret", json_encode(array()));
+        $res = json_decode($res, true);
 
+        if(empty($res['access_token'])){
+            return false;
+        }else{
+            return $res['access_token'];
+        }
+    }
 }

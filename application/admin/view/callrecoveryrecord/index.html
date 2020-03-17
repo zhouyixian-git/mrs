@@ -74,7 +74,7 @@
                             <tr>
                                 <td>
                                     {if condition="in_array('call_record_accept',$loginAdmin.buttonData)"}
-                                        <button type="button" onclick="toAccept({$recordInfo.record_id})" class="btn btn-sm btn-default">受理</button>
+                                        <button type="button" onclick="toAccept({$recordInfo.call_recovery_record_id})" class="btn btn-sm btn-default">受理</button>
                                     {/if}
                                 </td>
                                 <td>{$recordInfo.master_name}</td>

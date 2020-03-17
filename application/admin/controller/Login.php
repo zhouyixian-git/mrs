@@ -35,7 +35,7 @@ class Login extends Base
     {
         $admin = Session::get('admin');
         if ($admin['admin_id']) {
-            return $this->redirect('/index');
+            return $this->redirect('/admin/index');
         }
 
         if ($request->isPost()) {

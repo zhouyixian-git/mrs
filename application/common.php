@@ -547,6 +547,23 @@ function imgToBase64($img_file) {
 function calcCRC($str){
 //    00000000000001fa000000000000000000000000
     $sendbuf['device'] = (hexdec('0x'.substr($str, 0, 8)));
+    $sendbuf['order'] = (hexdec('0x'.substr($str, 8, 4)));
+    $sendbuf['senser'] = (hexdec('0x'.substr($str, 12, 4)));
+    $sendbuf['weight'] = (hexdec('0x'.substr($str, 16, 8)));
+    $sendbuf['temp'] = (hexdec('0x'.substr($str, 24, 8)));
+    $sendbuf['card_id'] = (hexdec('0x'.substr($str, 32, 8)));
+
+    $crc = dechex($sendbuf['device'] ^ $sendbuf['order'] ^ $sendbuf['senser'] ^ $sendbuf['weight'] ^ $sendbuf['temp'] ^ $sendbuf['card_id'] );
+    $crc = substr($crc, -4);
+    return $crc = str_pad($crc,4,"0",STR_PAD_LEFT);
+}
+
+/**
+ * @param $str 报文内容，不包括包头包尾
+ */
+function calcCRC2($str){
+//    ffee000010010000000100007A63010104570000000200000063010104580000000300007A63010104590000000400007A630101045A0000000500007A630101045B0000000600007A630101045C0000000700007A630101045D0000000800007A630101045E01efccdd
+    $sendbuf['device'] = (hexdec('0x'.substr($str, 0, 8)));
     $sendbuf['order'] = (hexdec('0x'.substr($str, 8, 8)));
     $sendbuf['weight'] = (hexdec('0x'.substr($str, 16, 8)));
     $sendbuf['temp'] = (hexdec('0x'.substr($str, 24, 8)));
@@ -560,7 +577,53 @@ function calcCRC($str){
 /**
  * Str2Hex
  */
-function str2Hex($str){
+function str2Hex($str, $length = 8){
     $hex = dechex($str);
-    return $hex = str_pad($hex,8,"0",STR_PAD_LEFT);
+    return $hex = str_pad($hex,$length,"0",STR_PAD_LEFT);
+}
+
+function bin2Bin($str){
+        $v =  reverseStr($str);
+    $data = implode('',$strArr);
+    return $data;
+}
+
+function reverseStr($str) {
+    $hex = bin2hex($str);
+
+    $strlen = strlen($hex);
+    $hex_array = array();
+    $newhex = '';
+    $j = -1;
+    for($i=0; $i<$strlen; $i++){
+        if($i%4 == 0){
+            $j++;
+            $hex_array[$j] = $hex[$i];
+        }else{
+            $hex_array[$j] .= $hex[$i];
+        }
+    }
+    $hex_array = array_reverse($hex_array);
+    foreach($hex_array as $v){
+        $newhex .= $v;
+    }
+
+    $bin = "";
+    $i = 0;
+    do {
+        $bin .= chr(hexdec($newhex{$i}.$newhex{($i + 1)}));
+        $i += 2;
+    } while ($i < strlen($newhex));
+    return $bin;
+}
+
+function mbStrSplit ($string, $len=2) {
+    $start = 0;
+    $strlen = mb_strlen($string);
+    while ($strlen) {
+        $array[] = mb_substr($string,$start,$len,"utf8");
+        $string = mb_substr($string, $len, $strlen,"utf8");
+        $strlen = mb_strlen($string);
+    }
+    return $array;
 }
