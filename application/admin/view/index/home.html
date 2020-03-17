@@ -3,8 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <title>首页</title>
+    <link href="__CSS__/home/home.css" rel="stylesheet">
 </head>
 <body>
-This is Home Page.
+    <div class="layout">
+        <div class="layout-header">
+            <div class="layout-header-item">
+                <div class="item-header">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAADsklEQVRoQ+1ZjVEWQQzNq0DpACtQKhAqUCtQK1AqECoQK1ArECpQKhAq0A6ECuI8J5kJy2Z/7vhGcb6dYeDj7vbykpeXbD7IPV+45/bLFsDfjuA2Av9NBFT1oYg8E5HnIsK/+fPEAF6IyJWI/BSRbyJyBoCfV6/VFFJVGvxGRPYnrSGQYwD8vXgtBqCqNPhdxfBrEaHHuehxrl37zYg8KKxdBWQRAFX9KCKvgiE0+hPpAeC05U6LGMHz+QjmBMDhbCimABjPvxRePxYRvnyK07bXW4ui281ovJjZaxiAvfBrSMxLehGA02XWeX/uV1XSitF7HBL+YBTEDAAa74l6TrUZfUkPmTmH1Htq95KKB73neH0IQMH5cwCzijNiC6NBCjmIDwBIsebqAjC1ofe5SJv9mudJhVE6ZfdaJAjC6UQqNWV2BECkzl7NSFWlolCZmA8pf4s8YrLeUizLie+jVGoCMMmj6nCx6BzV4qmqDPX7VhJWROAQwEmyH//P4sjVjEIPgHOSOr/bSlpVpZK8rIGoGP8ZQKwjN3DY/SyCrBPNnEsB2Ca/bOehhKqBsOej/DaNdySqGqOwkzmvBcB5zT2rfE3CX0aCt3lTN2Q8Hyjo+xoA9721WgCYYOwurwGws6yu0MzF65nMlorCyKath6qqbZoCbwFw/jc5WNAmw5n9v5cLXRtaAChlDH0PAL1NFSqjxM+u56wfZa/Ez+yhUp0Phe0CwN4shbrha7m7KIDdgtTLJwBVZ7ci4ACGFKg04F8AwKpKCqQUsgrs2l9iqB0pa45mHlQVJlDoEoAr2Y09ViWxqrJOpAo1mNFXAHYSCq1KYtfz1gvYWmSS2Utit5mtc9aiuIMWyeiiQhYqKYF5FzudxHdRyOjBqVYi0mBtEq9uJaycOwep2Y9mTmBrAFgf9sPya1kzZwAiDdJ2OknAxRQqvL+8nS6iwI/VA81dAigONN3j68iJLHqyeeJamwOVc0M3+bsALAqxNx+aGBSeHIqcqsbj61AHMASgQqWhAZRVaskqbZBcKl4cmHWp48/OAOBL4sSAdOJB4y4GWxwIeKuQTj6mutEkMQkiDqB4G6sow71ktMjhcJz9TA/MhiNQJGjMCV6i8T7cPeu02Tzl+XA39lFDnC/3XgQg1Ah63ydpvjfBtMbrZfNHrx/1BliZUxYDKHqeGpBeM7rK8Okk7lljGs5va0gPfqFR60b9K6bT2ZzZWAR6wDZ9fTWFNm1gb/8tgJ6HNn19G4FNe7i3/2/gtvlAZ/t+CQAAAABJRU5ErkJggg==">
+                    <span>订单金额</span>
+                </div>
+                <div class="item-footer">
+                    <span>{$orderTotal}</span>
+                </div>
+            </div>
+            <div class="layout-header-item">
+                <div class="item-header">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAACTUlEQVRoQ+1Z7VUVMRSc6UArACtAKwA60A6kAuxArACoQDpQKxArECqAErCC8YwnzwP7dpebZBN952z+bnJ35uZ+TBJixwd3HD9WAv96BxfZAUmnAN4DeB0kdAPgiuRlcP7ktCoCkl4A+J4BfAjERI5JPpQSqSXwswL8BvMNyTfdCUj6AOC89MeDdSckr0psze6ApLcAPga9/MN5QPJ+Doikfcc/gMMAYIfYJ5Jfp+ZOEkjgvwR+spnyMhrLicRdhu13UyTmCOTGd0sCk3kyR0AZHvLUawCO5UgIfQZwlGOf5CjWMIGhgdZJLOmJAxcnYO9JcpId5HhyZO4tya0G2IuAG5lDp5TErUNpLPm7ENh4U5JlhPtClIiBX8zV/q4EKkNodLmkCwDWWB6XJO2grVGcxC1AD22mXoTSRhaqAj2IzP3jv96BiHNWAukw43JaM76RdE/5O5JespD0sKAb7fBVOyDpLKnVGvBe6wPNq8f9QJIPShu5cU3yePEqJMlNLCKLIwR9MrO9P6NLHyiQ3FNEtuREFwLJU9Yx3urSPHDsO0SenIu7EYjERsmclUDUA6nc7ZV4+dEa50D/EFowibeOjFEH1vaBnS+jSzWyXwD2B40sJCardiCVUev0mjJqieDDzVBK9CFQmbyTy7vkQCvw3aTESmDGA2sIRT3QKoyi/68uoztDoBXQqN2Su9El7j2j+J6bN3p/6kVLPnA8B6Lme/4DR2omfmKy3oneedaAHFvrO9Szopu5pZG0slf1zNoKVI7dlUCOt1rM/Q2QoHdAI7LKagAAAABJRU5ErkJggg==">
+                    <span>订单量</span>
+                </div>
+                <div class="item-footer">
+                    <span>{$orderNum}</span>
+                </div>
+            </div>
+            <div class="layout-header-item">
+                <div class="item-header">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAEHElEQVRoQ9Wa7VEUQRCGuyMQIlAiUCIQIxAjECMQIxAjECJQIhAjECIQIxAiECJo69ma2Zrbm9npmb0TnKr9czsf/fb0x9u9p/KfD92G/Gb2QkSeTPdW1atNn7cYgJntiMhrETkIz7OKkHcichme76p6swRUN4Cg5fcicigigOgdFyJyoarnPRs0AzAzNPwlaLvnzNIabuKDqgLIPZoAmNlHETlx7943EQDvVBVTqw4XgKD1byKCc/6LgfBvVBVfmR1VAMHWfyy085ocpffcxNe5xbMAHlj4KPcsiCKARyJ8FUQWQIjtP0WkFtN7TaNn3b6qXk8XlgDgsMT3xzQIs4BYiU5rAMwMwQHwGMe5qh6lgq0A6DSds0ALpqDvReQ0vJtTBmaK0qAjnvEqDa9TACQpklXLGDY0M0sWIfxBzmZLG5sZYKEmtXGpqq/ipCmAPx3xPgcAknboFAqb3g/nEjg8Y3ToEUCj7UOLI6W4xrHMDDZ6HEzhk6qemBmZ9KVDopwS5paNvpACgIN47XAQcHqCmeFgEL0IAOrhYapRCakZzgG4U9VdJqQAvIunG+e0lwJYK2wykv0Kt9giw3DuACBcP3ynZ8wB2JYJIeegpAigJ/pEsDkAV6p64HRiIlZkub8bNDicEQHA+N42LE6nlhwwm/pnwii+s5KkKvLcqOpeBOC96tyeJQCERxTjKUxiPd2kQ2UEH9gGgCZheiZvGsCxqp6aGYzxtFaIZEIw4RZFPveC2RSA0daTGgLTyRXnMVzmkhsAoBNuCr8UANkYrQ8c3cw8TtiacWcvIwXQkoXZlPYH2kLwnUISyrHUTQK4V9Wd3jxA3hhsPbRApmwUbDlh42+51gym0xLKV/LAkiKmpNUigJlc0MKGz1T1ON4ADsTinlECsBccMqUocW6OtnADbgcOfaOLlMxhEu4QliDNAsDBQlRKOf4mfWAX30sBwOU/d1wB1RHg0xskXA78JlBsfAVWuikAQ8HE/imAVjO6JfFQZGeKoSFK0ZKkfR5qbXgO86/NjA7DtK3O+V4LGJtd05LSS+pSDXMwNp32TbkVBIRdEqKhvms9nUw29px/q6qjr0wB8MJLaTELhM99H4jaTZ2S3wAzR+4w41oFt9JqzPWFltQGHS7UtGSI/emKHIBmUtUkwrLJazVGqbWIPcMMPfXsMpH8q0f6MnsD8WXSYfAfsb2Zay3FeFTt+0Bsk2xPtPrOY8zPTfV8oXlIEEXNu25gYk4xm9Z1tpkZA1mrbVW9gQQEjk2i8WbL2tml97RZjryfW90AEiBohVyxjQhFEXTi/cS6woVa1BW4DUDwj6ctawtz+UqP4M1/O2i+gQx/gUrwkCG9YDAT8kz8m4Gnd5TFvhhAumv4IA7/WUn3yRwIHR21KrHz3upffV0ST1r+O2wAAAAASUVORK5CYII=">
+                    <span>待提现金额</span>
+                </div>
+                <div class="item-footer">
+                    <span>{$waitAmouont}</span>
+                </div>
+            </div>
+            <div class="layout-header-item">
+                <div class="item-header">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAACs0lEQVRoQ+1agVHcMBDcrSDpAFIBSQVABQkVkFQQqABSQUgFIR1ABZAKklQAdJBUcMwykkfWy7asl9+eiTXz8zP/lrS7d9bdSSKiZmYfABwCeBv/B+AvgB8kb8L/zOw1gK8A9hN9Uj91jaM5P3eM8xvAz3huRkDOHJA+HE8kW0DN7BLARSZ4/5jAHEXzS5j3A+Ock7zyzzQEnIoPAKTmE4DHjoGuSV5HE0u5ZtBMIqlxREhipJpE23Ne8IakrIiQgDrfuZ7vSMpki2lmJpF+OUDHJO87CZBsudZSWJiZrQTmtMZqgTnV19yrBVYL9ChgZgqOpwBO4nTBd1usCwXghbWVKkQRf3lxwMyUgiiBU7slqWQy2RZnATP7COC7Q/sHwJHPcVIMFkVgLPhFLaNRYvZPtQfJruy3McYiLODAK+tV2i7wcpuszLcKAVc3yG/1wrXqgqE4YWbK6ZUSC7zaqLS9FoGwbmjy8gzwAi3lfan6qUCA7ZdRZwGZXNWR/FYqvlRHPcvf1uCrvsRmFlrhhuTJAIGw1v1GUrX36FbFhYKwHgagvvDvUwR11Y6G1v6iVpuA3MK7klyoKbQ7SPZG2RxGVQk4n+x0pZJANUSiOgFHYsOVpgBf9SWOlTIzudKB27MRIb+3kx1lh9SfmoDWdu3TvAqAjIqysxJw6oiEVhxZ4lZWyE0RcsBPaoFcANs+N8lLvC2oMf1XAmPUmuLZ1QJTqDpmzNUCKbXc8ZLO1Eqa6gml17srKUOUUV1QQkB9vpDsOlZqjVndhVx1ptwn93QyRfJsNguUSl7ar7oFSoGU9lsJlCpXq9//Y4GxO2a1FO4bJ+egW7sMCiyqqvQ9uNm6C+DBHFqq9VGlt79x1cBVPDmXPXaMe2O69GUP/5i7bqPtktR1mznBK93QLuDLHQnfngFnr2FP1zwZqgAAAABJRU5ErkJggg==">
+                    <span>已提现金额</span>
+                </div>
+                <div class="item-footer">
+                    <span>{$alreadyAmount}</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="order_num" style="width: 100%;height:400px;margin: 60px auto;"></div>
+        <div id="recovery_num" style="width: 100%;height:400px;margin: 60px auto;"></div>
+        <div id="withdraw_num" style="width: 100%;height:400px;margin: 60px auto;"></div>
+    </div>
 </body>
+<script src="__JS__/jquery.min.js?v=2.1.4"></script>
+<script src="__JS__/echarts.min.js"></script>
+<script type="text/javascript">
+    $(function(){
+        var orderChart = echarts.init(document.getElementById("order_num"));
+        var orderOption = {
+            title: {
+                text: '订单量',
+                padding: 20
+            },
+            xAxis: {
+                type: 'category',
+                data: {$orderNumXs|json_encode=true|raw}
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: {$orderNumYs|json_encode=true|raw},
+                type: 'line'
+            }],
+            tooltip: {
+                /*返回需要的信息*/
+                formatter: function(param) {
+                    var name = param.name;
+                    var value = param.value;
+                    return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 16px;padding-bottom: 7px;margin-bottom: 7px;"> ' + name + '(' + value + ')' +
+                '</div>';
+                }
+            }
+        };
+        orderChart.setOption(orderOption);
+
+        var recoveryChart = echarts.init(document.getElementById("recovery_num"));
+        var recoveryOption = {
+            title: {
+                text: '回收记录',
+                padding: 20
+            },
+            xAxis: {
+                type: 'category',
+                data: {$recoveryXs|json_encode=true|raw}
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: {$recoveryYs|json_encode=true|raw},
+                type: 'line'
+            }],
+            tooltip: {
+                /*返回需要的信息*/
+                formatter: function(param) {
+                    var name = param.name;
+                    var value = param.value;
+                    return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 16px;padding-bottom: 7px;margin-bottom: 7px;"> ' + name + '(' + value + ')' +
+                    '</div>';
+                }
+            }
+        };
+        recoveryChart.setOption(recoveryOption);
+
+        var withdrawChart = echarts.init(document.getElementById("withdraw_num"));
+        var withdrawOption = {
+            title: {
+                text: '提现记录',
+                padding: 20
+            },
+            xAxis: {
+                type: 'category',
+                data: {$withdrawXs|json_encode=true|raw}
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: {$withdrawYs|json_encode=true|raw},
+                type: 'line'
+            }],
+            tooltip: {
+                /*返回需要的信息*/
+                formatter: function(param) {
+                    var name = param.name;
+                    var value = param.value;
+                    return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 16px;padding-bottom: 7px;margin-bottom: 7px;"> ' + name + '(' + value + ')' +
+                    '</div>';
+                }
+            }
+        };
+        withdrawChart.setOption(withdrawOption);
+    });
+</script>
 </html>
