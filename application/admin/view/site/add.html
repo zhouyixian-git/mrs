@@ -33,9 +33,10 @@
                     <form class="form-horizontal" id="postForm">
                         <input type="hidden" value="" id="lat" name="lat"/>
                         <input type="hidden" value="" id="lng" name="lng"/>
-                        <input type="hidden" value="" id="province_name" name="province_name"/>
+                        <!--<input type="hidden" value="" id="province_name" name="province_name"/>
                         <input type="hidden" value="" id="city_name" name="city_name"/>
-                        <input type="hidden" value="" id="area_name" name="area_name"/>
+                        <input type="hidden" value="" id="area_name" name="area_name"/>-->
+                        <input type="hidden" value="" id="region_name" name="region_name"/>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">站点名称：</label>
                             <div class="col-sm-8">
@@ -57,22 +58,12 @@
                         </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">站点区域：</label>
-                            <div class="col-sm-3">
-                                <select name="province_id" id="province_id" class="form-control">
+                            <div class="col-sm-8">
+                                <select name="region_id" id="region_id" class="form-control">
                                     <option value="">--请选择--</option>
-                                    {volist name="provinceList" id="provinceInfo"}
-                                    <option value="{$provinceInfo.area_id}">{$provinceInfo.area_name}</option>
+                                    {volist name="regionList" id="regionInfo"}
+                                    <option value="{$regionInfo.region_id}">{$regionInfo.region_name}</option>
                                     {/volist}
-                                </select>
-                            </div>
-                            <div class="col-sm-2">
-                                <select name="city_id" id="city_id" class="form-control">
-                                    <option value="">--请选择--</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-2">
-                                <select name="area_id" id="area_id" class="form-control">
-                                    <option value="">--请选择--</option>
                                 </select>
                             </div>
                         </div>
@@ -107,6 +98,10 @@
         $(function(){
             $('.i-checks').iCheck({
                 radioClass: 'iradio_square-green',
+            });
+
+            $("#region_id").change(function(){
+                $("#region_name").val($(this).find("option:selected").text());
             });
 
             $("#save").click(function(){

@@ -34,9 +34,10 @@
                         <input type="hidden" value="{$site.site_id}" id="site_id" name="site_id"/>
                         <input type="hidden" value="{$site.lat}" id="lat" name="lat"/>
                         <input type="hidden" value="{$site.lng}" id="lng" name="lng"/>
-                        <input type="hidden" value="{$site.province_name}" id="province_name" name="province_name"/>
+                        <!--<input type="hidden" value="{$site.province_name}" id="province_name" name="province_name"/>
                         <input type="hidden" value="{$site.city_name}" id="city_name" name="city_name"/>
-                        <input type="hidden" value="{$site.area_name}" id="area_name" name="area_name"/>
+                        <input type="hidden" value="{$site.area_name}" id="area_name" name="area_name"/>-->
+                        <input type="hidden" value="{$site.region_name}" id="region_name" name="region_name"/>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">站点名称：</label>
                             <div class="col-sm-8">
@@ -58,22 +59,12 @@
                         </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">站点区域：</label>
-                            <div class="col-sm-3">
-                                <select name="province_id" id="province_id" class="form-control">
+                            <div class="col-sm-8">
+                                <select name="region_id" id="region_id" class="form-control">
                                     <option value="">--请选择--</option>
-                                    {volist name="provinceList" id="provinceInfo"}
-                                    <option value="{$provinceInfo.area_id}">{$provinceInfo.area_name}</option>
+                                    {volist name="regionList" id="regionInfo"}
+                                    <option value="{$regionInfo.region_id}" {if condition='$regionInfo.region_id eq $site.region_id'}selected{/if}>{$regionInfo.region_name}</option>
                                     {/volist}
-                                </select>
-                            </div>
-                            <div class="col-sm-2">
-                                <select name="city_id" id="city_id" class="form-control">
-                                    <option value="">--请选择--</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-2">
-                                <select name="area_id" id="area_id" class="form-control">
-                                    <option value="">--请选择--</option>
                                 </select>
                             </div>
                         </div>
@@ -108,6 +99,10 @@
         $(function(){
             $('.i-checks').iCheck({
                 radioClass: 'iradio_square-green',
+            });
+
+            $("#region_id").change(function(){
+                $("#region_name").val($(this).find("option:selected").text());
             });
 
             $("#save").click(function(){

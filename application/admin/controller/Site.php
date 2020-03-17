@@ -64,12 +64,14 @@ class Site extends Base
             $data['lng'] = $request->post('lng');
             $data['lat'] = $request->post('lat');
             $data['site_address'] = $request->post('site_address');
-            $data['province_id'] = $request->post('province_id');
+            $data['region_id'] = $request->post('region_id');
+            $data['region_name'] = $request->post('region_name');
+            /*$data['province_id'] = $request->post('province_id');
             $data['city_id'] = $request->post('city_id');
             $data['area_id'] = $request->post('area_id');
             $data['province_name'] = $request->post('province_name');
             $data['city_name'] = $request->post('city_name');
-            $data['area_name'] = $request->post('area_name');
+            $data['area_name'] = $request->post('area_name');*/
             $data['status'] = $request->post('status');
 
             $validate = new \app\admin\validate\Site();
@@ -86,8 +88,11 @@ class Site extends Base
             return;
         }
 
-        $provinceList = \app\admin\model\Area::where('parent_id', '=', 0)->select();
-        $this->assign('provinceList', $provinceList);
+        $regionList = \app\admin\model\Region::select();
+
+        /*$provinceList = \app\admin\model\Area::where('parent_id', '=', 0)->select();
+        $this->assign('provinceList', $provinceList);*/
+        $this->assign('regionList', $regionList);
         return $this->fetch();
     }
 
@@ -107,12 +112,14 @@ class Site extends Base
             $data['lng'] = $request->post('lng');
             $data['lat'] = $request->post('lat');
             $data['site_address'] = $request->post('site_address');
-            $data['province_id'] = $request->post('province_id');
+            $data['region_id'] = $request->post('region_id');
+            $data['region_name'] = $request->post('region_name');
+            /*$data['province_id'] = $request->post('province_id');
             $data['city_id'] = $request->post('city_id');
             $data['area_id'] = $request->post('area_id');
             $data['province_name'] = $request->post('province_name');
             $data['city_name'] = $request->post('city_name');
-            $data['area_name'] = $request->post('area_name');
+            $data['area_name'] = $request->post('area_name');*/
             $data['status'] = $request->post('status');
 
             $validate = new \app\admin\validate\Site();
@@ -135,8 +142,10 @@ class Site extends Base
 
         $this->assign('site', $site);
 
-        $provinceList = \app\admin\model\Area::where('parent_id', '=', 0)->select();
-        $this->assign('provinceList', $provinceList);
+        $regionList = \app\admin\model\Region::select();
+        /*$provinceList = \app\admin\model\Area::where('parent_id', '=', 0)->select();
+        $this->assign('provinceList', $provinceList);*/
+        $this->assign('regionList', $regionList);
         return $this->fetch();
     }
 

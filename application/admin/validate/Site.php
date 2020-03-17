@@ -18,9 +18,10 @@ class Site extends Validate
         'lng' => 'require',
         'lat' => 'require',
         'site_address' => 'require',
-        'province_id' => 'require',
+        'region_id' => 'require'
+        /*'province_id' => 'require',
         'city_id' => 'require',
-        'area_id' => 'require'
+        'area_id' => 'require'*/
     ];
 
     protected $message = [
@@ -29,8 +30,9 @@ class Site extends Validate
         'lng.require' => '请选择站点坐标',
         'lat.require' => '请选择站点坐标',
         'site_address.require' => '站点地址不能为空',
-        'province_id.require' => '请选择站点区域',
+        'region_id.require' => '站点区域不能为空'
+        /*'province_id.require' => '请选择站点区域',
         'city_id.require' => '请选择站点区域',
-        'area_id.require' => '请选择站点区域'
+        'area_id.require' => '请选择站点区域'*/
     ];
 }
