@@ -32,6 +32,7 @@ class Idea extends Base
             $where[] = ['t1.idea_type', '=', $idea_type];
         }
 
+        $where[] = ['t1.is_del', '=', 2];
         $ideaList = Db::table('mrs_idea')
             ->alias('t1')
             ->field('t1.idea_id,t1.idea_title,t1.idea_type,t1.idea_content,t1.user_id,t1.idea_image,t1.create_time,t2.user_name')
@@ -79,6 +80,28 @@ class Idea extends Base
 
         $this->assign('idea', $idea);
         return $this->fetch();
+    }
+
+    /**
+     * 删除用户反馈信息
+     * @param Request $request
+     * @throws Exception
+     * @throws \think\exception\PDOException
+     */
+    public function delete(Request $request)
+    {
+        if ($request->isPost()) {
+            $idea_id = $request->post('idea_id');
+
+            if (empty($idea_id)) {
+                echo $this->errorJson(0, '关键数据错误');
+                exit;
+            }
+
+            \app\admin\model\Idea::where('idea_id', $idea_id)->update(['is_del' => 1]);
+            echo $this->successJson();
+            exit;
+        }
     }
 
 }

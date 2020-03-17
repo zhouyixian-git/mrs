@@ -61,6 +61,9 @@
                             <tr>
                                 <td>
                                     <button type="button" onclick="toView('{$ideaInfo.idea_id}')" class="btn btn-sm btn-info">查看</button>
+                                    {if condition="in_array('idea_delete',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="delIdea({$ideaInfo.idea_id})" class="btn btn-sm btn-danger">删除</button>
+                                    {/if}
                                 </td>
                                 <td>{$ideaInfo.user_name}</td>
                                 <td>{$ideaInfo.idea_title}</td>
@@ -88,6 +91,31 @@
 <script>
     function toView(idea_id){
         window.location.href = "{:url('admin/idea/view')}?idea_id=" + idea_id;
+    }
+
+    function delIdea(idea_id){
+        layer.confirm('是否确定删除该记录？', {
+            btn: ['删除 ','我再想想'] //按钮
+        }, function(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('admin/idea/delete')}" ,
+                data: {'idea_id': idea_id},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        layer.msg("删除成功", {icon: 1,time: 1500});
+                        window.setTimeout(function(){
+                            window.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        }, function(){
+        });
     }
 </script>
 
