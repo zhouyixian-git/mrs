@@ -70,10 +70,11 @@ class Callrecoveryrecord extends Base
             $record_id = $request->post('record_id');
             $accept_remark = $request->post('accept_remark');
 
+            $data = array();
             $data['accept_status'] = 2;
             $data['accept_remark'] = $accept_remark;
             Db::table('mrs_call_recovery_record')
-                ->where('record_id', '=', $record_id)
+                ->where('call_recovery_record_id', '=', $record_id)
                 ->update($data);
 
             echo $this->successJson();

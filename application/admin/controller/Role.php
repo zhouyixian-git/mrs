@@ -239,4 +239,49 @@ class Role extends Base
         return $this->fetch();
     }
 
+    public function regionauth(Request $request){
+        if($request->isPost()){
+            $role_id = $request->post('role_id');
+            $role_region_arr = $request->post('role_region');
+
+            if (empty($role_id)) {
+                echo $this->errorJson(0, '缺少关键参数$role_id');
+                exit;
+            }
+
+            if (empty($role_region_arr)) {
+                Db::table('eas_role')->where('role_id', '=', $role_id)->update(['region' => '']);
+                echo $this->successJson();
+                exit;
+            }
+
+
+            $role_region = implode(",", $role_region_arr);
+
+            Db::table('eas_role')->where('role_id', '=', $role_id)->update(['region' => $role_region]);
+            echo $this->successJson();
+            exit;
+        }
+
+        $role_id = $request->get('role_id');
+        if (empty($role_id)) {
+            $this->error('关键数据错误');
+        }
+
+        $role_region = Db::table('eas_role')->where('role_id', '=', $role_id)->value('region');
+
+        if (empty($role_region)) {
+            $this->assign('role_region_arr', []);
+        } else {
+            $role_region_arr = explode(",", $role_region);
+            $this->assign('role_region_arr', $role_region_arr);
+        }
+
+        $regions = Db::table('mrs_region')->select();
+
+        $this->assign('regions', $regions);
+        $this->assign('role_id', $role_id);
+        return $this->fetch();
+    }
+
 }

@@ -75,6 +75,8 @@
     <script>
         $(function(){
             $("#save").click(function(){
+                $("#p_sku_name").val($("#p_sku_id").find("option:selected").text());
+
                 $.ajax({
                     type: "post",
                     dataType: "json",

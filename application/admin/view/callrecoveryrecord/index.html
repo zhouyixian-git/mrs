@@ -58,6 +58,7 @@
                         <thead>
                         <tr>
                             <th>操作</th>
+                            <th>受理状态</th>
                             <th>人员名称</th>
                             <th>人员联系号码</th>
                             <th>用户名称</th>
@@ -65,6 +66,7 @@
                             <th>地址</th>
                             <th>上门时间</th>
                             <th>回收分类</th>
+                            <th>受理备注</th>
                             <th>备注</th>
                             <th>创建时间</th>
                         </tr>
@@ -73,8 +75,15 @@
                         {volist name="recordList" id="recordInfo"}
                             <tr>
                                 <td>
-                                    {if condition="in_array('call_record_accept',$loginAdmin.buttonData)"}
+                                    {if condition="in_array('call_record_accept',$loginAdmin.buttonData) && $recordInfo.accept_status eq 1"}
                                         <button type="button" onclick="toAccept({$recordInfo.call_recovery_record_id})" class="btn btn-sm btn-default">受理</button>
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if condition="$recordInfo.accept_status eq 1"}
+                                    <span style="color: red;">待处理</span>
+                                    {else/}
+                                    <span style="color: blue;">已处理</span>
                                     {/if}
                                 </td>
                                 <td>{$recordInfo.master_name}</td>
@@ -84,6 +93,7 @@
                                 <td>{$recordInfo.address}</td>
                                 <td>{$recordInfo.call_create_time|dateTime}</td>
                                 <td>{$recordInfo.recovery_cate_name}</td>
+                                <td>{$recordInfo.accept_remark}</td>
                                 <td>{$recordInfo.remark}</td>
                                 <td>{$recordInfo.create_time|dateTime}</td>
                             </tr>

@@ -32,13 +32,13 @@ class User extends Base
             $where[] = ['status', '=', $status];
         }
         if (!empty($user_name)) {
-            $where[] = ['user_name', '=', $user_name];
+            $where[] = ['user_name', 'like', "%$user_name%"];
         }
         if (!empty($phone_no)) {
-            $where[] = ['phone_no', '=', $phone_no];
+            $where[] = ['phone_no', 'like', "%$phone_no%"];
         }
         if (!empty($nick_name)) {
-            $where[] = ['nick_name', '=', $nick_name];
+            $where[] = ['nick_name', 'like', "%$nick_name%"];
         }
 
         $userList = Db::table('mrs_user')

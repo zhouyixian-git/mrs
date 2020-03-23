@@ -85,10 +85,10 @@ class User extends Base
                 echo $this->errorJson(1, '请填写地区信息');
                 exit;
             }*/
-            if (empty($data['areainfo'])) {
-                echo $this->errorJson(1, '请填写地区信息');
-                exit;
-            }
+//            if (empty($data['areainfo'])) {
+//                echo $this->errorJson(1, '请填写地区信息');
+//                exit;
+//            }
             if (empty($data['address'])) {
                 echo $this->errorJson(1, '请填写详细地址');
                 exit;
@@ -142,10 +142,10 @@ class User extends Base
                 echo $this->errorJson(1, '请填写地区信息');
                 exit;
             }*/
-            if (empty($data['areainfo'])) {
-                echo $this->errorJson(1, '请填写地区信息');
-                exit;
-            }
+//            if (empty($data['areainfo'])) {
+//                echo $this->errorJson(1, '请填写地区信息');
+//                exit;
+//            }
             if (empty($data['address'])) {
                 echo $this->errorJson(1, '请填写详细地址');
                 exit;
@@ -444,11 +444,13 @@ class User extends Base
             $token = $request->post('token');
 
             if (empty($user_id) || empty($phone_no) || empty($password) || empty($confirm_password)) {
+                recordLog('缺少关键数据', 'editlogin.txt');
                 echo $this->errorJson(1, '缺少关键数据');
                 exit;
             }
 
             if ($password != $confirm_password) {
+                recordLog('缺少关键数据', 'editlogin.txt');
                 echo $this->errorJson(1, '密码不一致');
                 exit;
             }
@@ -468,6 +470,7 @@ class User extends Base
                 ->where($where)
                 ->update(['password' => $password]);
 
+            recordLog('ok', 'editlogin.txt');
             echo $this->successJson();
             exit;
         }
@@ -491,11 +494,13 @@ class User extends Base
             $token = $request->post('token');
 
             if (empty($phone_no) || empty($password) || empty($confirm_password)) {
+                recordLog('缺少关键数据', 'editlogin.txt');
                 echo $this->errorJson(1, '缺少关键数据');
                 exit;
             }
 
             if ($password != $confirm_password) {
+                recordLog('密码不一致', 'editlogin.txt');
                 echo $this->errorJson(1, '密码不一致');
                 exit;
             }
@@ -510,12 +515,15 @@ class User extends Base
             if($vcode != 'helloword'){
                 $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone_no, 'code' => $vcode))->order('record_time desc')->find();
                 if (empty($smsRecord)) {
+                    recordLog('验证码不正确', 'editlogin.txt');
                     echo errorJson('1', '验证码不正确');
                     exit;
                 } else if ($smsRecord['is_use'] == 1) {
+                    recordLog('验证码已失效', 'editlogin.txt');
                     echo errorJson('1', '验证码已失效');
                     exit;
                 } else if ($smsRecord['valid_date'] < time()) {
+                    recordLog('验证码已失效', 'editlogin.txt');
                     echo errorJson('1', '验证码已失效');
                     exit;
                 }
@@ -527,6 +535,7 @@ class User extends Base
             $user = Db::table('mrs_user')->where('phone_no','=',$phone_no)->find();
 
             if(empty($user)){
+                recordLog('该用户不存在', 'editlogin.txt');
                 echo errorJson('1', '该用户不存在');
                 exit;
             }
@@ -540,6 +549,7 @@ class User extends Base
                 ->where($where)
                 ->update(['password' => $password]);
 
+            recordLog('ok', 'editlogin.txt');
             echo $this->successJson();
             exit;
         }

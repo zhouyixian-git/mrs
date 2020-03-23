@@ -564,6 +564,8 @@ class Recovery extends Base
         $record['site_id'] = $site["site_id"];
         $record['user_id'] = $user["user_id"];
         $record['site_name'] = $site["site_name"];
+        $record['region_id'] = $site["region_id"];
+        $record['region_name'] = $site["region_name"];
         $record['recovery_time'] = time();
         $record['total_integral'] =0;
         $record['total_weight'] =0;

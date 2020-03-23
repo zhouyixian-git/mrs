@@ -82,6 +82,8 @@ class Callrecoverycate extends Base
             $cate_name = $request->post('cate_name');
             $order_no = $request->post('order_no');
             $cate_id = $request->post('cate_id');
+            $cate_level = $request->post('cate_level');
+            $parent_id = $request->post('parent_id');
 
             if (empty($cate_id)) {
                 echo $this->errorJson(0, '关键数据错误');
@@ -90,7 +92,9 @@ class Callrecoverycate extends Base
 
             $data = [
                 'cate_name' => $cate_name,
-                'order_no' => $order_no
+                'order_no' => $order_no,
+                'cate_level' => $cate_level,
+                'parent_id' => $parent_id
             ];
             $validate = new \app\admin\validate\Callrecoverycate();
             if (!$validate->check($data)) {

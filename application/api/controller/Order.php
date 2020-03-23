@@ -666,4 +666,53 @@ class Order extends Base
         exit;
     }
 
+    public function ordercancel(Request $request){
+        $order_id = $request->post('order_id');
+        if(empty($order_id)){
+            echo $this->errorJson('1', '缺少关键参数order_id');
+            exit;
+        }
+
+        $order = Db::table('mrs_orders')->where('order_id', '=', $order_id)->find();
+
+        if(empty($order)){
+            echo $this->errorJson('1', '订单不存在');
+            exit;
+        }
+        if($order['order_status'] != '1'){
+            echo $this->errorJson('1', '该订单状态不能取消');
+            exit;
+        }
+        if($order['order_status'] != '1'){
+            echo $this->errorJson('1', '该订单状态不能取消');
+            exit;
+        }
+        if($order['pay_status'] != '1'){
+            echo $this->errorJson('1', '该订单已付款，取消失败');
+            exit;
+        }
+
+
+        $orderArr[] = $order['order_id'];
+
+        //生成订单动作表
+        $actionData['order_id'] = $order['order_id'];
+        $actionData['action_name'] = '用户取消订单';
+        $actionData['action_user_id'] = $order['user_id'];
+        $actionData['action_user_name'] = $order['user_name'];
+        $actionData['action_remark'] = '用户取消订单';
+        $actionData['create_time'] = time();
+        Db::table('mrs_order_action')->insert($actionData);
+
+        //更新订单数据
+        $updateData = array();
+        $updateData['order_status'] = '5';
+        $updateData['cancel_time'] = time();
+
+        Db::table('mrs_orders')->where('order_id','=',$order_id)->update($updateData);
+
+        echo $this->successJson();
+        exit;
+    }
+
 }

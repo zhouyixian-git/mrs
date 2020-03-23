@@ -62,8 +62,11 @@ class Login extends Base
 
             if ($loginAdmin['admin_code'] == 'admin') {
                 $role_name = '超级管理员';
+                $roleRegion = '';
             } else {
-                $role_name = \app\admin\model\Role::where('role_id', $loginAdmin['role_id'])->value('role_name');
+                $role = \app\admin\model\Role::where('role_id', $loginAdmin['role_id'])->find();
+                $role_name = $role['role_name'];
+                $roleRegion = $role['region'];
             }
 
             //查询菜单
@@ -80,6 +83,7 @@ class Login extends Base
 
             Cache::inc('SinglePoint_' . $loginAdmin['admin_id']);
             $loginAdmin['role_name'] = $role_name;
+            $loginAdmin['roleRegion'] = $roleRegion;
             $loginAdmin['single_point'] = Cache::get('SinglePoint_' . $loginAdmin['admin_id']);
             Session::set('admin', $loginAdmin);
 

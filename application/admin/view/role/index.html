@@ -72,6 +72,9 @@
                                     {if condition="in_array('role_auth',$loginAdmin.buttonData)"}
                                     <button type="button" onclick="roleAuth({$roleInfo.role_id})" class="btn btn-sm btn-info">权限</button>
                                     {/if}
+                                    {if condition="in_array('role_region_auth',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="configAuth({$roleInfo.role_id})" class="btn btn-sm btn-info">区域权限</button>
+                                    {/if}
                                 </td>
                                 <td>{$roleInfo.role_code}</td>
                                 <td>{$roleInfo.role_name}</td>
@@ -126,6 +129,16 @@
 
     function roleAuth(role_id){
         window.location.href = "{:url('admin/role/auth')}?role_id=" + role_id;
+    }
+
+
+    function configAuth(role_id){
+        layer.open({
+            type: 2,
+            title: '配置区域权限',
+            area: ['400px', '300px'],
+            content: "{:url('admin/admin/role/regionauth')}?role_id=" + role_id
+        });
     }
 
 </script>

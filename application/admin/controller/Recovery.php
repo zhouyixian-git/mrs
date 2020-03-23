@@ -11,6 +11,7 @@ namespace app\admin\controller;
 
 use think\Db;
 use think\Request;
+use think\Session;
 
 class Recovery extends Base
 {
@@ -27,6 +28,10 @@ class Recovery extends Base
         $site_name = $request->param('site_name');
 
         $where = [];
+
+        if(!empty(self::$loginAdmin['roleRegion'])){
+            $where[] = ['region_id', 'in', self::$loginAdmin['roleRegion']];
+        }
         if (!empty($recovery_record_sn)) {
             $where[] = ['recovery_record_sn', 'like', "%$recovery_record_sn%"];
         }

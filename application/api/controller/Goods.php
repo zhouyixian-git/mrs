@@ -28,6 +28,7 @@ class Goods extends Base
             $page = $request->post('page');
             $sort = $request->post('sort');
             $sort_type = $request->post('sort_type');
+            $cate_id = $request->post('cate_id');
 
             if (empty($page)) {
                 $page = 1;
@@ -46,15 +47,21 @@ class Goods extends Base
                 $order = 'goods_price ' . $sort_type;
             }
 
+            $where = array();
+            $where[] = ['goods_status', '=', 1];
+            if(!empty($cate_id)){
+                $where[] = ['cate_id', '=', $cate_id];
+            }
+
             $goodsList = Db::table('mrs_goods')
-                ->where('goods_status', '=', 1)
+                ->where($where)
                 ->field('goods_id,goods_name,goods_img,goods_price')
                 ->order($order)
                 ->limit(($page - 1) * $pageSize, $pageSize)
                 ->select();
 
             $totalCount = Db::table('mrs_goods')
-                ->where('goods_status', '=', 1)
+                ->where($where)
                 ->count();
 
             if ($goodsList) {
@@ -70,7 +77,7 @@ class Goods extends Base
                 echo $this->successJson($data);
                 exit;
             } else {
-                echo $this->errorJson(1, '没有商品信息');
+                echo $this->successJson(array());
                 exit;
             }
         }
