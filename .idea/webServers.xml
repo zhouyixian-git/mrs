@@ -2,12 +2,12 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="32f106cb-b687-47a6-9cc2-04d503489acf" name="MRS" url="http://193.112.29.213">
-        <fileTransfer host="193.112.29.213" port="21">
+      <webServer id="a3f29c84-9831-49b2-be95-7359150bc921" name="mrs" url="http://120.79.187.147">
+        <fileTransfer host="120.79.187.147" port="22" rootFolder="/www/wwwroot/proc-api.gdjiayuanhuanjing.com/" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
-          <option name="port" value="21" />
+          <option name="port" value="22" />
         </fileTransfer>
       </webServer>
     </option>

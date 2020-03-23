@@ -656,7 +656,7 @@ class Order extends Base
         $domain = config('domain');
         $wechatModel = new \app\api\model\Wechat();
         $data['pay_order_sn'] = $order['pay_order_sn'];
-        $data['order_amount'] = 0.01;   //$order['order_amount']; //todo 默认支付金额设置位0.01，方便测试
+        $data['order_amount'] = $order['order_amount'];
         $data['open_id'] = $order['open_id'];
         $data['body'] = '商品购买';
         $data['notify_url'] = $domain . '/api/wechat/paynotice';

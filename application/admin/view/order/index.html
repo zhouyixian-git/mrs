@@ -36,7 +36,7 @@
                         <div class="form-group">
                             <label class="control-label col-sm-1">订单状态</label>
                             <div class="col-sm-2">
-                                <select class="form-control" name="order_status">
+                                <select class="form-control" name="order_status" id="order_status">
                                     <option value="">全部</option>
                                     <option value="1" {if condition="$order_status eq 1"}selected{/if}>待付款</option>
                                     <option value="2" {if condition="$order_status eq 2"}selected{/if}>待发货</option>
@@ -51,6 +51,9 @@
                             </div>
                             <div class="col-sm-1" style="text-align:center;">
                                 <button type="submit" class="btn btn-sm btn-white">查询</button>
+                                {if condition="in_array('order_export',$loginAdmin.buttonData)"}
+                                <button type="button" onclick="expertOrder()" class="btn btn-sm btn-info">导出</button>
+                                {/if}
                             </div>
                         </div>
                     </form>
@@ -205,6 +208,9 @@
 <script>
     function view(order_id){
         window.location.href = "{:url('admin/admin/order/view')}?order_id=" + order_id;
+    }
+    function expertOrder(){
+        window.location.href = "{:url('admin/admin/order/expert')}?order_status=" + $("#order_status").val() + "&order_sn=" + $("#order_sn").val();
     }
 </script>
 
