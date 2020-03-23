@@ -11,6 +11,8 @@ namespace app\admin\controller;
 
 use think\Db;
 use think\Request;
+use PHPExcel;
+use PHPExcel_IOFactory;
 
 class Order extends Base
 {
@@ -82,11 +84,11 @@ class Order extends Base
 
         //订单商品信息
         $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->select();
-        foreach ($orderGoods as $k => $v){
+        foreach ($orderGoods as $k => $v) {
             $goods_sku = '';
-            if(!empty($v['sku_json'])){
+            if (!empty($v['sku_json'])) {
                 $skuJson = json_decode(json_decode($v['sku_json'], true), true);
-                if(!empty($skuJson)) {
+                if (!empty($skuJson)) {
                     foreach ($skuJson as $key => $value) {
                         $goods_sku .= $value['sku_name'] . '-';
                     }
@@ -170,7 +172,7 @@ class Order extends Base
                 exit;
             }
 
-            if($refund_status == 4 && empty($refuse_reason)){
+            if ($refund_status == 4 && empty($refuse_reason)) {
                 echo $this->errorJson(0, '请填写拒绝退款理由');
                 exit;
             }
@@ -184,7 +186,7 @@ class Order extends Base
                 exit;
             }
 
-            if($refund_status == 4){ //卖家拒绝退款
+            if ($refund_status == 4) { //卖家拒绝退款
                 $data['refund_status'] = 4;
                 $data['refuse_reason'] = $refuse_reason;
                 Db::table('mrs_orders')->where('order_id', '=', $order_id)->update($data);
@@ -286,7 +288,7 @@ class Order extends Base
                 exit;
             }
 
-            if($sales_status == 4 && empty($refuse_reason)){
+            if ($sales_status == 4 && empty($refuse_reason)) {
                 echo $this->errorJson(0, '请填写拒绝退货理由');
                 exit;
             }
@@ -300,7 +302,7 @@ class Order extends Base
                 exit;
             }
 
-            if($sales_status == 4){ //卖家拒绝退货
+            if ($sales_status == 4) { //卖家拒绝退货
                 $data['sales_status'] = 4;
                 $data['refuse_reason'] = $refuse_reason;
                 Db::table('mrs_orders')->where('order_id', '=', $order_id)->update($data);
@@ -379,4 +381,203 @@ class Order extends Base
         $this->assign('order_id', $order_id);
         return $this->fetch();
     }
+
+    /**
+     * 订单导出
+     * @param Request $request
+     */
+    public function expert(Request $request)
+    {
+        $objPHPExcel = new \PHPExcel();
+        $objPHPExcel->setActiveSheetIndex(0);
+
+        $objPHPExcel->getActiveSheet()->getDefaultRowDimension()->setRowHeight(30);
+        $objPHPExcel->getDefaultStyle()->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->getDefaultStyle()->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        // 设置列的宽度
+        $objPHPExcel->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('C')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('D')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('E')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('F')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('G')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('H')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('I')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('J')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('K')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('L')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('M')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('N')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('O')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('P')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('Q')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('R')->setWidth(25);
+        $objPHPExcel->getActiveSheet()->getColumnDimension('S')->setWidth(25);
+
+        // 设置表头
+        $objPHPExcel->getActiveSheet()->SetCellValue('A1', '订单号');
+        $objPHPExcel->getActiveSheet()->SetCellValue('B1', '用户名称');
+        $objPHPExcel->getActiveSheet()->SetCellValue('C1', '商品名称');
+        $objPHPExcel->getActiveSheet()->SetCellValue('D1', '商品数量');
+        $objPHPExcel->getActiveSheet()->SetCellValue('E1', '商品价格');
+        $objPHPExcel->getActiveSheet()->SetCellValue('F1', '订单状态');
+        $objPHPExcel->getActiveSheet()->SetCellValue('G1', '支付状态');
+        $objPHPExcel->getActiveSheet()->SetCellValue('H1', '发货状态');
+        $objPHPExcel->getActiveSheet()->SetCellValue('I1', '退款状态');
+        $objPHPExcel->getActiveSheet()->SetCellValue('J1', '退货状态');
+        $objPHPExcel->getActiveSheet()->SetCellValue('K1', '支付方式');
+        $objPHPExcel->getActiveSheet()->SetCellValue('L1', '订单金额');
+        $objPHPExcel->getActiveSheet()->SetCellValue('M1', '积分金额');
+        $objPHPExcel->getActiveSheet()->SetCellValue('N1', '现金金额');
+        $objPHPExcel->getActiveSheet()->SetCellValue('O1', '创建时间');
+        $objPHPExcel->getActiveSheet()->SetCellValue('P1', '支付时间');
+        $objPHPExcel->getActiveSheet()->SetCellValue('Q1', '发货时间');
+        $objPHPExcel->getActiveSheet()->SetCellValue('R1', '订单取消时间');
+        $objPHPExcel->getActiveSheet()->SetCellValue('S1', '确认收货时间');
+
+        //查询订单数据
+        $order_sn = $request->param('order_sn');
+        $order_status = $request->param('order_status');
+        $where = [];
+        if (!empty($order_sn)) {
+            $where[] = ['t1.order_sn', 'like', "%$order_sn%"];
+        }
+        if (!empty($order_status)) {
+            $where[] = ['t1.order_status', '=', $order_status];
+        }
+
+        $orderList = Db::table('mrs_orders')
+            ->alias('t1')
+            ->field('t1.*')
+            ->where($where)
+            ->order('t1.create_time desc')
+            ->select();
+
+        //存取数据
+        $num = 2;
+        foreach ($orderList as $k => $v) {
+            $objPHPExcel->getActiveSheet()->SetCellValue('A' . $num, ' ' . $v['order_sn']); //防止订单号过长变成科学计算问题所以在订单号前拼接空字符，转化为字符串。 ' '.$v['order_no']
+            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $num, $v['user_name']);
+
+            $order_status_remark = '未知';
+            if ($v['order_status'] == 1) {
+                $order_status_remark = '待付款';
+            } else if ($v['order_status'] == 2) {
+                $order_status_remark = '待发货';
+            } else if ($v['order_status'] == 3) {
+                $order_status_remark = '已发货';
+            } else if ($v['order_status'] == 4) {
+                $order_status_remark = '已收货';
+            } else if ($v['order_status'] == 5) {
+                $order_status_remark = '已取消';
+            }
+            $objPHPExcel->getActiveSheet()->SetCellValue('F' . $num, $order_status_remark);
+            $pay_status_remark = '未知';
+            if ($v['pay_status'] == 1) {
+                $pay_status_remark = '未付款';
+            } else if ($v['pay_status'] == 2) {
+                $pay_status_remark = '已付款';
+            }
+            $objPHPExcel->getActiveSheet()->SetCellValue('G' . $num, $pay_status_remark);
+            $shipping_status_remark = '未知';
+            if ($v['pay_status'] == 1) {
+                $shipping_status_remark = '未发货';
+            } else if ($v['pay_status'] == 2) {
+                $shipping_status_remark = '已发货';
+            } else if ($v['pay_status'] == 3) {
+                $shipping_status_remark = '已收货';
+            }
+            $objPHPExcel->getActiveSheet()->SetCellValue('H' . $num, $shipping_status_remark);
+            $refund_status_remark = '未知';
+            if ($v['refund_status'] == 1) {
+                $refund_status_remark = '没有退款';
+            } else if ($v['refund_status'] == 2) {
+                $refund_status_remark = '买家申请退款';
+            } else if ($v['refund_status'] == 3) {
+                $refund_status_remark = '退款中';
+            } else if ($v['refund_status'] == 4) {
+                $refund_status_remark = '卖家拒绝退款';
+            } else if ($v['refund_status'] == 5) {
+                $refund_status_remark = '退款成功';
+            }
+            $objPHPExcel->getActiveSheet()->SetCellValue('I' . $num, $refund_status_remark);
+            $sales_status_remark = '未知';
+            if ($v['sales_status'] == 1) {
+                $sales_status_remark = '没有退货';
+            } else if ($v['sales_status'] == 2) {
+                $sales_status_remark = '买家申请退货';
+            } else if ($v['sales_status'] == 3) {
+                $sales_status_remark = '退货中';
+            } else if ($v['sales_status'] == 4) {
+                $sales_status_remark = '卖家拒绝退货';
+            } else if ($v['sales_status'] == 5) {
+                $sales_status_remark = '退货成功';
+            }
+            $objPHPExcel->getActiveSheet()->SetCellValue('J' . $num, $sales_status_remark);
+            $pay_type_remark = '未知';
+            if ($v['pay_type'] == 1) {
+                $pay_type_remark = '积分抵扣';
+            } else if ($v['pay_type'] == 2) {
+                $pay_type_remark = '积分+微信支付';
+            }
+            $objPHPExcel->getActiveSheet()->SetCellValue('K' . $num, $pay_type_remark);
+            $objPHPExcel->getActiveSheet()->SetCellValue('L' . $num, $v['order_amount']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('M' . $num, $v['integral_amount']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('N' . $num, $v['cash_amount']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('O' . $num, empty($v['create_time']) ? '-' : date('Y-m-d H:i', $v['create_time']));
+            $objPHPExcel->getActiveSheet()->SetCellValue('P' . $num, empty($v['pay_time']) ? '-' : date('Y-m-d H:i', $v['pay_time']));
+            $objPHPExcel->getActiveSheet()->SetCellValue('Q' . $num, empty($v['shipping_time']) ? '-' : date('Y-m-d H:i', $v['shipping_time']));
+            $objPHPExcel->getActiveSheet()->SetCellValue('R' . $num, empty($v['cancel_time']) ? '-' : date('Y-m-d H:i', $v['cancel_time']));
+            $objPHPExcel->getActiveSheet()->SetCellValue('S' . $num, empty($v['confirm_time']) ? '-' : date('Y-m-d H:i', $v['confirm_time']));
+
+            $goodsList = Db::table('mrs_order_goods')
+                ->field('goods_name,goods_num,goods_price')
+                ->where('order_id', '=', $v['order_id'])->select();
+            foreach ($goodsList as $k1 => $v1) {
+                $objPHPExcel->getActiveSheet()->SetCellValue('C' . $num, $v1['goods_name']);
+                $objPHPExcel->getActiveSheet()->SetCellValue('D' . $num, $v1['goods_num']);
+                $objPHPExcel->getActiveSheet()->SetCellValue('E' . $num, $v1['goods_price']);
+                $num++;
+            }
+
+            if(count($goodsList) > 1){
+                $start = $num - count($goodsList);
+                $end = $num - 1;
+                $objPHPExcel->setActiveSheetIndex(0)
+                    ->mergeCells('A' . $start . ':A' . $end)
+                    ->mergeCells('B' . $start . ':B' . $end)
+                    ->mergeCells('F' . $start . ':F' . $end)
+                    ->mergeCells('G' . $start . ':G' . $end)
+                    ->mergeCells('H' . $start . ':H' . $end)
+                    ->mergeCells('I' . $start . ':I' . $end)
+                    ->mergeCells('L' . $start . ':L' . $end)
+                    ->mergeCells('M' . $start . ':M' . $end)
+                    ->mergeCells('N' . $start . ':N' . $end)
+                    ->mergeCells('O' . $start . ':O' . $end)
+                    ->mergeCells('P' . $start . ':P' . $end)
+                    ->mergeCells('Q' . $start . ':Q' . $end)
+                    ->mergeCells('R' . $start . ':R' . $end)
+                    ->mergeCells('S' . $start . ':S' . $end);
+            }
+        }
+
+        $fileName = "订单信息" . time();
+        $xlsName = iconv('utf-8', 'gb2312', $fileName);
+        $objPHPExcel->getActiveSheet()->setTitle('订单列表'); // 设置工作表名
+        $objWriter = new \PHPExcel_Writer_Excel5($objPHPExcel); //下载 excel5与excel2007
+        ob_end_clean(); // 清除缓冲区,避免乱码
+        header("Pragma: public");
+        header("Expires: 0");
+        header("Cache-Control:must-revalidate,post-check=0,pre-check=0");
+        header("Content-Type:application/force-download");
+        header("Content-Type:application/vnd.ms-execl;charset=UTF-8");
+        header("Content-Type:application/octet-stream");
+        header("Content-Type:application/download");
+        header("Content-Disposition:attachment;filename=" . $xlsName . ".xls");
+        header("Content-Transfer-Encoding:binary");
+        $objWriter->save("php://output");
+    }
+
 }
