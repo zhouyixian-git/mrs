@@ -80,6 +80,18 @@
                     return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 16px;padding-bottom: 7px;margin-bottom: 7px;"> ' + name + '(' + value + ')' +
                 '</div>';
                 }
+            },
+            toolbox: {
+                show: true,
+                    feature: {
+                    dataZoom: {
+                        yAxisIndex: 'none'
+                    },
+                    dataView: {readOnly: false},   //  缩放
+                    magicType: {type: ['line', 'bar']},   ///　　折线  直方图切换
+                    restore: {}, // 重置
+                    saveAsImage: {} // 导出图片
+                }
             }
         };
         orderChart.setOption(orderOption);
@@ -109,6 +121,18 @@
                     return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 16px;padding-bottom: 7px;margin-bottom: 7px;"> ' + name + '(' + value + ')' +
                     '</div>';
                 }
+            },
+            toolbox: {
+                show: true,
+                    feature: {
+                    dataZoom: {
+                        yAxisIndex: 'none'
+                    },
+                    dataView: {readOnly: false},   //  缩放
+                    magicType: {type: ['line', 'bar']},   ///　　折线  直方图切换
+                    restore: {}, // 重置
+                    saveAsImage: {} // 导出图片
+                }
             }
         };
         recoveryChart.setOption(recoveryOption);
@@ -137,6 +161,18 @@
                     var value = param.value;
                     return '<div style="border-bottom: 1px solid rgba(255,255,255,.3); font-size: 16px;padding-bottom: 7px;margin-bottom: 7px;"> ' + name + '(' + value + ')' +
                     '</div>';
+                }
+            },
+            toolbox: {
+                show: true,
+                    feature: {
+                    dataZoom: {
+                        yAxisIndex: 'none'
+                    },
+                    dataView: {readOnly: false},   //  缩放
+                    magicType: {type: ['line', 'bar']},   ///　　折线  直方图切换
+                    restore: {}, // 重置
+                    saveAsImage: {} // 导出图片
                 }
             }
         };
