@@ -618,7 +618,7 @@ class Recovery extends Base
             $integralDetail['integral_value'] = $total_integral;
             $integralDetail['type'] = 1;
             $integralDetail['action_desc'] = '回收物品增加积分';
-            $integralDetail['invalid_time'] = time() + 86400*3650;
+            $integralDetail['invalid_time'] = time() + 86400*180;
             $integralDetail['create_time'] = time();
             $res4 = Db::table('mrs_integral_detail')->insert($integralDetail);
 

@@ -11,10 +11,14 @@ class Crond extends Base
     public function index()
     {
         //自动收货调度
-        $this->autoConfirmOrder();
+        echo $this->autoConfirmOrder();
 
         //自动取消订单调度
-        $this->autoCancelOrder();
+        echo $this->autoCancelOrder();
+
+        //自动失效积分
+        echo $this->overtimeintegral();
+        exit;
     }
 
     //自动收货调度
@@ -67,8 +71,7 @@ class Crond extends Base
                 $confirmOrderCount = 0;
             }
         }
-        echo 'Auto confirm order shipping status count：'.$confirmOrderCount;
-        exit;
+        return 'Auto confirm order shipping status count：'.$confirmOrderCount.'<hr>';
 
     }
 
@@ -118,10 +121,52 @@ class Crond extends Base
                 $cancelOrderCount = 0;
             }
         }
-        echo 'Auto cancel order status count：'.$cancelOrderCount;
-        exit;
+        return 'Auto cancel order status count：'.$cancelOrderCount.'<hr>';
+    }
 
+    function overtimeintegral(){
+        $overtimeIntegral = 0;
 
+        $where = array();
+        $where[] = ['invalid_time','>',time()];
+        $where[] = ['is_overtime','=','0'];
+        $where[] = ['type','=','1'];
+
+        $integralRecords = Db::table('mrs_integral_detail')->where($where)->select();
+
+        if(is_array($integralRecords) && count($integralRecords) > 0 ){
+            Db::startTrans();
+            try{
+                foreach($integralRecords as $k=>$record){
+                    $user = Db::table("mrs_user")->where('user_id','=',$record['user_id'])->find();
+                    if($user['able_integral'] >= $record['integral_value']){
+                        //增加对应用户积分明细记录
+                        $integralDetail = array();
+                        $integralDetail['user_id'] = $record['user_id'];
+                        $integralDetail['integral_value'] = $record['integral_value'];
+                        $integralDetail['type'] = 2;
+                        $integralDetail['action_desc'] = '积分失效，减少对应积分';
+                        $integralDetail['create_time'] = time();
+                        Db::table('mrs_integral_detail')->insert($integralDetail);
+
+                        //用户积分变化
+                        $userUpdata = array();
+                        $userUpdata['able_integral'] = $user['able_integral'] - $record['integral_value'];
+                        $userUpdata['overtime_integral'] = $user['overtime_integral'] + $record['integral_value'];
+                        Db::table("mrs_user")->where('user_id','=',$record['user_id'])->update($userUpdata);
+                    }
+
+                    Db::table('mrs_integral_detail')->where('detail_id', '=', $record['detail_id'])->update(array('is_overtime'=>'1'));
+                    $overtimeIntegral++;
+                }
+
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                $overtimeIntegral = 0;
+            }
+        }
+        return 'Auto overtime integral count：'.$overtimeIntegral.'<hr>';
     }
 
 }
