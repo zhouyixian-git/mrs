@@ -96,7 +96,8 @@ class Wechat extends Base
                     $userInfo['create_time'] = time();
 
                     $userModel = new \app\api\model\User();
-                    $user_id = $userModel->insert($userInfo);
+                    $userModel->insert($userInfo);
+                    $user_id = $userModel->getLastInsID();
                     $userInfo['user_id'] = $user_id;
                     $userInfo['has_login'] = 0;
 

@@ -679,8 +679,8 @@ class Order extends Base
             echo $this->errorJson('1', '订单不存在');
             exit;
         }
-        if($order['order_status'] != '1'){
-            echo $this->errorJson('1', '该订单状态不能取消');
+        if($order['order_status'] == '5'){
+            echo $this->errorJson('1', '该订单状态已取消成功');
             exit;
         }
         if($order['order_status'] != '1'){
@@ -691,7 +691,6 @@ class Order extends Base
             echo $this->errorJson('1', '该订单已付款，取消失败');
             exit;
         }
-
 
         $orderArr[] = $order['order_id'];
 
