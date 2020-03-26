@@ -68,7 +68,7 @@ function sendSms($phone, $tpl_code)
     $smsRecordData['is_use'] = '0';
     $smsRecordData['record_time'] = time();
 
-    $record_id = Db::table('mrs_sms_record')->insert($smsRecordData);
+    Db::table('mrs_sms_record')->insert($smsRecordData);
 
     $params = Db::table('mrs_api_params')->where(array('api_id' => $smsApi['api_id']))->select();
     if (is_array($params) && count($params)) {
@@ -160,7 +160,7 @@ function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements
     $smsRecordData['is_use'] = '0';
     $smsRecordData['record_time'] = time();
 
-    $record_id = Db::table('mrs_sms_record')->insert($smsRecordData);
+    Db::table('mrs_sms_record')->insert($smsRecordData);
 
     $params = Db::table('mrs_api_params')->where(array('api_id' => $smsApi['api_id']))->select();
     if (is_array($params) && count($params)) {

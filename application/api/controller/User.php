@@ -729,7 +729,7 @@ class User extends Base
                 $cartData['goods_num'] = $goods_num;
                 $cartData['create_time'] = time();
 
-                $cart_id = Db::table('mrs_carts')->insert($cartData);
+                Db::table('mrs_carts')->insert($cartData);
 
             }
             echo $this->successJson();
