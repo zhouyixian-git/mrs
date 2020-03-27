@@ -97,18 +97,18 @@ class Recovery extends Base
     }
 
 
-
     /**
      * 计算两点地理坐标之间的距离
      * @param  Decimal $longitude1 起点经度
-     * @param  Decimal $latitude1  起点纬度
+     * @param  Decimal $latitude1 起点纬度
      * @param  Decimal $longitude2 终点经度
-     * @param  Decimal $latitude2  终点纬度
-     * @param  Int     $unit       单位 1:米 2:公里
-     * @param  Int     $decimal    精度 保留小数位数
+     * @param  Decimal $latitude2 终点纬度
+     * @param  Int $unit 单位 1:米 2:公里
+     * @param  Int $decimal 精度 保留小数位数
      * @return Decimal
      */
-    function getDistance($longitude1, $latitude1, $longitude2, $latitude2, $unit=2, $decimal=2){
+    function getDistance($longitude1, $latitude1, $longitude2, $latitude2, $unit = 2, $decimal = 2)
+    {
 
         $EARTH_RADIUS = 6370.996; // 地球半径系数
         $PI = 3.1415926;
@@ -117,15 +117,15 @@ class Recovery extends Base
         $radLat2 = $latitude2 * $PI / 180.0;
 
         $radLng1 = $longitude1 * $PI / 180.0;
-        $radLng2 = $longitude2 * $PI /180.0;
+        $radLng2 = $longitude2 * $PI / 180.0;
 
         $a = $radLat1 - $radLat2;
         $b = $radLng1 - $radLng2;
 
-        $distance = 2 * asin(sqrt(pow(sin($a/2),2) + cos($radLat1) * cos($radLat2) * pow(sin($b/2),2)));
+        $distance = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2)));
         $distance = $distance * $EARTH_RADIUS * 1000;
 
-        if($unit==2){
+        if ($unit == 2) {
             $distance = $distance / 1000;
         }
 
@@ -168,7 +168,7 @@ class Recovery extends Base
                 $total_page = ceil($totalCount / $pageSize);
 
                 foreach ($recordList as $k => $v) {
-                    $recordList[$k]['call_create_time'] = empty($v['call_create_time'])?'-':date('Y-m-d H:i:s', $v['call_create_time']);
+                    $recordList[$k]['call_create_time'] = empty($v['call_create_time']) ? '-' : date('Y-m-d H:i:s', $v['call_create_time']);
                 }
 
                 $data['record_list'] = $recordList;
@@ -186,7 +186,8 @@ class Recovery extends Base
      * 生成上门预约记录
      * @param Request $request
      */
-    public function callrecovery(Request $request){
+    public function callrecovery(Request $request)
+    {
         $user_id = $request->post("user_id");
         $address = $request->post("address");
         $lng = $request->post("lng");
@@ -197,48 +198,48 @@ class Recovery extends Base
         $call_create_time = ($request->post("call_create_time"));
         $remark = $request->post("remark");
 
-        if(empty($user_id)){
-            echo $this->errorJson('1','缺少关键参数user_id');
+        if (empty($user_id)) {
+            echo $this->errorJson('1', '缺少关键参数user_id');
             exit;
         }
 
-        if(empty($address)){
-            echo $this->errorJson('1','缺少关键参数address');
+        if (empty($address)) {
+            echo $this->errorJson('1', '缺少关键参数address');
             exit;
         }
 
-        if(empty($lng)){
-            echo $this->errorJson('1','缺少关键参数$lng');
+        if (empty($lng)) {
+            echo $this->errorJson('1', '缺少关键参数$lng');
             exit;
         }
 
-        if(empty($lat)){
-            echo $this->errorJson('1','缺少关键参数$lat');
+        if (empty($lat)) {
+            echo $this->errorJson('1', '缺少关键参数$lat');
             exit;
         }
 
-        if(empty($user_phone_no)){
-            echo $this->errorJson('1','缺少关键参数$user_phone_no');
+        if (empty($user_phone_no)) {
+            echo $this->errorJson('1', '缺少关键参数$user_phone_no');
             exit;
         }
 
-        if(empty($recovery_cate_id)){
-            echo $this->errorJson('1','缺少关键参数$recovery_cate_id');
+        if (empty($recovery_cate_id)) {
+            echo $this->errorJson('1', '缺少关键参数$recovery_cate_id');
             exit;
         }
 
-        if(empty($recovery_cate_name)){
-            echo $this->errorJson('1','缺少关键参数$recovery_cate_name');
+        if (empty($recovery_cate_name)) {
+            echo $this->errorJson('1', '缺少关键参数$recovery_cate_name');
             exit;
         }
 
-        if(empty($call_create_time)){
-            echo $this->errorJson('1','$call_create_time格式不正确');
+        if (empty($call_create_time)) {
+            echo $this->errorJson('1', '$call_create_time格式不正确');
             exit;
         }
 
         //查找最近的一个师傅
-        $maxDistance = Db::table("mrs_system_setting")->where('setting_code', '=','call_recovery_max_distance')->find();
+        $maxDistance = Db::table("mrs_system_setting")->where('setting_code', '=', 'call_recovery_max_distance')->find();
 
         $where = array();
         $where[] = ['is_actived', '=', 1];
@@ -272,12 +273,12 @@ class Recovery extends Base
             ->find();
 
 
-        if($master['distance'] > $maxDistance['setting_value']){
+        if ($master['distance'] > $maxDistance['setting_value']) {
             echo $this->errorJson('1', '附近没有可预约的上门人员.');
             exit;
         }
 
-        if(empty($master)){
+        if (empty($master)) {
             echo $this->errorJson('1', '附近没有可预约的上门人员.');
             exit;
         }
@@ -300,7 +301,7 @@ class Recovery extends Base
         $callRecord['notice_status'] = 0;
 
         $res = Db::table('mrs_call_recovery_record')->insert($callRecord);
-        if(empty($res)){
+        if (empty($res)) {
             echo errorJson('1', '系统异常，请稍后再试');
             exit;
         }
@@ -319,23 +320,23 @@ class Recovery extends Base
         $replacements[] = $address;
         $replacements[] = $user_phone_no;
         $replacements[] = $call_create_time;
-        $replacements[] = empty($remark)?'无':$remark;
+        $replacements[] = empty($remark) ? '无' : $remark;
 
         $smsParam = array();
         $smsParam['address'] = $address;
         $smsParam['user_phone_no'] = $user_phone_no;
         $smsParam['call_create_time'] = $call_create_time;
-        $smsParam['remark'] = empty($remark)?'无':$remark;
+        $smsParam['remark'] = empty($remark) ? '无' : $remark;
 
-        $res = sendSmsCommon($master['master_phone_no'], 'call_master_order', $patterns, $replacements,$smsParam);
+        $res = sendSmsCommon($master['master_phone_no'], 'call_master_order', $patterns, $replacements, $smsParam);
         $result = json_decode($res, true);
 
-        if($result['errcode'] == 1){
+        if ($result['errcode'] == 1) {
             Db::table('mrs_call_recovery_record')->where('call_recovery_record_id', '=', $record_id)->delete();
 
             echo errorJson('1', '预约失败，请联系站点工作人员');
             exit;
-        }else{
+        } else {
             $data = array();
             $data['notice_status'] = 1;
             Db::table('mrs_call_recovery_record')->where('call_recovery_record_id', '=', $record_id)->update($data);
@@ -346,7 +347,8 @@ class Recovery extends Base
         }
     }
 
-    public function getcallcate(Request $request){
+    public function getcallcate(Request $request)
+    {
 
         $cate = new \app\api\model\Callrecoverycate();
         $cateData = $cate->getCateTree(0);
@@ -355,7 +357,9 @@ class Recovery extends Base
         echo successJson($cateData);
         exit;
     }
-    public function createserialdata(Request $request){
+
+    public function createserialdata(Request $request)
+    {
         $mach_id = $request->post("mach_id");
         $order = $request->post("order");
         $weight = $request->post("weight");
@@ -377,7 +381,7 @@ class Recovery extends Base
         $card_id = str2Hex($card_id);
 
         $retData = $mach_id;
-        $retData .= $order.'0000';
+        $retData .= $order . '0000';
         $retData .= $weight;
         $retData .= $temp;
         $retData .= $card_id;
@@ -385,17 +389,18 @@ class Recovery extends Base
         $crc = calcCRC($retData);
         $retData .= $crc;
 
-        $retData = 'aabb'.$retData.'ccdd';
+        $retData = 'aabb' . $retData . 'ccdd';
 
-        recordLog('$retData-->'.$retData,'createserialdata.txt');
+        recordLog('$retData-->' . $retData, 'createserialdata.txt');
         echo successJson($retData);
         exit;
     }
 
 
-    public function analyserial(Request $request){
+    public function analyserial(Request $request)
+    {
         $serial_data = $request->post("serial_data");
-        recordLog('serial_data-->'.$serial_data,'analyserialData.txt');
+        recordLog('serial_data-->' . $serial_data, 'analyserialData.txt');
 
 //        $serial_data = bin2Bin($serial_data);
         //报文校验
@@ -413,28 +418,28 @@ class Recovery extends Base
         $card = reverseStr(substr($serial_data, 32, 8));
         $crc = reverseStr(substr($serial_data, 40, 4));
 
-        $new_serial_data = $mach_id.$order.$senser.$weight.$temp.$card.$crc;
-        recordLog('$new_serial_data-->'.$new_serial_data,'analyserialData.txt');
+        $new_serial_data = $mach_id . $order . $senser . $weight . $temp . $card . $crc;
+        recordLog('$new_serial_data-->' . $new_serial_data, 'analyserialData.txt');
 
 
-        $data['mach_id'] = hexdec('0x'.$mach_id);
-        $data['order'] = hexdec('0x'.$order);
-        $data['weight'] = hexdec('0x'.$weight);
-        $data['temp'] = hexdec('0x'.$temp);
-        $data['card'] = hexdec('0x'.$card);
+        $data['mach_id'] = hexdec('0x' . $mach_id);
+        $data['order'] = hexdec('0x' . $order);
+        $data['weight'] = hexdec('0x' . $weight);
+        $data['temp'] = hexdec('0x' . $temp);
+        $data['card'] = hexdec('0x' . $card);
 
         $sysCrc = calcCRC($new_serial_data);
 
 //        recordLog('$sysCrc-->'.$sysCrc,'analyserialData.txt');
-        if(strtolower($crc) != strtolower($sysCrc)){
+        if (strtolower($crc) != strtolower($sysCrc)) {
             echo errorJson('1', '报文校验失败，请检查报文校验码');
             exit;
         }
 
         //传感器数据解析
-        $binStr = decbin(hexdec('0x'.$senser));
-        $binStr = substr($binStr,-8);
-        $binStr = str_pad($binStr,8,"0",STR_PAD_LEFT);
+        $binStr = decbin(hexdec('0x' . $senser));
+        $binStr = substr($binStr, -8);
+        $binStr = str_pad($binStr, 8, "0", STR_PAD_LEFT);
 
         $senser_state = array();
         $senser_state['clip_guard'] = $binStr[0];
@@ -442,9 +447,9 @@ class Recovery extends Base
         $senser_state['close_putway'] = $binStr[2];
         $senser_state['open_maintain'] = $binStr[3];
         $senser_state['smoke'] = $binStr[7];
-        if($binStr[4] || $binStr[5] || $binStr[6]){
+        if ($binStr[4] || $binStr[5] || $binStr[6]) {
             $senser_state['overflow'] = 1;
-        }else{
+        } else {
             $senser_state['overflow'] = 0;
         }
         $data['senser_state'] = $senser_state;
@@ -453,9 +458,10 @@ class Recovery extends Base
         exit;
     }
 
-    public function analymach(Request $request){
+    public function analymach(Request $request)
+    {
         $serial_data = $request->post("serial_data");
-        recordLog('serial_data-->'.$serial_data,'analymach.txt');
+        recordLog('serial_data-->' . $serial_data, 'analymach.txt');
 
 //        $serial_data = bin2Bin($serial_data);
         //报文校验
@@ -476,7 +482,7 @@ class Recovery extends Base
             $machData = (substr($serial_data, 0, 24));
             $serial_data = (substr($serial_data, 24));
 
-            $machList[$i]['mach_id'] = hexdec('0x' .reverseStr(substr($machData, 0, 8)));
+            $machList[$i]['mach_id'] = hexdec('0x' . reverseStr(substr($machData, 0, 8)));
             $machList[$i]['total_wight'] = hexdec('0x' . reverseStr(substr($machData, 8, 8)));
             $senser = reverseStr(substr($machData, 16, 2));
             $machList[$i]['line_state'] = reverseStr(substr($machData, 18, 2));
@@ -488,6 +494,10 @@ class Recovery extends Base
             if (!empty($recoveryCate)) {
                 $recoveryCate['bg_icon_img'] = $domain . $recoveryCate['bg_icon_img'];
                 $machList[$i]['recoveryCate'] = $recoveryCate;
+            } else {
+                unset($machList[$i]);
+                $i++;
+                continue;
             }
 
             //传感器数据解析
@@ -524,35 +534,36 @@ class Recovery extends Base
     }
 
 
-    public function recoveryaction(Request $request){
+    public function recoveryaction(Request $request)
+    {
         $user_id = $request->post("user_id");
         $site_id = $request->post("site_id");
         $details = $request->post("details");
 
-        if(empty($user_id)){
-            echo errorJson('1','缺少关键参数$user_id');
+        if (empty($user_id)) {
+            echo errorJson('1', '缺少关键参数$user_id');
             exit;
         }
 
-        $user = Db::table('mrs_user')->where("user_id","=",$user_id)->find();
-        if(empty($user)){
-            echo errorJson('1','该用户不存在');
+        $user = Db::table('mrs_user')->where("user_id", "=", $user_id)->find();
+        if (empty($user)) {
+            echo errorJson('1', '该用户不存在');
             exit;
         }
 
-        if(empty($site_id)){
-            echo errorJson('1','缺少关键参数$site_id');
+        if (empty($site_id)) {
+            echo errorJson('1', '缺少关键参数$site_id');
             exit;
         }
 
-        $site = Db::table('mrs_site')->where("site_id","=",$site_id)->find();
-        if(empty($site)){
-            echo errorJson('1','站点信息不存在');
+        $site = Db::table('mrs_site')->where("site_id", "=", $site_id)->find();
+        if (empty($site)) {
+            echo errorJson('1', '站点信息不存在');
             exit;
         }
 
-        if(empty($details)){
-            echo errorJson('1','缺少关键参数$details');
+        if (empty($details)) {
+            echo errorJson('1', '缺少关键参数$details');
             exit;
         }
 
@@ -560,15 +571,15 @@ class Recovery extends Base
         $details = json_decode($details, true);
         $recordDetails = array();
         $record = array();
-        $record['recovery_record_sn'] = date("YmdHis", time()).rand(0000000,9999999);
+        $record['recovery_record_sn'] = date("YmdHis", time()) . rand(0000000, 9999999);
         $record['site_id'] = $site["site_id"];
         $record['user_id'] = $user["user_id"];
         $record['site_name'] = $site["site_name"];
         $record['region_id'] = $site["region_id"];
         $record['region_name'] = $site["region_name"];
         $record['recovery_time'] = time();
-        $record['total_integral'] =0;
-        $record['total_weight'] =0;
+        $record['total_integral'] = 0;
+        $record['total_weight'] = 0;
 
         Db::startTrans();
         $res1 = Db::table('mrs_recovery_record')->insert($record);
@@ -577,15 +588,15 @@ class Recovery extends Base
         $total_integral = 0;
         $total_weight = 0;
 
-        if(is_array($details) && count($details) > 0){
-            foreach ($details as $k=>$v){
-                $cate = Db::table("mrs_recovery_cate")->where("cate_id","=",$v['cate_id'])->find();
-                if(empty($cate)){
-                    echo errorJson('1','分类信息错误，无法生成回收记录');
+        if (is_array($details) && count($details) > 0) {
+            foreach ($details as $k => $v) {
+                $cate = Db::table("mrs_recovery_cate")->where("cate_id", "=", $v['cate_id'])->find();
+                if (empty($cate)) {
+                    echo errorJson('1', '分类信息错误，无法生成回收记录');
                     exit;
                 }
                 //计算积分值
-                $integral = $cate['integral'] * $v['weight']/$cate['unit_weight'];
+                $integral = $cate['integral'] * $v['weight'] / $cate['unit_weight'];
 
                 //计算总重量、总积分
                 $total_integral += $integral;
@@ -602,15 +613,15 @@ class Recovery extends Base
             $data = array();
             $data['total_integral'] = $total_integral;
             $data['total_weight'] = $total_weight;
-            $res2 = Db::table('mrs_recovery_record')->where("recovery_record_id","=",$record_id)->update($data);
+            $res2 = Db::table('mrs_recovery_record')->where("recovery_record_id", "=", $record_id)->update($data);
 
             $res3 = Db::table("mrs_recovery_record_detail")->insertAll($recordDetails);
 
             //对应用户增加积分
-            $userData= array();
+            $userData = array();
             $userData['total_integral'] = $user['total_integral'] + $total_integral;
             $userData['able_integral'] = $user['able_integral'] + $total_integral;
-            Db::table('mrs_user')->where('user_id','=',$user_id)->update($userData);
+            Db::table('mrs_user')->where('user_id', '=', $user_id)->update($userData);
 
             //增加对应用户积分明细
             $integralDetail = array();
@@ -618,29 +629,26 @@ class Recovery extends Base
             $integralDetail['integral_value'] = $total_integral;
             $integralDetail['type'] = 1;
             $integralDetail['action_desc'] = '回收物品增加积分';
-            $integralDetail['invalid_time'] = time() + 86400*180;
+            $integralDetail['invalid_time'] = time() + 86400 * 180;
             $integralDetail['create_time'] = time();
             $res4 = Db::table('mrs_integral_detail')->insert($integralDetail);
 
 
-            if($res1 && $res2 && $res3 && $res4){
+            if ($res1 && $res2 && $res3 && $res4) {
                 Db::commit();
                 echo successJson();
-            }else{
+            } else {
                 Db::rollback();
                 echo errorJson('1', '系统异常，请稍后再试。');
             }
             exit;
 
-        }else{
-            echo errorJson('1','数据缺失，无法生成回收记录');
+        } else {
+            echo errorJson('1', '数据缺失，无法生成回收记录');
             exit;
         }
 
     }
-
-
-
 
 
 }
