@@ -57,7 +57,7 @@
                     <table class="table table-bordered table-hover">
                         <thead>
                         <tr>
-                            <th style="width: 150px;">操作</th>
+                            <th style="width: 250px;">操作</th>
                             <th>站点名称</th>
                             <th>站点坐标</th>
                             <th>站点地址</th>
@@ -78,6 +78,9 @@
                                     {if condition="in_array('site_list_delete',$loginAdmin.buttonData)"}
                                     <button type="button" onclick="delSite({$siteInfo.site_id})" class="btn btn-sm btn-danger">删除</button>
                                     {/if}
+                                    {if condition="in_array('device_state_detail',$loginAdmin.buttonData)"}
+                                    <button type="button" onclick="toDetail({$siteInfo.site_id})" class="btn btn-sm btn-info">查看子设备状态</button>
+                                    {/if}
                                 </td>
                                 <td>{$siteInfo.site_name}</td>
                                 <td>({$siteInfo.lng}, {$siteInfo.lat})</td>
@@ -93,7 +96,7 @@
                                     <span style="color: red;">无效</span>
                                     {/if}
                                 </td>
-                                <td>{$siteInfo.create_time|date="Y-m-d H:i:s"}</td>
+                                <td>{$siteInfo.create_time|dateTime}</td>
                             </tr>
                         {/volist}
                         </tbody>
@@ -115,6 +118,15 @@
 <script>
     function toEdit(site_id){
         window.location.href = "{:url('admin/admin/site/edit')}?site_id=" + site_id;
+    }
+
+    function toDetail(site_id){
+        layer.open({
+            type: 2,
+            title: '子设备状态',
+            area: ['1000px', '500px'],
+            content: "{:url('admin/admin/site/detail')}?site_id=" + site_id
+        });
     }
 
     function delSite(site_id){
