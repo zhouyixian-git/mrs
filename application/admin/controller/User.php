@@ -131,4 +131,30 @@ class User extends Base
         return $this->fetch();
     }
 
+    /**
+     * 用户积分流水
+     * @param Request $request
+     */
+    public function integral(Request $request)
+    {
+        $user_id = $request->param('user_id');
+        $where = [];
+        if (!empty($user_id)) {
+            $where[] = ['user_id', '=', $user_id];
+        }
+
+        $integralList = Db::table('mrs_integral_detail')
+            ->where($where)
+            ->order('create_time desc')
+            ->paginate(6, false, ['query' => $request->param(), 'type' => 'page\Page', 'var_page' => 'page']);
+
+        $page = $integralList->render();
+        $count = Db::table('mrs_integral_detail')->where($where)->count();
+
+        $this->assign('page', $page);
+        $this->assign('count', $count);
+        $this->assign('integralList', $integralList);
+        return $this->fetch();
+    }
+
 }

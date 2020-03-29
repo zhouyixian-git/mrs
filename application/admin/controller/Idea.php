@@ -35,7 +35,7 @@ class Idea extends Base
         $where[] = ['t1.is_del', '=', 2];
         $ideaList = Db::table('mrs_idea')
             ->alias('t1')
-            ->field('t1.idea_id,t1.idea_title,t1.idea_type,t1.idea_content,t1.user_id,t1.idea_image,t1.create_time,t2.user_name')
+            ->field('t1.idea_id,t1.idea_title,t1.idea_type,t1.idea_content,t1.user_id,t1.idea_image,t1.create_time,t2.nick_name')
             ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->where($where)
             ->order('t1.create_time desc')

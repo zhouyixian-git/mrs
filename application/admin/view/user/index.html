@@ -89,6 +89,7 @@
                                     {if condition="$userInfo.user_type eq 2"}
                                     <button type="button" onclick="configAuth({$userInfo.user_id})" class="btn btn-sm btn-info">配置用户权限</button>
                                     {/if}
+                                    <button type="button" onclick="userIntegral({$userInfo.user_id})" class="btn btn-sm btn-info">用户积分流水</button>
                                 </td>
                                 <td>{$userInfo.user_name}</td>
                                 <td>
@@ -168,6 +169,16 @@
             content: "{:url('admin/admin/user/auth')}?user_id=" + user_id
         });
     }
+
+    function userIntegral(user_id){
+        layer.open({
+            type: 2,
+            title: '用户积分流水',
+            area: ['800px', '500px'],
+            content: "{:url('admin/admin/user/integral')}?user_id=" + user_id
+        });
+    }
+
 </script>
 
 </body>
