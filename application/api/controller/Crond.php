@@ -14,7 +14,7 @@ class Crond extends Base
         echo $this->autoConfirmOrder();
 
         //自动取消订单调度
-        echo $this->autoCancelOrder();
+        //echo $this->autoCancelOrder();
 
         //自动失效积分
         echo $this->overtimeintegral();
