@@ -241,9 +241,9 @@ function successJson($data = null)
     $result = [];
     $result['errcode'] = 0;
     $result['msg'] = 'success';
-    if (!empty($data)) {
+//    if (!empty($data)) {
         $result['data'] = $data;
-    }
+//    }
     return json_encode($result);
 }
 

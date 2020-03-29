@@ -90,7 +90,7 @@ class Recovery extends Base
                 echo $this->successJson($data);
                 exit;
             } else {
-                echo $this->errorJson(1, '没有站点信息');
+                echo successJson(array());
                 exit;
             }
         }
@@ -448,6 +448,7 @@ class Recovery extends Base
             $senser_state['overflow'] = 0;
         }
         $data['senser_state'] = $senser_state;
+        recordLog('$data-->'.json_encode($data),'analyserialData.txt');
 
         echo successJson($data);
         exit;
@@ -529,6 +530,12 @@ class Recovery extends Base
         $site_id = $request->post("site_id");
         $details = $request->post("details");
 
+
+        $posts = $request->post();
+
+        recordLog('post--->'.json_encode($posts), '1.txt');
+        recordLog('$details--->'.json_encode($details), '1.txt');
+
         if(empty($user_id)){
             echo errorJson('1','缺少关键参数$user_id');
             exit;
@@ -563,6 +570,8 @@ class Recovery extends Base
         $record['recovery_record_sn'] = date("YmdHis", time()).rand(0000000,9999999);
         $record['site_id'] = $site["site_id"];
         $record['user_id'] = $user["user_id"];
+        $record['nick_name'] = $user["nick_name"];
+        $record['phone_no'] = $user["phone_no"];
         $record['site_name'] = $site["site_name"];
         $record['region_id'] = $site["region_id"];
         $record['region_name'] = $site["region_name"];
@@ -602,6 +611,12 @@ class Recovery extends Base
             $data = array();
             $data['total_integral'] = $total_integral;
             $data['total_weight'] = $total_weight;
+
+            if(empty($total_weight)){
+                Db::rollback();
+                echo errorJson('1', '请投递物品后再结算。');
+                exit;
+            }
             $res2 = Db::table('mrs_recovery_record')->where("recovery_record_id","=",$record_id)->update($data);
 
             $res3 = Db::table("mrs_recovery_record_detail")->insertAll($recordDetails);
