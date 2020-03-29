@@ -1259,8 +1259,8 @@ class User extends Base
 //            exit;
 //        }
 
+        $userInfo = array();
         if(empty($user_id)){
-            $userInfo = array();
             $userInfo['ic_num'] = $icNum;
             $userInfo['user_name'] = '';
             $userInfo['phone_no'] = '';
@@ -1286,9 +1286,10 @@ class User extends Base
             $data = array();
             $data['ic_num'] = $icNum;
             $res = Db::table('mrs_user')->where('user_id','=',$user_id)->update($data);
+            $userInfo = Db::table('mrs_user')->where('user_id','=',$user_id)->find();
         }
         if($res){
-            echo successJson();
+            echo successJson($userInfo);
         }else{
             echo $this->errorJson('1','存储ID卡信息失败');
         }
