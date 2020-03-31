@@ -154,7 +154,7 @@ class Order extends Base
                     $goods_sku = '';
                     if (!empty($v1['sku_json'])) {
                         $skuJson = json_decode(json_decode($v1['sku_json'], true), true);
-                        if(!empty($skuJson)) {
+                        if (!empty($skuJson)) {
                             foreach ($skuJson as $key => $value) {
                                 $goods_sku .= $value['sku_name'] . '-';
                             }
@@ -210,7 +210,7 @@ class Order extends Base
                 $goods_sku = '';
                 if (!empty($v['sku_json'])) {
                     $skuJson = json_decode(json_decode($v['sku_json'], true), true);
-                    if(!empty($skuJson)) {
+                    if (!empty($skuJson)) {
                         foreach ($skuJson as $key => $value) {
                             $goods_sku .= $value['sku_name'] . '-';
                         }
@@ -319,6 +319,14 @@ class Order extends Base
             ->find();
         $data['address'] = $address;
 
+        //查询用户积分
+        $able_integral = Db::table('mrs_user')->where('user_id', '=', $user_id)->value('able_integral');
+        //积分兑换比例
+        $integral_rate = Db::table('mrs_system_setting')->where('setting_code', '=', 'integral')->value('setting_value');
+
+        $data['able_integral'] = empty($able_integral) ? 0 : $able_integral;
+        $data['integral_rate'] = empty($integral_rate) ? 80 : $integral_rate;
+
         $data['total_goods_price'] = 0;
         $data['discount_price'] = 0;
         $data['shipping_price'] = 0;
@@ -336,7 +344,7 @@ class Order extends Base
                 $goods_sku = '';
                 if (!empty($cart['sku_json'])) {
                     $skuJson = json_decode(json_decode($cart['sku_json'], true), true);
-                    if(!empty($skuJson)) {
+                    if (!empty($skuJson)) {
                         foreach ($skuJson as $key => $value) {
                             $goods_sku .= $value['sku_name'] . '-';
                         }
@@ -357,7 +365,7 @@ class Order extends Base
             $goods_sku = '';
             if (!empty($goods_sku_str)) {
                 $skuJson = json_decode($goods_sku_str, true);
-                if(!empty($skuJson)) {
+                if (!empty($skuJson)) {
                     foreach ($skuJson as $key => $value) {
                         $goods_sku .= $value['sku_name'] . '-';
                     }
@@ -387,6 +395,9 @@ class Order extends Base
         $open_id = $request->post('open_id');
         $goods_sku = $request->post('goods_sku');
         $goods_num = empty($goods_num) ? 1 : $goods_num;
+        $pay_type = $request->post('pay_type');
+        $integral = $request->post('integral');
+
 
         if (empty($cart_ids) && empty($goods_id)) {
             $result = $this->errorJson(1, '缺少关键参数cart_ids、goods_id');
@@ -440,6 +451,34 @@ class Order extends Base
             $order_amount = bcmul($goods['goods_price'], $goods_num, 2);
         }
 
+        $integral_amount = 0;
+        if ($pay_type == 1) { //微信支付
+            //走原来逻辑，不需要修改
+        } else if ($pay_type == 2) { //微信支付+积分抵扣
+            $where = [];
+            $where[] = ['setting_code', '=', 'integral'];
+            $integral_rate = Db::table('mrs_system_setting')->where($where)->value('setting_value');
+            $integral_rate = empty($integral_rate) ? 80 : $integral_rate;
+
+            $integral_amount = bcmul($integral, $integral_rate * 0.01, 2);
+            $order_amount = bcsub($order_amount, $integral_amount, 2);
+
+        } else if ($pay_type == 3) { //积分抵扣
+            $where = [];
+            $where[] = ['setting_code', '=', 'integral'];
+            $integral_rate = Db::table('mrs_system_setting')->where($where)->value('setting_value');
+            $integral_rate = empty($integral_rate) ? 80 : $integral_rate;
+
+            $integral_amount = bcmul($integral, $integral_rate * 0.01, 2);
+            $order_amount = bcsub($order_amount, 0, 2);
+            if ($integral_amount != $order_amount) {
+                $result = $this->errorJson(1, '积分抵扣额度与订单额度不相等');
+                echo $result;
+                exit;
+            }
+        }
+
+
         $order_sn = date('YmdHis', time()) . rand(100000, 999999);
         $pay_order_sn = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
 
@@ -457,7 +496,7 @@ class Order extends Base
         $orderData['pay_type'] = '1';
         $orderData['order_amount'] = $order_amount;
         $orderData['shipping_amount'] = 0;
-        $orderData['integral_amount'] = 0;
+        $orderData['integral_amount'] = $integral_amount;
         $orderData['cash_amount'] = $order_amount;
         $orderData['consignee'] = $address['consignee'];
         $orderData['telephone'] = $address['telephone'];
@@ -514,6 +553,11 @@ class Order extends Base
                     Db::table('mrs_carts')->where($where)->delete();
                 }
             }
+        }
+
+        if ($pay_type == 2 || $pay_type == 3) { //微信支付+积分 或者 积分抵扣
+            Db::table('mrs_user')->where('user_id', '=', $user_id)->setInc('used_integral', $integral);
+            Db::table('mrs_user')->where('user_id', '=', $user_id)->setDec('able_integral', $integral);
         }
 
         //生成订单动作表
@@ -668,28 +712,29 @@ class Order extends Base
         exit;
     }
 
-    public function ordercancel(Request $request){
+    public function ordercancel(Request $request)
+    {
         $order_id = $request->post('order_id');
-        if(empty($order_id)){
+        if (empty($order_id)) {
             echo $this->errorJson('1', '缺少关键参数order_id');
             exit;
         }
 
         $order = Db::table('mrs_orders')->where('order_id', '=', $order_id)->find();
 
-        if(empty($order)){
+        if (empty($order)) {
             echo $this->errorJson('1', '订单不存在');
             exit;
         }
-        if($order['order_status'] == '5'){
+        if ($order['order_status'] == '5') {
             echo $this->errorJson('1', '该订单状态已取消成功');
             exit;
         }
-        if($order['order_status'] != '1'){
+        if ($order['order_status'] != '1') {
             echo $this->errorJson('1', '该订单状态不能取消');
             exit;
         }
-        if($order['pay_status'] != '1'){
+        if ($order['pay_status'] != '1') {
             echo $this->errorJson('1', '该订单已付款，取消失败');
             exit;
         }
@@ -710,7 +755,7 @@ class Order extends Base
         $updateData['order_status'] = '5';
         $updateData['cancel_time'] = time();
 
-        Db::table('mrs_orders')->where('order_id','=',$order_id)->update($updateData);
+        Db::table('mrs_orders')->where('order_id', '=', $order_id)->update($updateData);
 
         echo $this->successJson();
         exit;

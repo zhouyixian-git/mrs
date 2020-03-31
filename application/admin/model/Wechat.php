@@ -54,7 +54,7 @@ class Wechat extends Model
         }
         if (empty($param['amount'])) {
             $ret['errcode'] = 1;
-            $ret['errmsg'] = '提现金额不能为空';
+            $ret['errmsg'] = '金额不能为空';
             return $ret;
         }
         if (empty($param['openid'])) {

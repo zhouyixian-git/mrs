@@ -518,7 +518,7 @@ class Order extends Base
             $objPHPExcel->getActiveSheet()->SetCellValue('J' . $num, $sales_status_remark);
             $pay_type_remark = '未知';
             if ($v['pay_type'] == 1) {
-                $pay_type_remark = '积分抵扣';
+                $pay_type_remark = '微信支付';
             } else if ($v['pay_type'] == 2) {
                 $pay_type_remark = '积分+微信支付';
             }
