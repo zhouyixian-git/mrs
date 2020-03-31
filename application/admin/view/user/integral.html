@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>用户积分流水</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <style>
+        body{overflow-y: hidden;}
+        .i-checks label{margin-top: -15px !important;margin-bottom: 20px !important;}
+    </style>
+</head>
+
+<body class="gray-bg">
+    <div class="row wrapper wrapper-content animated fadeInRight">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <form class="form-horizontal" id="postForm">
+                    <div class="form-group">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th style="width: 100px;">积分值</th>
+                                <th style="width: 120px;">积分类型</th>
+                                <th style="width: 120px;">动作描述</th>
+                                <th style="width: 200px;">失效时间</th>
+                                <th style="width: 200px;">是否过期处理</th>
+                                <th style="width: 200px;">创建时间</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {foreach $integralList as $integral}
+                            <tr>
+                                <td>{$integral.integral_value}</td>
+                                <td>
+                                    {if condition="$integral.type eq 1"}
+                                    <span style="color: green;">增加积分</span>
+                                    {else/}
+                                    <span style="color: red;">减少积分</span>
+                                    {/if}
+                                </td>
+                                <td>{$integral.action_desc}</td>
+                                <td>{$integral.invalid_time|dateTime}</td>
+                                <td>
+                                    {if condition="$integral.is_overtime eq 1"}
+                                    <span style="color: green;">是</span>
+                                    {else/}
+                                    <span style="color: red;">否</span>
+                                    {/if}
+                                </td>
+                                <td>{$integral.create_time|dateTime}</td>
+                            </tr>
+                            {/foreach}
+                            </tbody>
+                        </table>
+                        {$integralList|raw}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局js -->
+    <script src="__JS__/jquery.min.js?v=2.1.4"></script>
+    <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+</body>
+
+</html>

@@ -219,4 +219,26 @@ class Site extends Base
         return $this->fetch();
     }
 
+    /**
+     * 查看子设备状态
+     * @param Request $request
+     * @return mixed
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function detail(Request $request)
+    {
+        $site_id = $request->get('site_id');
+
+        if (empty($site_id)) {
+            $this->error('参数异常，请关闭后重试');
+        }
+
+        $detailList = Db::table('mrs_device_state_detail')->where('site_id', '=', $site_id)->select();
+
+        $this->assign('detailList', $detailList);
+        return $this->fetch();
+    }
+
 }

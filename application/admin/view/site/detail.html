@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>子设备状态</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="__CSS__/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="__CSS__/animate.css" rel="stylesheet">
+    <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <style>
+        body{overflow-y: hidden;}
+        .i-checks label{margin-top: -15px !important;margin-bottom: 20px !important;}
+    </style>
+</head>
+
+<body class="gray-bg">
+    <div class="row wrapper wrapper-content animated fadeInRight">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <form class="form-horizontal" id="postForm">
+                    <div class="form-group">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                                <th style="width: 100px;">设备代码</th>
+                                <th style="width: 120px;">重量（克）</th>
+                                <th style="width: 120px;">温度（度）</th>
+                                <th style="width: 200px;">是否触发防夹手</th>
+                                <th style="width: 200px;">投放口是否打开</th>
+                                <th style="width: 200px;">维护口是否打开</th>
+                                <th style="width: 100px;">是否烟感</th>
+                                <th style="width: 100px;">是否溢满</th>
+                                <th style="width: 100px;">是否告警</th>
+                                <th style="width: 200px;">最新更新时间</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {foreach $detailList as $detail}
+                            <tr>
+                                <td>{$detail.mach_id}</td>
+                                <td>{$detail.weight}</td>
+                                <td>{$detail.temp}</td>
+                                <td>
+                                    {if condition="$detail.clip_guard eq 1"}
+                                    <span style="color: green;">是</span>
+                                    {else/}
+                                    <span style="color: red;">否</span>
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if condition="$detail.open_putway eq 1"}
+                                    <span style="color: green;">是</span>
+                                    {else/}
+                                    <span style="color: red;">否</span>
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if condition="$detail.open_maintain eq 1"}
+                                    <span style="color: green;">是</span>
+                                    {else/}
+                                    <span style="color: red;">否</span>
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if condition="$detail.smoke eq 1"}
+                                    <span style="color: green;">是</span>
+                                    {else/}
+                                    <span style="color: red;">否</span>
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if condition="$detail.overflow eq 1"}
+                                    <span style="color: green;">是</span>
+                                    {else/}
+                                    <span style="color: red;">否</span>
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if condition="$detail.is_warning eq 1"}
+                                    <span style="color: green;">是</span>
+                                    {else/}
+                                    <span style="color: red;">否</span>
+                                    {/if}
+                                </td>
+                                <td>{$detail.last_update_time|dateTime}</td>
+                            </tr>
+                            {/foreach}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局js -->
+    <script src="__JS__/jquery.min.js?v=2.1.4"></script>
+    <script src="__JS__/bootstrap.min.js?v=3.3.6"></script>
+</body>
+
+</html>

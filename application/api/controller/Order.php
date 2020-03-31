@@ -589,6 +589,7 @@ class Order extends Base
         $type = $request->post("type");
         $goods_status = $request->post("goods_status");
         $apply_reason = $request->post("apply_reason");
+        $remark = $request->post("remark");
 
         if (empty($order_id)) {
             $result = $this->errorJson(1, '缺少关键参数order_id');
@@ -614,6 +615,7 @@ class Order extends Base
         }
         $data['refund_reason'] = $apply_reason;
         $data['refund_goods_status'] = $goods_status;
+        $data['refund_desc'] = $remark;
 
         $res = Db::table('mrs_orders')->where('order_id', $order['order_id'])->update($data);
 

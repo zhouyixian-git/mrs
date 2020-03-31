@@ -31,6 +31,7 @@
 <script type="text/javascript">
     // 百度地图API功能
     var map = new BMap.Map("allmap");
+    map.enableScrollWheelZoom(true);
     map.centerAndZoom(new BMap.Point('{$lng ? $lng : 114.064552}', '{$lat ? $lat : 22.548456}'), 11);
     var local = new BMap.LocalSearch(map, {
         onSearchComplete:function(results){
