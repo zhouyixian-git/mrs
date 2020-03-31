@@ -75,6 +75,12 @@
                             <th>性别</th>
                             <th>年龄</th>
                             <th>地址</th>
+                            <th>投递次数</th>
+                            <th>总积分</th>
+                            <th>可用积分</th>
+                            <th>冻结积分</th>
+                            <th>已用积分</th>
+                            <th>失效积分</th>
                             <th>用户状态</th>
                             <th>注册时间</th>
                         </tr>
@@ -108,6 +114,12 @@
                                 </td>
                                 <td>{$userInfo.age}</td>
                                 <td>{$userInfo.address}</td>
+                                <td>{$userInfo.deliver_num}</td>
+                                <td>{$userInfo.total_integral}</td>
+                                <td>{$userInfo.able_integral}</td>
+                                <td>{$userInfo.frozen_integral}</td>
+                                <td>{$userInfo.used_integral}</td>
+                                <td>{$userInfo.overtime_integral}</td>
                                 <td>
                                     {if condition="$userInfo.status eq 1"}
                                         <span style="color: green;">启用</span>

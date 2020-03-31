@@ -25,6 +25,9 @@
         .p-div:hover{background-color: #F5F5F5;}
         #filePicker{text-align: center;}
         .btn-circle{border: none !important;}
+        .wrapper-content {
+            padding: 10px;
+        }
     </style>
 </head>
 
@@ -133,15 +136,17 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <div class="col-sm-offset-3 col-sm-8">
-                                <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
-                                <button type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
-                            </div>
-                        </div>
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-sm-offset-3 col-sm-8">
+            <button type="button"class="btn btn-sm btn-primary" id="save">保存</button>
+            <button type="button"class="btn btn-sm btn-default" onclick="history.back(-1);return false;">返回</button>
         </div>
     </div>
 

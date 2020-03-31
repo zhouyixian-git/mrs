@@ -91,7 +91,10 @@
                                     {/if}
                                 </td>
                                 <td>
+                                    {if condition="!empty($bannerInfo.link_url)"}
                                     <a href="{$bannerInfo.link_url}" target="_blank"><button class="btn btn-sm btn-white" type="button"><i class="fa fa-search"></i>&nbsp;链接</button></a>
+                                    {/if}
+
                                 </td>
                                 <td>{$bannerInfo.order_no}</td>
                                 <td>

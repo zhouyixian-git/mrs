@@ -602,6 +602,10 @@ class Recovery extends Base
             $data = array();
             $data['total_integral'] = $total_integral;
             $data['total_weight'] = $total_weight;
+            if(empty($total_weight)){
+                echo errorJson('1', '请确认有投放物品后再点击投放完成');
+                exit;
+            }
             $res2 = Db::table('mrs_recovery_record')->where("recovery_record_id","=",$record_id)->update($data);
 
             $res3 = Db::table("mrs_recovery_record_detail")->insertAll($recordDetails);
@@ -610,6 +614,7 @@ class Recovery extends Base
             $userData= array();
             $userData['total_integral'] = $user['total_integral'] + $total_integral;
             $userData['able_integral'] = $user['able_integral'] + $total_integral;
+            $userData['deliver_num'] = $user['deliver_num'] + 1;
             Db::table('mrs_user')->where('user_id','=',$user_id)->update($userData);
 
             //增加对应用户积分明细
@@ -637,6 +642,89 @@ class Recovery extends Base
             exit;
         }
 
+    }
+
+
+    public function updatemachstate(Request $request){
+        if($request->isPost()){
+            $data = array();
+            $data['mach_id'] = $request->post('mach_id');
+            $data['site_id'] = $request->post('site_id');
+            $data['weight'] = $request->post('weight');
+            $data['temp'] = $request->post('temp');
+            $data['clip_guard'] = $request->post('clip_guard');
+            $data['open_putway'] = $request->post('open_putway');
+            $data['open_maintain'] = $request->post('open_maintain');
+            $data['smoke'] = $request->post('smoke');
+            $data['overflow'] = $request->post('overflow');
+
+            if(empty($data['mach_id'])){
+                echo errorJson('1', '缺少关键参数mach_id');
+                exit;
+            }
+            if(empty($data['site_id'])){
+                echo errorJson('1', '缺少关键参数site_id');
+                exit;
+            }
+
+            $site = Db::table('mrs_site')->where('site_id','=',$data['site_id'])->find();
+            if(empty($site)){
+                echo errorJson('1', '站点不存在');
+                exit;
+            }
+            $data['site_name'] = $site['site_name'];
+            $data['last_update_time'] = time();
+
+            if($data['overflow'] == '1'){
+                $data['is_warning'] = 1;
+
+                //告警通知
+                $setting = Db::table('mrs_system_setting')->where('setting_code','=','warning_notice_phone')->find();
+                if(!empty($setting['setting_value'])){
+
+                    //通知上门师傅
+                    /* 短信模板内容：  尊敬的师傅： 您好，您有新的预约上门回收订单，地点为“{address}”,联系电话：{user_phone_no},预约上门时间：{call_create_time},备注：{remark},请您按时上门回收，谢谢。 */
+                    $patterns = array();
+                    $replacements = array();
+
+                    $patterns[] = '/{s}/';
+                    $patterns[] = '/{mach}/';
+                    $patterns[] = '/{content}/';
+
+                    $replacements[] = $site['site_name'];
+                    $replacements[] = $data['mach_id'];
+                    $replacements[] = '设备溢满告警，请及时处理';
+
+                    $smsParam = array();
+                    $smsParam['s'] = $site['site_name'];
+                    $smsParam['mach'] = $data['mach_id'];
+                    $smsParam['content'] = '设备溢满告警，请及时处理';
+
+                    sendSmsCommon($setting['setting_value'], 'warning_notice', $patterns, $replacements,$smsParam);
+                }
+            }else{
+                $data['is_warning'] = 0;
+            }
+
+            $where =array();
+            $where[] = ['site_id', '=', $data['site_id']];
+            $where[] = ['mach_id', '=', $data['mach_id']];
+
+            $detail = Db::table('mrs_device_state_detail')->where($where)->find();
+
+            if(empty($detail)){
+                Db::table("mrs_device_state_detail")->insert($data);
+            }else{
+                unset($data['site_id']);
+                unset($data['mach_id']);
+                Db::table("mrs_device_state_detail")->where($where)->update($data);
+            }
+
+
+            echo successJson();
+            exit;
+
+        }
     }
 
 

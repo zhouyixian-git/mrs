@@ -30,7 +30,7 @@ class Upload extends Base
         $name = $file->getInfo('name');
         $fileInfo = pathinfo($name);
         $ext = $fileInfo['extension'];
-        if (in_array($ext, ['gif', 'jpg', 'jpeg', 'bmp', 'png'])) {
+        if (in_array($ext, ['gif', 'jpg', 'jpeg', 'bmp', 'png', 'pjp', 'pjpeg', 'jfif'])) {
             if (empty($imageCate)) {
                 $folder = 'images/avator/' . $date;
             } else {

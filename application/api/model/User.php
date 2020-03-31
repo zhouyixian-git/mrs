@@ -93,6 +93,7 @@ class User extends Model
 
         $url = 'https://aip.baidubce.com/rest/2.0/face/v3/search?access_token=' . $token;
 
+        recordLog('$base64_image->'.$base64_image, 'face.txt');
         if(empty($base64_image)){
             return false;
         }
@@ -108,6 +109,8 @@ class User extends Model
         $posts = json_encode($data);
 
         $res = httpPost($url, $posts);
+
+        recordLog('$res->'.json_encode($res), 'face.txt');
 
         return $res;
     }

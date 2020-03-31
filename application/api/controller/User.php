@@ -672,7 +672,7 @@ class User extends Base
                 echo $this->successJson($data);
                 exit;
             } else {
-                echo $this->errorJson(1, '没有账单信息');
+                echo $this->successJson(array());
                 exit;
             }
         }

@@ -164,8 +164,8 @@
             // 只允许选择图片文件。
             accept: {
                 title: 'Images',
-                extensions: 'gif,jpg,jpeg,bmp,png',
-                mimeTypes: 'image/*'
+                extensions: 'pjp,pjpeg,jfif,gif,jpg,jpeg,bmp,png',
+                mimeTypes: 'image/jpeg,image/png'
             },
             duplicate:true
         });
@@ -331,6 +331,8 @@
     }
 
     function toAdd(){
+        window.location.reload();
+        return;
         $("#show_img").attr('src','');
         $("#oper").val("add");
         $("#delete").hide();
