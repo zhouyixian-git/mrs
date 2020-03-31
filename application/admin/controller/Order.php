@@ -238,6 +238,25 @@ class Order extends Base
                         $refundData['wc_order_id'] = $out_refund_no;
                         $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
 
+                        //积分退回
+                        if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
+                            $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
+
+                            //更新用户积分
+                            Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
+                            Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
+
+                            //增加对应用户积分明细
+                            $integralDetail = array();
+                            $integralDetail['user_id'] = $order['user_id'];
+                            $integralDetail['integral_value'] = $integral;
+                            $integralDetail['type'] = 1;
+                            $integralDetail['action_desc'] = '用户取消订单积分退回';
+                            $integralDetail['invalid_time'] = time() + 86400 * 180;
+                            $integralDetail['create_time'] = time();
+                            Db::table('mrs_integral_detail')->insert($integralDetail);
+                        }
+
                         if ($res1 && $res2 && $res3) {
                             Db::commit();
                             echo $this->successJson();
@@ -353,6 +372,25 @@ class Order extends Base
                         $refundData['is_pay'] = 1;
                         $refundData['wc_order_id'] = $out_refund_no;
                         $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
+
+                        //积分退回
+                        if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
+                            $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
+
+                            //更新用户积分
+                            Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
+                            Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
+
+                            //增加对应用户积分明细
+                            $integralDetail = array();
+                            $integralDetail['user_id'] = $order['user_id'];
+                            $integralDetail['integral_value'] = $integral;
+                            $integralDetail['type'] = 1;
+                            $integralDetail['action_desc'] = '用户取消订单积分退回';
+                            $integralDetail['invalid_time'] = time() + 86400 * 180;
+                            $integralDetail['create_time'] = time();
+                            Db::table('mrs_integral_detail')->insert($integralDetail);
+                        }
 
                         if ($res1 && $res2 && $res3) {
                             Db::commit();

@@ -769,8 +769,8 @@ class Order extends Base
             $updateData['order_status'] = '5';
             $updateData['cancel_time'] = time();
 
+            //积分退回
             if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
-
                 $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
 
                 //更新用户积分
