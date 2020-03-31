@@ -558,6 +558,16 @@ class Order extends Base
         if ($pay_type == 2 || $pay_type == 3) { //微信支付+积分 或者 积分抵扣
             Db::table('mrs_user')->where('user_id', '=', $user_id)->setInc('used_integral', $integral);
             Db::table('mrs_user')->where('user_id', '=', $user_id)->setDec('able_integral', $integral);
+
+            //增加对应用户积分明细
+            $integralDetail = array();
+            $integralDetail['user_id'] = $user_id;
+            $integralDetail['integral_value'] = $integral;
+            $integralDetail['type'] = 2;
+            $integralDetail['action_desc'] = '用户下单使用积分';
+            $integralDetail['invalid_time'] = time() + 86400*180;
+            $integralDetail['create_time'] = time();
+            Db::table('mrs_integral_detail')->insert($integralDetail);
         }
 
         //生成订单动作表
