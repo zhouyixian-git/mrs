@@ -1226,7 +1226,9 @@ class User extends Base
     public function querycard(Request $request){
         $icNum = $request->post('ic_num');
 
+        recordLog('$icNum->'.$icNum, 'user.txt');
         if(empty($icNum)){
+            recordLog('empty', 'user.txt');
             echo $this->errorJson('1','缺少关键参数ic_num');
             exit;
         }
@@ -1241,6 +1243,7 @@ class User extends Base
         }
         $data['user'] = $user;
 
+        recordLog('$data->'.json_encode($data), 'user.txt');
         echo $this->successJson($data);
         exit;
     }
