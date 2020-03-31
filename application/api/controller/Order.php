@@ -452,6 +452,7 @@ class Order extends Base
         }
 
         $integral_amount = 0;
+        $integral_rate = 0;
         if ($pay_type == 1) { //微信支付
             //走原来逻辑，不需要修改
         } else if ($pay_type == 2) { //微信支付+积分抵扣
@@ -497,6 +498,7 @@ class Order extends Base
         $orderData['order_amount'] = $order_amount;
         $orderData['shipping_amount'] = 0;
         $orderData['integral_amount'] = $integral_amount;
+        $orderData['integral_rate'] = $integral_rate;
         $orderData['cash_amount'] = $order_amount;
         $orderData['consignee'] = $address['consignee'];
         $orderData['telephone'] = $address['telephone'];
@@ -565,7 +567,7 @@ class Order extends Base
             $integralDetail['integral_value'] = $integral;
             $integralDetail['type'] = 2;
             $integralDetail['action_desc'] = '用户下单使用积分';
-            $integralDetail['invalid_time'] = time() + 86400*180;
+            $integralDetail['invalid_time'] = time() + 86400 * 180;
             $integralDetail['create_time'] = time();
             Db::table('mrs_integral_detail')->insert($integralDetail);
         }
@@ -751,24 +753,51 @@ class Order extends Base
 
         $orderArr[] = $order['order_id'];
 
-        //生成订单动作表
-        $actionData['order_id'] = $order['order_id'];
-        $actionData['action_name'] = '用户取消订单';
-        $actionData['action_user_id'] = $order['user_id'];
-        $actionData['action_user_name'] = $order['user_name'];
-        $actionData['action_remark'] = '用户取消订单';
-        $actionData['create_time'] = time();
-        Db::table('mrs_order_action')->insert($actionData);
+        Db::startTrans();
+        try {
+            //生成订单动作表
+            $actionData['order_id'] = $order['order_id'];
+            $actionData['action_name'] = '用户取消订单';
+            $actionData['action_user_id'] = $order['user_id'];
+            $actionData['action_user_name'] = $order['user_name'];
+            $actionData['action_remark'] = '用户取消订单';
+            $actionData['create_time'] = time();
+            Db::table('mrs_order_action')->insert($actionData);
 
-        //更新订单数据
-        $updateData = array();
-        $updateData['order_status'] = '5';
-        $updateData['cancel_time'] = time();
+            //更新订单数据
+            $updateData = array();
+            $updateData['order_status'] = '5';
+            $updateData['cancel_time'] = time();
 
-        Db::table('mrs_orders')->where('order_id', '=', $order_id)->update($updateData);
+            if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
 
-        echo $this->successJson();
-        exit;
+                $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
+
+                //更新用户积分
+                Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
+                Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
+
+                //增加对应用户积分明细
+                $integralDetail = array();
+                $integralDetail['user_id'] = $order['user_id'];
+                $integralDetail['integral_value'] = $integral;
+                $integralDetail['type'] = 1;
+                $integralDetail['action_desc'] = '用户取消订单积分退回';
+                $integralDetail['invalid_time'] = time() + 86400 * 180;
+                $integralDetail['create_time'] = time();
+                Db::table('mrs_integral_detail')->insert($integralDetail);
+
+            }
+
+            Db::table('mrs_orders')->where('order_id', '=', $order_id)->update($updateData);
+            Db::commit();
+            echo $this->successJson();
+            exit;
+        } catch (Exception $e) {
+            echo $this->errorJson('1', '取消订单异常');
+            exit;
+            Db::rollback();
+        }
     }
 
 }
