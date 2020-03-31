@@ -449,6 +449,7 @@ class Recovery extends Base
         }
         $data['senser_state'] = $senser_state;
 
+        recordLog('$data-->'.json_encode($data),'analyserialData.txt');
         echo successJson($data);
         exit;
     }
