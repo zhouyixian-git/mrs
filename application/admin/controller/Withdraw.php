@@ -90,6 +90,19 @@ class Withdraw extends Base
                 $integralData['action_desc'] = '提现失败积分退回';
                 $integralData['create_time'] = time();
                 Db::table('mrs_integral_detail')->insert($integralData);
+
+                $data['admin_id'] = parent::$_ADMINID;
+                $res = Db::table('mrs_withdraw')->where('withdraw_id', '=', $withdraw_id)->update($data);
+
+                if ($res) { //更新成功
+                    Db::commit();
+                    echo $this->successJson();
+                    exit;
+                }else{
+                    Db::rollback();
+                    echo $this->errorJson(1, '操作失败');
+                    exit;
+                }
             }
 
             $data['admin_id'] = parent::$_ADMINID;
