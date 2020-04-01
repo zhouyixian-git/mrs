@@ -39,7 +39,7 @@ class Recovery extends Base
             $where[] = ['site_name', 'like', "%$site_name%"];
         }
         if (!empty($phone_no)) {
-            $where[] = ['phone_no', '=', $phone_no];
+            $where[] = ['phone_no', 'like', "%$phone_no%"];
         }
 
         $recoveryList = Db::table('mrs_recovery_record')

@@ -30,7 +30,7 @@ class Goodscate extends Base
             $where[] = ['is_actived', '=', $is_actived];
         }
         if (!empty($cate_name)) {
-            $where[] = ['cate_name', '=', $cate_name];
+            $where[] = ['cate_name', 'like', "%$cate_name%"];
         }
 
         $goodsCateList = Db::table('mrs_goods_cate')

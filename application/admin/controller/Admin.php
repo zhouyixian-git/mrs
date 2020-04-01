@@ -28,10 +28,10 @@ class Admin extends Base
 
         $where = [];
         if (!empty($admin_code)) {
-            $where[] = ['t1.admin_code', '=', $admin_code];
+            $where[] = ['t1.admin_code', 'like', "%$admin_code%"];
         }
         if (!empty($admin_name)) {
-            $where[] = ['t1.admin_name', '=', $admin_name];
+            $where[] = ['t1.admin_name', 'like', "%$admin_name%"];
         }
         if (!empty($admin_status)) {
             $where[] = ['t1.admin_status', '=', $admin_status];

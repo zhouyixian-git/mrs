@@ -30,7 +30,7 @@ class Site extends Base
             $where[] = ['status', '=', $status];
         }
         if (!empty($site_name)) {
-            $where[] = ['site_name', '=', $site_name];
+            $where[] = ['site_name', 'like', "%$site_name%"];
         }
 
         $siteList = Db::table('mrs_site')

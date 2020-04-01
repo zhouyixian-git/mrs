@@ -40,6 +40,9 @@ class User extends Base
         if (!empty($nick_name)) {
             $where[] = ['nick_name', 'like', "%$nick_name%"];
         }
+        if (!empty($ic_num)) {
+            $where[] = ['ic_num', 'like', "%$ic_num%"];
+        }
 
         $userList = Db::table('mrs_user')
             ->where($where)
