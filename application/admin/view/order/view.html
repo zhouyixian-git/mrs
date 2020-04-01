@@ -177,6 +177,8 @@
                                     <span>微信支付</span>
                                     {elseif condition="$order.pay_type eq 2"}
                                     <span>积分+微信支付</span>
+                                    {elseif condition="$order.pay_type eq 3"}
+                                    <span>积分抵扣</span>
                                     {else/}
                                     <span style="color: yellow;">未知</span>
                                     {/if}

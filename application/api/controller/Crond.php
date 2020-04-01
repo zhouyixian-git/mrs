@@ -115,7 +115,7 @@ class Crond extends Base
 
                 //积分退回
                 if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
-                    $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
+                    $integral = bcdiv($order['integral_amount'], $order['integral_rate'] * 0.01, 2);
 
                     //更新用户积分
                     Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);

@@ -490,6 +490,13 @@ class Order extends Base
 
             $integral_amount = bcmul($integral, $integral_rate * 0.01, 2);
             $order_amount = bcsub($order_amount, 0, 2);
+
+            if ($integral_amount < $order_amount) {
+                $result = $this->errorJson(1, '积分不足，请选择其他支付方式');
+                echo $result;
+                exit;
+            }
+
             if ($integral_amount != $order_amount) {
                 $result = $this->errorJson(1, '积分抵扣额度与订单额度不相等');
                 echo $result;
@@ -627,37 +634,47 @@ class Order extends Base
                 echo $this->errorJson(1, $result['errmsg']);
                 exit;
             }
+            Db::commit();
+
+            $result = $this->successJson($result);
+            echo $result;
+            exit;
+
         } else {
-            //积分支付时，修改订单状态
-            $time = time();
-            $payData['pay_time'] = $time;
-            $payData['is_pay'] = 1;
-            Db::table('mrs_order_pay_record')->where('wc_order_id', '=', $pay_order_sn)->update($payData);
+            try{
+                //积分支付时，修改订单状态
+                $time = time();
+                $payData['pay_time'] = $time;
+                $payData['is_pay'] = 1;
+                Db::table('mrs_order_pay_record')->where('wc_order_id', '=', $pay_order_sn)->update($payData);
 
-            //生成订单动作表
-            $actionData['order_id'] = $order_id;
-            $actionData['action_name'] = '用户下单';
-            $actionData['action_user_id'] = $user['user_id'];
-            $actionData['action_user_name'] = $user['user_name'];
-            $actionData['action_remark'] = '用户【' . $user['user_name'] . '】积分支付订单';
-            $actionData['create_time'] = time();
-            Db::table('mrs_order_action')->insert($actionData);
+                //生成订单动作表
+                $actionData['order_id'] = $order_id;
+                $actionData['action_name'] = '用户下单';
+                $actionData['action_user_id'] = $user['user_id'];
+                $actionData['action_user_name'] = $user['user_name'];
+                $actionData['action_remark'] = '用户【' . $user['user_name'] . '】积分支付订单';
+                $actionData['create_time'] = time();
+                Db::table('mrs_order_action')->insert($actionData);
 
-            $orderData['order_status'] = 2;
-            $orderData['pay_status'] = 2;
-            $orderData['shipping_status'] = 1;
-            $orderData['refund_status'] = 1;
-            $orderData['sales_status'] = 1;
-            $orderData['accept_status'] = 0;
-            $orderData['accept_status'] = 0;
-            $orderData['pay_time'] = $time;
-            Db::table('mrs_orders')->where('pay_order_sn', '=', $pay_order_sn)->update($orderData);
+                $orderData['order_status'] = 2;
+                $orderData['pay_status'] = 2;
+                $orderData['shipping_status'] = 1;
+                $orderData['refund_status'] = 1;
+                $orderData['sales_status'] = 1;
+                $orderData['accept_status'] = 0;
+                $orderData['accept_status'] = 0;
+                $orderData['pay_time'] = $time;
+                Db::table('mrs_orders')->where('pay_order_sn', '=', $pay_order_sn)->update($orderData);
+
+                Db::commit();
+                $result = $this->successJson();
+                echo $result;
+                exit;
+            }catch(Exception $e){
+                recordLog($e, 'order.txt');
+            }
         }
-        Db::commit();
-
-        $result = $this->successJson($result);
-        echo $result;
-        exit;
     }
 
     public function getrefundinfo()
@@ -818,7 +835,7 @@ class Order extends Base
 
             //积分退回
             if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
-                $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
+                $integral = bcdiv($order['integral_amount'], $order['integral_rate'] * 0.01, 2);
 
                 //更新用户积分
                 Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);

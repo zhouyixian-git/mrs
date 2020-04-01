@@ -195,83 +195,145 @@ class Order extends Base
                 exit;
             }
 
-            //调用微信支付退款接口
-            $out_refund_no = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
-            $wechatModel = new \app\admin\model\Wechat();
-            $data['out_trade_no'] = $order['pay_order_sn'];
-            $data['out_refund_no'] = $out_refund_no;
-            $data['amount'] = $order['cash_amount'];
-            $result = $wechatModel->refund($data);
-            if ($result['errcode'] == 1) {
-                echo $this->errorJson(0, $result['errmsg']);
-                exit;
-            } else {
-                //调用退款查询接口
-                $refundResult = $wechatModel->queryRefundOrder($out_refund_no);
-                if ($refundResult['errcode'] == 1) { //退款成功
-                    //todo 更新订单表信息、订单动作表、订单退款记录表
-                    //更新订单表数据
-                    Db::startTrans();
-                    try {
-                        $orderData['order_status'] = 5;
-                        $orderData['refund_status'] = 5;
-                        $orderData['refund_order_sn'] = $out_refund_no;
-                        $orderData['refund_time'] = time();
-                        $res1 = Db::table('mrs_orders')
-                            ->where('order_id', '=', $order_id)
-                            ->update($orderData);
+            if ($order['pay_type'] != 3) {
+                //调用微信支付退款接口
+                $out_refund_no = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
+                $wechatModel = new \app\admin\model\Wechat();
+                $data['out_trade_no'] = $order['pay_order_sn'];
+                $data['out_refund_no'] = $out_refund_no;
+                $data['amount'] = $order['cash_amount'];
+                $result = $wechatModel->refund($data);
+                if ($result['errcode'] == 1) {
+                    echo $this->errorJson(0, $result['errmsg']);
+                    exit;
+                } else {
+                    //调用退款查询接口
+                    $refundResult = $wechatModel->queryRefundOrder($out_refund_no);
+                    if ($refundResult['errcode'] == 1) { //退款成功
+                        //todo 更新订单表信息、订单动作表、订单退款记录表
+                        //更新订单表数据
+                        Db::startTrans();
+                        try {
+                            $orderData['order_status'] = 5;
+                            $orderData['refund_status'] = 5;
+                            $orderData['refund_order_sn'] = $out_refund_no;
+                            $orderData['refund_time'] = time();
+                            $res1 = Db::table('mrs_orders')
+                                ->where('order_id', '=', $order_id)
+                                ->update($orderData);
 
-                        //生成订单动作表
-                        $actionData['order_id'] = $order_id;
-                        $actionData['action_name'] = '管理员退款操作';
-                        $actionData['action_user_id'] = parent::$_ADMINID;
-                        $actionData['action_user_name'] = parent::$_ADMINNAME;
-                        $actionData['action_remark'] = '管理员【' . parent::$_ADMINNAME . '】处理用户退款';
-                        $actionData['create_time'] = time();
-                        $res2 = Db::table('mrs_order_action')->insert($actionData);
+                            //生成订单动作表
+                            $actionData['order_id'] = $order_id;
+                            $actionData['action_name'] = '管理员退款操作';
+                            $actionData['action_user_id'] = parent::$_ADMINID;
+                            $actionData['action_user_name'] = parent::$_ADMINNAME;
+                            $actionData['action_remark'] = '管理员【' . parent::$_ADMINNAME . '】处理用户退款';
+                            $actionData['create_time'] = time();
+                            $res2 = Db::table('mrs_order_action')->insert($actionData);
 
-                        //生成退款记录
-                        $refundData['order_id'] = $order_id;
-                        $refundData['money'] = $order['cash_amount'];
-                        $refundData['pay_time'] = time();
-                        $refundData['is_pay'] = 1;
-                        $refundData['wc_order_id'] = $out_refund_no;
-                        $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
+                            //生成退款记录
+                            $refundData['order_id'] = $order_id;
+                            $refundData['money'] = $order['cash_amount'];
+                            $refundData['pay_time'] = time();
+                            $refundData['is_pay'] = 1;
+                            $refundData['wc_order_id'] = $out_refund_no;
+                            $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
 
-                        //积分退回
-                        if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
-                            $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
+                            //积分退回
+                            if ($order['pay_type'] == 2) { //支付方式为微信支付+积分
+                                $integral = bcdiv($order['integral_amount'], $order['integral_rate'] * 0.01, 2);
 
-                            //更新用户积分
-                            Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
-                            Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
+                                //更新用户积分
+                                Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
+                                Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
 
-                            //增加对应用户积分明细
-                            $integralDetail = array();
-                            $integralDetail['user_id'] = $order['user_id'];
-                            $integralDetail['integral_value'] = $integral;
-                            $integralDetail['type'] = 1;
-                            $integralDetail['action_desc'] = '用户取消订单积分退回';
-                            $integralDetail['invalid_time'] = time() + 86400 * 180;
-                            $integralDetail['create_time'] = time();
-                            Db::table('mrs_integral_detail')->insert($integralDetail);
-                        }
+                                //增加对应用户积分明细
+                                $integralDetail = array();
+                                $integralDetail['user_id'] = $order['user_id'];
+                                $integralDetail['integral_value'] = $integral;
+                                $integralDetail['type'] = 1;
+                                $integralDetail['action_desc'] = '用户取消订单积分退回';
+                                $integralDetail['invalid_time'] = time() + 86400 * 180;
+                                $integralDetail['create_time'] = time();
+                                Db::table('mrs_integral_detail')->insert($integralDetail);
+                            }
 
-                        if ($res1 && $res2 && $res3) {
-                            Db::commit();
-                            echo $this->successJson();
-                            exit;
-                        } else {
+                            if ($res1 && $res2 && $res3) {
+                                Db::commit();
+                                echo $this->successJson();
+                                exit;
+                            } else {
+                                Db::rollback();
+                                echo $this->errorJson(0, '退款成功,更新订单数据失败');
+                                exit;
+                            }
+
+                        } catch (Exception $e) {
                             Db::rollback();
-                            echo $this->errorJson(0, '退款成功,更新订单数据失败');
+                            echo $this->errorJson(0, '退款成功,更新订单数据异常');
                             exit;
                         }
+                    }
+                }
+            } else {
+                //todo 更新订单表信息、订单动作表、订单退款记录表
+                //更新订单表数据
+                Db::startTrans();
+                try {
+                    $orderData['order_status'] = 5;
+                    $orderData['refund_status'] = 5;
+                    $orderData['refund_order_sn'] = '';
+                    $orderData['refund_time'] = time();
+                    $res1 = Db::table('mrs_orders')
+                        ->where('order_id', '=', $order_id)
+                        ->update($orderData);
 
-                    } catch (Exception $e) {
+                    //生成订单动作表
+                    $actionData['order_id'] = $order_id;
+                    $actionData['action_name'] = '管理员退款操作';
+                    $actionData['action_user_id'] = parent::$_ADMINID;
+                    $actionData['action_user_name'] = parent::$_ADMINNAME;
+                    $actionData['action_remark'] = '管理员【' . parent::$_ADMINNAME . '】处理用户退款';
+                    $actionData['create_time'] = time();
+                    $res2 = Db::table('mrs_order_action')->insert($actionData);
+
+                    //生成退款记录
+                    $refundData['order_id'] = $order_id;
+                    $refundData['money'] = $order['cash_amount'];
+                    $refundData['pay_time'] = time();
+                    $refundData['is_pay'] = 1;
+                    $refundData['wc_order_id'] = '';
+                    $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
+
+                    //积分退回
+                    $integral = bcdiv($order['integral_amount'], $order['integral_rate'] * 0.01, 2);
+                    //更新用户积分
+                    Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
+                    Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
+                    //增加对应用户积分明细
+                    $integralDetail = array();
+                    $integralDetail['user_id'] = $order['user_id'];
+                    $integralDetail['integral_value'] = $integral;
+                    $integralDetail['type'] = 1;
+                    $integralDetail['action_desc'] = '用户取消订单积分退回';
+                    $integralDetail['invalid_time'] = time() + 86400 * 180;
+                    $integralDetail['create_time'] = time();
+                    Db::table('mrs_integral_detail')->insert($integralDetail);
+
+                    if ($res1 && $res2 && $res3) {
+                        Db::commit();
+                        echo $this->successJson();
+                        exit;
+                    } else {
                         Db::rollback();
-                        echo $this->errorJson(0, '退款成功,更新订单数据异常');
+                        echo $this->errorJson(0, '退款成功,更新订单数据失败');
                         exit;
                     }
+
+                } catch (Exception $e) {
+                    Db::rollback();
+                    echo $this->errorJson(0, '退款成功,更新订单数据异常');
+                    exit;
                 }
             }
         }
@@ -330,57 +392,55 @@ class Order extends Base
                 exit;
             }
 
-            //调用微信支付退款接口
-            $out_refund_no = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
-            $wechatModel = new \app\admin\model\Wechat();
-            $data['out_trade_no'] = $order['pay_order_sn'];
-            $data['out_refund_no'] = $out_refund_no;
-            $data['amount'] = $order['cash_amount'];
-            $result = $wechatModel->refund($data);
-            if ($result['errcode'] == 1) {
-                echo $this->errorJson(0, $result['errmsg']);
-                exit;
-            } else {
-                //调用退款查询接口
-                $refundResult = $wechatModel->queryRefundOrder($out_refund_no);
-                if ($refundResult['errcode'] == 1) { //退款成功
-                    //todo 更新订单表信息、订单动作表、订单退款记录表
-                    //更新订单表数据
-                    Db::startTrans();
-                    try {
-                        $orderData['order_status'] = 5;
-                        $orderData['sales_status'] = 5;
-                        $orderData['refund_order_sn'] = $out_refund_no;
-                        $orderData['refund_time'] = time();
-                        $res1 = Db::table('mrs_orders')
-                            ->where('order_id', '=', $order_id)
-                            ->update($orderData);
+            if ($order['pay_type'] != 3) {
+                //调用微信支付退款接口
+                $out_refund_no = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
+                $wechatModel = new \app\admin\model\Wechat();
+                $data['out_trade_no'] = $order['pay_order_sn'];
+                $data['out_refund_no'] = $out_refund_no;
+                $data['amount'] = $order['cash_amount'];
+                $result = $wechatModel->refund($data);
+                if ($result['errcode'] == 1) {
+                    echo $this->errorJson(0, $result['errmsg']);
+                    exit;
+                } else {
+                    //调用退款查询接口
+                    $refundResult = $wechatModel->queryRefundOrder($out_refund_no);
+                    if ($refundResult['errcode'] == 1) { //退款成功
+                        //todo 更新订单表信息、订单动作表、订单退款记录表
+                        //更新订单表数据
+                        Db::startTrans();
+                        try {
+                            $orderData['order_status'] = 5;
+                            $orderData['sales_status'] = 5;
+                            $orderData['refund_order_sn'] = $out_refund_no;
+                            $orderData['refund_time'] = time();
+                            $res1 = Db::table('mrs_orders')
+                                ->where('order_id', '=', $order_id)
+                                ->update($orderData);
 
-                        //生成订单动作表
-                        $actionData['order_id'] = $order_id;
-                        $actionData['action_name'] = '管理员退货操作';
-                        $actionData['action_user_id'] = parent::$_ADMINID;
-                        $actionData['action_user_name'] = parent::$_ADMINNAME;
-                        $actionData['action_remark'] = '管理员【' . parent::$_ADMINNAME . '】处理用户退货';
-                        $actionData['create_time'] = time();
-                        $res2 = Db::table('mrs_order_action')->insert($actionData);
+                            //生成订单动作表
+                            $actionData['order_id'] = $order_id;
+                            $actionData['action_name'] = '管理员退货操作';
+                            $actionData['action_user_id'] = parent::$_ADMINID;
+                            $actionData['action_user_name'] = parent::$_ADMINNAME;
+                            $actionData['action_remark'] = '管理员【' . parent::$_ADMINNAME . '】处理用户退货';
+                            $actionData['create_time'] = time();
+                            $res2 = Db::table('mrs_order_action')->insert($actionData);
 
-                        //生成退款记录
-                        $refundData['order_id'] = $order_id;
-                        $refundData['money'] = $order['cash_amount'];
-                        $refundData['pay_time'] = time();
-                        $refundData['is_pay'] = 1;
-                        $refundData['wc_order_id'] = $out_refund_no;
-                        $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
+                            //生成退款记录
+                            $refundData['order_id'] = $order_id;
+                            $refundData['money'] = $order['cash_amount'];
+                            $refundData['pay_time'] = time();
+                            $refundData['is_pay'] = 1;
+                            $refundData['wc_order_id'] = $out_refund_no;
+                            $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
 
-                        //积分退回
-                        if ($order['pay_type'] == 2 || $order['pay_type'] == 3) { //支付方式为微信支付+积分或者是积分抵扣
-                            $integral = bcdiv($order['integral_amount'], $order['integral_rate'], 2);
-
+                            //积分退回
+                            $integral = bcdiv($order['integral_amount'], $order['integral_rate'] * 0.01, 2);
                             //更新用户积分
                             Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
                             Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
-
                             //增加对应用户积分明细
                             $integralDetail = array();
                             $integralDetail['user_id'] = $order['user_id'];
@@ -390,25 +450,91 @@ class Order extends Base
                             $integralDetail['invalid_time'] = time() + 86400 * 180;
                             $integralDetail['create_time'] = time();
                             Db::table('mrs_integral_detail')->insert($integralDetail);
-                        }
 
-                        if ($res1 && $res2 && $res3) {
-                            Db::commit();
-                            echo $this->successJson();
-                            exit;
-                        } else {
+                            if ($res1 && $res2 && $res3) {
+                                Db::commit();
+                                echo $this->successJson();
+                                exit;
+                            } else {
+                                Db::rollback();
+                                echo $this->errorJson(0, '退货成功,更新订单数据失败');
+                                exit;
+                            }
+
+                        } catch (Exception $e) {
                             Db::rollback();
-                            echo $this->errorJson(0, '退货成功,更新订单数据失败');
+                            echo $this->errorJson(0, '退货成功,更新订单数据异常');
                             exit;
                         }
-
-                    } catch (Exception $e) {
-                        Db::rollback();
-                        echo $this->errorJson(0, '退货成功,更新订单数据异常');
-                        exit;
                     }
                 }
+            } else {
+                //todo 更新订单表信息、订单动作表、订单退款记录表
+                //更新订单表数据
+                Db::startTrans();
+                try {
+                    $orderData['order_status'] = 5;
+                    $orderData['sales_status'] = 5;
+                    $orderData['refund_order_sn'] = '';
+                    $orderData['refund_time'] = time();
+                    $res1 = Db::table('mrs_orders')
+                        ->where('order_id', '=', $order_id)
+                        ->update($orderData);
+
+                    //生成订单动作表
+                    $actionData['order_id'] = $order_id;
+                    $actionData['action_name'] = '管理员退货操作';
+                    $actionData['action_user_id'] = parent::$_ADMINID;
+                    $actionData['action_user_name'] = parent::$_ADMINNAME;
+                    $actionData['action_remark'] = '管理员【' . parent::$_ADMINNAME . '】处理用户退货';
+                    $actionData['create_time'] = time();
+                    $res2 = Db::table('mrs_order_action')->insert($actionData);
+
+                    //生成退款记录
+                    $refundData['order_id'] = $order_id;
+                    $refundData['money'] = $order['cash_amount'];
+                    $refundData['pay_time'] = time();
+                    $refundData['is_pay'] = 1;
+                    $refundData['wc_order_id'] = '';
+                    $res3 = Db::table('mrs_order_refund_record')->insert($refundData);
+
+                    //积分退回
+                    if ($order['pay_type'] == 2) { //支付方式为微信支付+积分
+                        $integral = bcdiv($order['integral_amount'], $order['integral_rate'] * 0.01, 2);
+
+                        //更新用户积分
+                        Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setInc('able_integral', $integral);
+                        Db::table('mrs_user')->where('user_id', '=', $order['user_id'])->setDec('used_integral', $integral);
+
+                        //增加对应用户积分明细
+                        $integralDetail = array();
+                        $integralDetail['user_id'] = $order['user_id'];
+                        $integralDetail['integral_value'] = $integral;
+                        $integralDetail['type'] = 1;
+                        $integralDetail['action_desc'] = '用户取消订单积分退回';
+                        $integralDetail['invalid_time'] = time() + 86400 * 180;
+                        $integralDetail['create_time'] = time();
+                        Db::table('mrs_integral_detail')->insert($integralDetail);
+                    }
+
+                    if ($res1 && $res2 && $res3) {
+                        Db::commit();
+                        echo $this->successJson();
+                        exit;
+                    } else {
+                        Db::rollback();
+                        echo $this->errorJson(0, '退货成功,更新订单数据失败');
+                        exit;
+                    }
+
+                } catch (Exception $e) {
+                    Db::rollback();
+                    echo $this->errorJson(0, '退货成功,更新订单数据异常');
+                    exit;
+                }
             }
+
+
         }
 
         $order_id = $request->get('order_id');
@@ -559,6 +685,8 @@ class Order extends Base
                 $pay_type_remark = '微信支付';
             } else if ($v['pay_type'] == 2) {
                 $pay_type_remark = '积分+微信支付';
+            } else if ($v['pay_type'] == 3) {
+                $pay_type_remark = '积分抵扣';
             }
             $objPHPExcel->getActiveSheet()->SetCellValue('K' . $num, $pay_type_remark);
             $objPHPExcel->getActiveSheet()->SetCellValue('L' . $num, $v['order_amount']);
@@ -580,7 +708,7 @@ class Order extends Base
                 $num++;
             }
 
-            if(count($goodsList) > 1){
+            if (count($goodsList) > 1) {
                 $start = $num - count($goodsList);
                 $end = $num - 1;
                 $objPHPExcel->setActiveSheetIndex(0)
