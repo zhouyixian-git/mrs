@@ -107,6 +107,35 @@ class User extends Base
         }
     }
 
+    public function deladdress(Request $request){
+        $address_id = $request->post('address_id');
+        $user_id = $request->post('user_id');
+
+        if(empty($address_id)){
+            echo $this->errorJson('1', '缺少关键参数address_id');
+            exit;
+        }
+        if(empty($user_id)){
+            echo $this->errorJson('1', '缺少关键参数user_id');
+            exit;
+        }
+
+        $where = array();
+        $where[] = ['address_id','=',$address_id];
+        $where[] = ['user_id','=',$user_id];
+
+        $address = Db::table('mrs_user_address')->where($where)->find();
+
+        if(empty($address)){
+            echo $this->errorJson('1', '地址信息不存在');
+            exit;
+        }
+
+        Db::table('mrs_user_address')->where($where)->delete();
+        echo $this->successJson();
+        exit;
+    }
+
     /**
      * 添加用户地址
      * @param Request $request

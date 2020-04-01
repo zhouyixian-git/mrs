@@ -728,6 +728,31 @@ class Recovery extends Base
         }
     }
 
+    public function queryrecoveryrecord(Request $request){
+        $user_id = $request->post('user_id');
+
+        if(empty($user_id)){
+            echo $this->errorJson('1', '缺少关键参数user_id');
+            exit;
+        }
+
+        $records = Db::table('mrs_recovery_record')->where('user_id','=',$user_id)->select();
+
+        if(is_array($records) && count($records) > 0){
+            foreach ($records as $k=>$v){
+                $records[$k]['recovery_time'] = date('Y-m-d_H:i:s', $v['recovery_time']);
+
+                $details = Db::table('mrs_recovery_record_detail')->where('recovery_record_id','=',$v['recovery_record_id'])->select();
+                $records[$k]['details'] = $details;
+            }
+
+            echo $this->successJson($records);
+        }else{
+            echo $this->successJson(array());
+            exit;
+        }
+    }
+
 
 
 
