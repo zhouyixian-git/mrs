@@ -284,6 +284,7 @@ class Order extends Base
         $cart_ids = $request->post('cart_ids');
         $goods_id = $request->post('goods_id');
         $goods_sku_str = $request->post('goods_sku');
+        $detail_id = $request->post('detail_id');
 
 //        $cart_ids = '10,9,8,6';
 //        $user_id = '2';
@@ -300,6 +301,11 @@ class Order extends Base
         }
         if (empty($cart_ids) && !empty($goods_id) && empty($goods_sku_str)) {
             $result = $this->errorJson(1, '缺少关键参数goods_sku');
+            echo $result;
+            exit;
+        }
+        if (empty($cart_ids) && !empty($goods_id) && empty($goods_sku_str) && empty($detail_id)) {
+            $result = $this->errorJson(1, '缺少关键参数detail_id');
             echo $result;
             exit;
         }
@@ -336,7 +342,7 @@ class Order extends Base
             foreach ($cart_ids as $v) {
                 $cart = Db::table('mrs_carts')
                     ->where(array('cart_id' => $v))
-                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num', 'sku_json'))
+                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num', 'sku_json', 'sku_detail_id as detail_id'))
                     ->find();
 
                 $cart['goods_image'] = SERVER_HOST . $cart['goods_image'];
@@ -373,6 +379,7 @@ class Order extends Base
                 $goods_sku = substr($goods_sku, 0, -1);
             }
             $goods['goods_sku'] = $goods_sku;
+            $goods['detail_id'] = $detail_id;
             unset($goods['goods_img']);
 
             $data['goodslist'][] = $goods;
@@ -394,6 +401,7 @@ class Order extends Base
         $order_remark = $request->post('order_remark');
         $open_id = $request->post('open_id');
         $goods_sku = $request->post('goods_sku');
+        $detail_id = $request->post('detail_id');
         $goods_num = empty($goods_num) ? 1 : $goods_num;
         $pay_type = $request->post('pay_type');
         $integral = $request->post('integral');
@@ -406,6 +414,11 @@ class Order extends Base
         }
         if (empty($cart_ids) && !empty($goods_id) && empty($goods_sku)) {
             $result = $this->errorJson(1, '缺少关键参数goods_sku');
+            echo $result;
+            exit;
+        }
+        if (empty($cart_ids) && !empty($goods_id) && empty($goods_sku) && empty($detail_id)) {
+            $result = $this->errorJson(1, '缺少关键参数detail_id');
             echo $result;
             exit;
         }
@@ -433,11 +446,11 @@ class Order extends Base
             ->find();
 
         $carts = array();
-        $order_amount = 0;
+        +$order_amount = 0;
         if (is_array($cart_ids) && count($cart_ids) > 0) {
             foreach ($cart_ids as $v) {
                 $cart = Db::table('mrs_carts')
-                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num', 'sku_json'))
+                    ->field(array('goods_id', 'goods_name', 'goods_image', 'goods_price', 'goods_num', 'sku_json', 'sku_detail_id'))
                     ->where(array('cart_id' => $v))
                     ->find();
 
@@ -528,7 +541,8 @@ class Order extends Base
                     'user_id' => $user_id,
                     'user_name' => $user['user_name'],
                     'goods_price' => $v['goods_price'],
-                    'sku_json' => $v['sku_json']
+                    'sku_json' => $v['sku_json'],
+                    'sku_detail_id' => $v['sku_detail_id'],
                 ];
             }
         } else {
@@ -541,7 +555,8 @@ class Order extends Base
                 'user_id' => $user_id,
                 'user_name' => $user['user_name'],
                 'goods_price' => $goods['goods_price'],
-                'sku_json' => json_encode($goods_sku)
+                'sku_json' => json_encode($goods_sku),
+                'sku_detail_id' => $detail_id
             ];
         }
         $res = Db::table('mrs_order_goods')->insertAll($orderGoodsData);
@@ -590,22 +605,49 @@ class Order extends Base
         $payData['wc_order_id'] = $pay_order_sn;
         Db::table('mrs_order_pay_record')->insert($payData);
 
-        //获取支付参数
-        $domain = config('domain');
-        $wechatModel = new \app\api\model\Wechat();
-        $data['pay_order_sn'] = $pay_order_sn;
-        $data['order_amount'] = $order_amount;   //$order_amount; //todo 默认支付金额设置位0.01，方便测试
-        $data['open_id'] = $open_id;
-        $data['body'] = '商品购买';
-        $data['notify_url'] = $domain . '/api/wechat/paynotice';
-        $result = $wechatModel->doPay($data);
+        if($pay_type != 3){
 
-        if (isset($result['errcode'])) {
-            Db::rollback();
-            echo $this->errorJson(1, $result['errmsg']);
-            exit;
+            //获取支付参数
+            $domain = config('domain');
+            $wechatModel = new \app\api\model\Wechat();
+            $data['pay_order_sn'] = $pay_order_sn;
+            $data['order_amount'] = $order_amount;   //$order_amount; //todo 默认支付金额设置位0.01，方便测试
+            $data['open_id'] = $open_id;
+            $data['body'] = '商品购买';
+            $data['notify_url'] = $domain . '/api/wechat/paynotice';
+            $result = $wechatModel->doPay($data);
+
+            if (isset($result['errcode'])) {
+                Db::rollback();
+                echo $this->errorJson(1, $result['errmsg']);
+                exit;
+            }
+        }else{
+            //积分支付时，修改订单状态
+            $time = time();
+            $payData['pay_time'] = $time;
+            $payData['is_pay'] = 1;
+            Db::table('mrs_order_pay_record')->where('wc_order_id', '=', $pay_order_sn)->update($payData);
+
+            //生成订单动作表
+            $actionData['order_id'] = $order_id;
+            $actionData['action_name'] = '用户下单';
+            $actionData['action_user_id'] = $user['user_id'];
+            $actionData['action_user_name'] = $user['user_name'];
+            $actionData['action_remark'] = '用户【' . $user['user_name'] . '】积分支付订单';
+            $actionData['create_time'] = time();
+            Db::table('mrs_order_action')->insert($actionData);
+
+            $orderData['order_status'] = 2;
+            $orderData['pay_status'] = 2;
+            $orderData['shipping_status'] = 1;
+            $orderData['refund_status'] = 1;
+            $orderData['sales_status'] = 1;
+            $orderData['accept_status'] = 0;
+            $orderData['accept_status'] = 0;
+            $orderData['pay_time'] = $time;
+            Db::table('mrs_orders')->where('pay_order_sn', '=', $pay_order_sn)->update($orderData);
         }
-
         Db::commit();
 
         $result = $this->successJson($result);

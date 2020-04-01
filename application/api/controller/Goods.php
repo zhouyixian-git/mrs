@@ -172,6 +172,7 @@ class Goods extends Base
             foreach ($skuPriceList as $k2 => $v2) {
                 $skuInfo = json_decode($v2['sku_json'], true);
                 $sPrice[$skuInfo['skuInfo']['unionId']] = [
+                    'detailId' => $v2['detail_id'],
                     'shopPrice' => $skuInfo['skuInfo']['shopPrice'],
                     'goodsStock' => $skuInfo['skuInfo']['goodsStock']
                 ];

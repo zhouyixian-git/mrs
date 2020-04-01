@@ -187,9 +187,11 @@ class User extends Base
 
             $goodsList = Db::table('mrs_carts')
                 ->where('user_id', '=', $user_id)
-                ->field('cart_id,goods_id,goods_name,goods_image,goods_price,is_check,goods_num,sku_json')
+                ->field('cart_id,goods_id,goods_name,goods_image,goods_price,is_check,goods_num,sku_json,sku_detail_id')
                 ->order('create_time desc')
                 ->select();
+
+//            echo json_encode($goodsList);exit;
 
             if ($goodsList) {
                 $domain = config('domain');
@@ -203,7 +205,14 @@ class User extends Base
                                 $goods_sku .= $value['sku_name'] . '-';
                             }
                         }
+
                         $goods_sku = substr($goods_sku, 0, -1);
+                    }
+                    if(!empty($goodsList[$k]['sku_detail_id'])){
+                        $detail = Db::table('mrs_goods_sku_detail')->where('detail_id','=',$goodsList[$k]['sku_detail_id'])->find();
+                        $goodsList[$k]['goods_stock'] = $detail['goods_stock'];
+                    }else{
+                        $goodsList[$k]['goods_stock'] = 0;
                     }
                     $goodsList[$k]['goods_sku'] = $goods_sku;
                 }
@@ -685,6 +694,7 @@ class User extends Base
             $goods_id = intval($request->post('goods_id'));
             $goods_num = intval($request->post('goods_num'));
             $goods_sku = $request->post('goods_sku');
+            $detail_id = $request->post('detail_id');
 
             $goods_num = empty($goods_num) ? 1 : $goods_num;
             if (empty($user_id)) {
@@ -699,6 +709,10 @@ class User extends Base
                 echo $this->errorJson(1, '缺少关键数据goods_sku');
                 exit;
             }
+            if(empty($detail_id)){
+                echo $this->errorJson(1, '缺少关键数据detail_id');
+                exit;
+            }
 
             $goods = Db::table('mrs_goods')->where(array('goods_id' => $goods_id))->find();
 
@@ -710,6 +724,7 @@ class User extends Base
             $where = array();
             $where[] = ['user_id', '=', $user_id];
             $where[] = ['goods_id', '=', $goods_id];
+            $where[] = ['sku_detail_id', '=', $detail_id];
             $where[] = ['sku_json', '=', json_encode($goods_sku)];
 
             $cart = Db::table('mrs_carts')->where($where)->find();
@@ -724,6 +739,7 @@ class User extends Base
                 $cartData['goods_name'] = $goods['goods_name'];
                 $cartData['goods_image'] = $goods['goods_img'];
                 $cartData['goods_price'] = $goods['goods_price'];
+                $cartData['sku_detail_id'] = $detail_id;
                 $cartData['sku_json'] = json_encode($goods_sku);
                 $cartData['is_check'] = '1';
                 $cartData['goods_num'] = $goods_num;
