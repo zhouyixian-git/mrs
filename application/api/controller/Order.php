@@ -473,9 +473,14 @@ class Order extends Base
             $where[] = ['setting_code', '=', 'integral'];
             $integral_rate = Db::table('mrs_system_setting')->where($where)->value('setting_value');
             $integral_rate = empty($integral_rate) ? 80 : $integral_rate;
-
             $integral_amount = bcmul($integral, $integral_rate * 0.01, 2);
-            $order_amount = bcsub($order_amount, $integral_amount, 2);
+            if ($integral_amount >= $order_amount) { //如果积分抵扣额度超过订单金额，则支付方式修改为积分抵扣
+                $pay_type = 3;
+                $integral = bcdiv($order_amount, $integral_rate * 0.01, 2);
+                $order_amount = 0;
+            } else {
+                $order_amount = bcsub($order_amount, $integral_amount, 2);
+            }
 
         } else if ($pay_type == 3) { //积分抵扣
             $where = [];
@@ -490,8 +495,8 @@ class Order extends Base
                 echo $result;
                 exit;
             }
+            $order_amount = 0;
         }
-
 
         $order_sn = date('YmdHis', time()) . rand(100000, 999999);
         $pay_order_sn = 'LZHS' . date('YmdHis', time()) . rand(100000, 999999);
@@ -507,7 +512,7 @@ class Order extends Base
         $orderData['refund_status'] = '1';
         $orderData['sales_status'] = '1';
         $orderData['accept_status'] = '1';
-        $orderData['pay_type'] = '1';
+        $orderData['pay_type'] = $pay_type;
         $orderData['order_amount'] = $order_amount;
         $orderData['shipping_amount'] = 0;
         $orderData['integral_amount'] = $integral_amount;
@@ -605,7 +610,7 @@ class Order extends Base
         $payData['wc_order_id'] = $pay_order_sn;
         Db::table('mrs_order_pay_record')->insert($payData);
 
-        if($pay_type != 3){
+        if ($pay_type != 3) {
 
             //获取支付参数
             $domain = config('domain');
@@ -622,7 +627,7 @@ class Order extends Base
                 echo $this->errorJson(1, $result['errmsg']);
                 exit;
             }
-        }else{
+        } else {
             //积分支付时，修改订单状态
             $time = time();
             $payData['pay_time'] = $time;
