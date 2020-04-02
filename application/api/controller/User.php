@@ -1041,6 +1041,21 @@ class User extends Base
             exit;
         }
 
+        $where = array();
+        $where[] = ['user_id', '=', $user_id];
+        $where[] = ['phone_no', '=', $phone];
+        $is_exists = Db::table('mrs_user')->where($where)->find();
+        if(!empty($is_exists)){
+            echo errorJson('1', '您已绑定该号码，无须重复绑定');
+            exit;
+        }
+
+        $is_exists2 = Db::table('mrs_user')->where('phone_no', '=', $phone)->find();
+        if(!empty($is_exists2)){
+            echo errorJson('1', '该号码已被其他用户绑定');
+            exit;
+        }
+
         //绑定手机号
         Db::table('mrs_user')->where('user_id', '=', $user_id)->update(array('phone_no' => $phone));
         echo successJson();
