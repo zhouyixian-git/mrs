@@ -47,7 +47,7 @@ class Wechat extends Base
             $result_json_str = file_get_contents($requestUrl);
             $result_json = json_decode($result_json_str, true);
 
-            recordLog('$result_json->'.$result_json_str, 'wechat.txt');
+            recordLog('$result_json->' . $result_json_str, 'wechat.txt');
 
             if (!empty($result_json['openid'])) {
                 $openid = $result_json['openid'];
@@ -61,9 +61,9 @@ class Wechat extends Base
                         $userInfo['face_img'] = config('domain') . $userInfo['face_img'];
                     }
 
-                    if(!empty($userInfo['last_login_time']) && $userInfo['last_login_time'] > time() - 86400*30){
+                    if (!empty($userInfo['last_login_time']) && $userInfo['last_login_time'] > time() - 86400 * 30) {
                         $userInfo['has_login'] = 1;
-                    }else{
+                    } else {
                         $userInfo['has_login'] = 0;
                     }
 
@@ -109,7 +109,7 @@ class Wechat extends Base
 
                     $domain = Config("domain");
                     $domain2 = Config("domain2");
-                    doPostHttp($domain2.'/api/api/geturl',json_encode($domain));
+                    doPostHttp($domain2 . '/api/api/geturl', json_encode($domain));
                     exit;
                 }
 
@@ -245,10 +245,11 @@ class Wechat extends Base
         exit;
     }
 
-    public function getgoodswxacode(Request $request){
+    public function getgoodswxacode(Request $request)
+    {
         $goods_id = $request->post('goods_id');
 
-        if(empty($goods_id)){
+        if (empty($goods_id)) {
             echo errorJson('1', '缺少关键参数$goods_id');
             exit;
         }
@@ -262,8 +263,8 @@ class Wechat extends Base
         $appsecret = $wechatInfo['app_secret'];
 
         $accessToken = $wechatModel->getAccessToken($appid, $appsecret);
-        if(empty($accessToken)){
-            echo errorJson('1','获取token失败');
+        if (empty($accessToken)) {
+            echo errorJson('1', '获取token失败');
             exit;
         }
 
@@ -271,18 +272,17 @@ class Wechat extends Base
         $post['page'] = 'pages/product/product';
         $post['scene'] = $goods_id;
 
-        $pic = doPostHttp('https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token='.$accessToken,json_encode($post));
+        $pic = doPostHttp('https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' . $accessToken, json_encode($post));
 
         $absolute_path = Config('absolute_path');
         $domain = Config('domain');
-        $name = 'wxacode_'.time().rand(0000000,9999999).'.jpg';
-        $jpg = $absolute_path.'/public/uploads/images/wxacode/'.$name;
-        $path = $domain.'/uploads/images/wxacode/'.$name;
+        $name = 'wxacode_' . time() . rand(0000000, 9999999) . '.jpg';
+        $jpg = $absolute_path . '/public/uploads/images/wxacode/' . $name;
+        $path = $domain . '/uploads/images/wxacode/' . $name;
 
-        ob_end_clean();		//清空缓冲区
-        $fp = fopen($jpg,'w');	//写入图片
-        if(fwrite($fp,$pic))
-        {
+        ob_end_clean();        //清空缓冲区
+        $fp = fopen($jpg, 'w');    //写入图片
+        if (fwrite($fp, $pic)) {
             fclose($fp);
         }
 
@@ -292,4 +292,137 @@ class Wechat extends Base
         echo successJson($data);
         exit;
     }
+
+    /**
+     * 第三方扫码登录
+     */
+    public function scanlogin()
+    {
+        $appid = "wx94c408103a1da2fd";
+
+        //授权回调地址
+        $domain = config('domain');
+        $redirect_uri = urlencode($domain . "/api/wechat/scanlogincallback");
+
+        //state 用于保持请求和回调的状态，授权请求后原样带回给第三方。
+        //该参数可用于防止csrf攻击（跨站请求伪造攻击），
+        //建议第三方带上该参数，可设置为简单的随机数加session进行校验
+        $state = md5("LZHS" . date("YmdH"));
+
+        $url = "https://open.weixin.qq.com/connect/qrconnect?appid=" . $appid . "&redirect_uri=" . $redirect_uri . "&response_type=code&scope=snsapi_login&state=" . $state . "#wechat_redirect";
+        header('location:' . $url);
+    }
+
+    /**
+     * 扫码登录回调
+     */
+    public function scanlogincallback(Request $request)
+    {
+        //1 获得授权回调的数据信息(code)
+        $code = $request->param('code');
+
+        if (empty($code)) {
+            die('获取Code失败');
+        }
+
+        //2 获取access_token
+        $appid = "wx94c408103a1da2fd"; //AppID
+        $AppSecret = "72028f1cfc3d47782e75317d198dcada"; //AppSecret
+        $url_access_token = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=" . $appid . "&secret=" . $AppSecret . "&code=" . $code . "&grant_type=authorization_code";
+        $access = $this->Curl($url_access_token);
+        $access = json_decode($access, true);
+        if (empty($access['access_token'])) {
+            die('获取access_token失败');
+        }
+
+        //3 检验授权凭证（access_token）是否有效
+        $url_verify = "https://api.weixin.qq.com/sns/auth?access_token=" . $access['access_token'] . "&openid=" . $access['openid'];
+        $verify_access_token = $this->Curl($url_verify);
+        $verify_access_token = json_decode($verify_access_token, true);
+        if ($verify_access_token['errcode'] !== 0) {
+            die('access_token失效');
+        }
+
+        //4 获取用户个人信息
+        $url_user_info = "https://api.weixin.qq.com/sns/userinfo?access_token=" . $access['access_token'] . "&openid=" . $access['openid'];
+        $user_info = $this->Curl($url_user_info);
+        $user_info = json_decode($user_info, true);
+        if (empty($user_info['openid'])) {
+            die('获取用户信息失败');
+        }
+        if (empty($user_info['unionid'])) {
+            die('获取第三方授权未绑定公众号');
+        }
+
+        $user = \app\api\Model\User::where('unionid', '=', $user_info['unionid'])->find();
+        if ($user) {
+            $address = Db::table('mrs_user_address')->where(array('user_id' => $user['user_id']))->order('is_default')->find();
+            $data['isauth'] = 1;
+            if (!empty($userInfo['face_img'])) {
+                $userInfo['face_img'] = config('domain') . $userInfo['face_img'];
+            }
+
+            if (!empty($userInfo['last_login_time']) && $userInfo['last_login_time'] > time() - 86400 * 30) {
+                $userInfo['has_login'] = 1;
+            } else {
+                $userInfo['has_login'] = 0;
+            }
+
+            $data['userInfo'] = $userInfo;
+            $data['address'] = $address;
+            echo $this->successJson($data);
+            exit;
+        } else {
+            $userInfo['ic_num'] = '';
+            $userInfo['user_name'] = '';
+            $userInfo['phone_no'] = '';
+            $userInfo['password'] = '';
+            $userInfo['address'] = '';
+            $userInfo['sex'] = $user_info['sex'];
+            $userInfo['age'] = '';
+            $userInfo['scan_open_id'] = $user_info['openid'];
+            $userInfo['nick_name'] = $user_info['nickname'];
+            $userInfo['head_img'] = $user_info['headimgurl'];
+            $userInfo['unionid'] = $user_info['unionid'];
+            $userInfo['total_integral'] = 0;
+            $userInfo['able_integral'] = 0;
+            $userInfo['frozen_integral'] = 0;
+            $userInfo['used_integral'] = 0;
+            $userInfo['deliver_num'] = 0;
+            $userInfo['face_img'] = '';
+            $userInfo['status'] = 1;
+            $userInfo['last_login_time'] = 0;
+            $userInfo['create_time'] = time();
+
+            $userModel = new \app\api\model\User();
+            $userModel->insert($userInfo);
+            $user_id = $userModel->getLastInsID();
+            $userInfo['user_id'] = $user_id;
+            $userInfo['has_login'] = 0;
+
+            $data['isauth'] = 0;
+            $data['userInfo'] = $userInfo;
+
+            echo $this->successJson($data);
+            exit;
+        }
+
+    }
+
+    public function Curl($url = '')
+    {
+        if (empty($url)) {
+            return false;
+        }
+        $ch = curl_init();//初始化curl
+        curl_setopt($ch, CURLOPT_URL, $url);//抓取指定网页
+        curl_setopt($ch, CURLOPT_HEADER, 0);//设置header
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);//要求结果为字符串且输出到屏幕上
+        curl_setopt($ch, CURLOPT_POST, 1);//post提交方式
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        $return = curl_exec($ch);//运行curl
+        curl_close($ch);
+        return $return;
+    }
+
 }
