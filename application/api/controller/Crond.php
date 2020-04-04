@@ -17,7 +17,7 @@ class Crond extends Base
         //echo $this->autoCancelOrder();
 
         //自动失效积分
-        echo $this->overtimeintegral();
+//        echo $this->overtimeintegral();
         exit;
     }
 
@@ -86,7 +86,7 @@ class Crond extends Base
         $where = array();
         $where[] = ['order_status','=','1'];
         $where[] = ['pay_status','=','1'];
-        $where[] = ['create_time','>=', time() - 3600*$autoCancelOrderTime];
+        $where[] = ['create_time','<', time() - 3600*$autoCancelOrderTime];
 
         $orders = Db::table('mrs_orders')->where($where)->select();
         if(is_array($orders) && count($orders) > 0 ){
@@ -148,7 +148,7 @@ class Crond extends Base
         $overtimeIntegral = 0;
 
         $where = array();
-        $where[] = ['invalid_time','>',time()];
+        $where[] = ['invalid_time','<',time()];
         $where[] = ['is_overtime','=','0'];
         $where[] = ['type','=','1'];
 

@@ -728,6 +728,53 @@ class Recovery extends Base
         }
     }
 
+    public function queryrecoveryrecord(Request $request){
+        $user_id = $request->post('user_id');
+        $page = $request->post('page');
+
+        if(empty($user_id)){
+            echo $this->errorJson('1', '缺少关键参数user_id');
+            exit;
+        }
+
+
+        if (empty($page)) {
+            $page = 1;
+        }
+        $pageSize = 10;
+
+        $order = 'recovery_time desc';
+
+        $recordList = Db::table('mrs_recovery_record')
+            ->where('user_id', '=', $user_id)
+            ->order($order)
+            ->limit(($page - 1) * $pageSize, $pageSize)
+            ->select();
+
+        $totalCount = Db::table('mrs_recovery_record')
+            ->where('user_id', '=', $user_id)
+            ->count();
+
+        if(is_array($recordList) && count($recordList) > 0){
+            $total_page = ceil($totalCount / $pageSize);
+            foreach ($recordList as $k=>$v){
+                $recordList[$k]['recovery_time'] = date('Y-m-d_H:i:s', $v['recovery_time']);
+
+                $details = Db::table('mrs_recovery_record_detail')->where('recovery_record_id','=',$v['recovery_record_id'])->select();
+                $recordList[$k]['details'] = $details;
+            }
+
+            $data = array();
+            $data['recordList'] = $recordList;
+            $data['total_page'] = $total_page;
+
+            echo $this->successJson($data);
+        }else{
+            echo $this->successJson(array());
+            exit;
+        }
+    }
+
 
 
 

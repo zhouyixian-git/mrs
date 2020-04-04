@@ -27,16 +27,16 @@ class Callrecoveryrecord extends Base
         $address = $request->param('address');
         $where = [];
         if (!empty($master_name)) {
-            $where[] = ['t1.master_name', '=', $master_name];
+            $where[] = ['t1.master_name', 'like', "%$master_name%"];
         }
         if (!empty($address)) {
             $where[] = ['t1.address', 'like', "%$address%"];
         }
         if (!empty($master_phone_no)) {
-            $where[] = ['t1.master_phone_no', '=', $master_phone_no];
+            $where[] = ['t1.master_phone_no', 'like',"%$master_phone_no%" ];
         }
         if (!empty($user_phone_no)) {
-            $where[] = ['t1.user_phone_no', '=', $user_phone_no];
+            $where[] = ['t1.user_phone_no', 'like', "%$user_phone_no%"];
         }
 
         $recordList = Db::table('mrs_call_recovery_record')

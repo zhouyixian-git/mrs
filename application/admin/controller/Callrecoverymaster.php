@@ -21,13 +21,13 @@ class Callrecoverymaster extends Base
         $master_phone_no = $request->param('master_phone_no');
         $where = [];
         if (!empty($master_name)) {
-            $where[] = ['master_name', '=', $master_name];
+            $where[] = ['master_name', 'like', "%$master_name%"];
         }
         if (!empty($is_actived)) {
             $where[] = ['is_actived', '=', $is_actived];
         }
         if (!empty($master_phone_no)) {
-            $where[] = ['master_phone_no', '=', $master_phone_no];
+            $where[] = ['master_phone_no', 'like', "%$master_phone_no%"];
         }
 
         $masterList = Db::table('mrs_call_recovery_master')

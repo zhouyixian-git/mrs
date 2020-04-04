@@ -30,7 +30,7 @@ class Sku extends Base
             $where[] = ['p_sku_id', '=', $p_sku_id];
         }
         if (!empty($sku_name)) {
-            $where[] = ['sku_name', '=', $sku_name];
+            $where[] = ['sku_name', 'like', "%$sku_name%"];
         }
 
         $skuList = Db::table('mrs_goods_sku')

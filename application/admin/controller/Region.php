@@ -26,7 +26,7 @@ class Region extends Base
         $region_name = $request->param('region_name');
         $where = [];
         if (!empty($region_name)) {
-            $where[] = ['region_name', '=', $region_name];
+            $where[] = ['region_name', 'like', "%$region_name%"];
         }
 
         $regionList = Db::table('mrs_region')

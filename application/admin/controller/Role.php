@@ -30,10 +30,10 @@ class Role extends Base
         $role_name = $request->param('role_name');
         $where = [];
         if (!empty($role_code)) {
-            $where[] = ['role_code', '=', $role_code];
+            $where[] = ['role_code', 'like', "%$role_code%"];
         }
         if (!empty($role_name)) {
-            $where[] = ['role_name', '=', $role_name];
+            $where[] = ['role_name', 'like', "%$role_name%"];
         }
 
         $roleList = Db::table('eas_role')

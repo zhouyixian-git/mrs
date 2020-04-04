@@ -30,7 +30,7 @@ class Device extends Base
             $where[] = ['t1.status', '=', $status];
         }
         if (!empty($device_name)) {
-            $where[] = ['t1.device_name', '=', $device_name];
+            $where[] = ['t1.device_name', 'like', "%$device_name%"];
         }
         if (!empty($site_id)) {
             $where[] = ['t1.site_id', '=', $site_id];

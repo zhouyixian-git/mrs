@@ -107,6 +107,35 @@ class User extends Base
         }
     }
 
+    public function deladdress(Request $request){
+        $address_id = $request->post('address_id');
+        $user_id = $request->post('user_id');
+
+        if(empty($address_id)){
+            echo $this->errorJson('1', '缺少关键参数address_id');
+            exit;
+        }
+        if(empty($user_id)){
+            echo $this->errorJson('1', '缺少关键参数user_id');
+            exit;
+        }
+
+        $where = array();
+        $where[] = ['address_id','=',$address_id];
+        $where[] = ['user_id','=',$user_id];
+
+        $address = Db::table('mrs_user_address')->where($where)->find();
+
+        if(empty($address)){
+            echo $this->errorJson('1', '地址信息不存在');
+            exit;
+        }
+
+        Db::table('mrs_user_address')->where($where)->delete();
+        echo $this->successJson();
+        exit;
+    }
+
     /**
      * 添加用户地址
      * @param Request $request
@@ -1009,6 +1038,21 @@ class User extends Base
 
         if (!preg_match("/^1[3456789]{1}\d{9}$/", $phone)) {
             echo errorJson('1', '手机号码格式不正确');
+            exit;
+        }
+
+        $where = array();
+        $where[] = ['user_id', '=', $user_id];
+        $where[] = ['phone_no', '=', $phone];
+        $is_exists = Db::table('mrs_user')->where($where)->find();
+        if(!empty($is_exists)){
+            echo errorJson('1', '您已绑定该号码，无须重复绑定');
+            exit;
+        }
+
+        $is_exists2 = Db::table('mrs_user')->where('phone_no', '=', $phone)->find();
+        if(!empty($is_exists2)){
+            echo errorJson('1', '该号码已被其他用户绑定');
             exit;
         }
 

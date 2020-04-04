@@ -30,7 +30,7 @@ class Banner extends Base
             $where[] = ['is_actived', '=', $is_actived];
         }
         if (!empty($banner_title)) {
-            $where[] = ['banner_title', '=', $banner_title];
+            $where[] = ['banner_title', 'like', "%$banner_title%"];
         }
 
         $bannerList = Db::table('mrs_home_banner')
