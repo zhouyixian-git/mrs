@@ -135,6 +135,7 @@ class Wechat extends Base
             $data['head_img'] = $request->post('head_img');
             $data['sex'] = $request->post('sex');
             $data['last_login_time'] = time();
+            $token = $request->post('token');
 
             if (empty($user_id)) {
                 echo $this->errorJson(1, '缺少关键数据');
@@ -145,6 +146,13 @@ class Wechat extends Base
             if (!$userInfo) {
                 echo $this->errorJson(1, '未找到用户信息');
                 exit;
+            }
+
+            if (!empty($token)) { //app授权登录凭证
+                $record['open_id'] = $userInfo['open_id'];
+                $record['user_id'] = $userInfo['user_id'];
+                $record['login_time'] = time();
+                Db::table('mrs_qrcode_login_record')->where('token', '=', $token)->update($record);
             }
 
             $userModel = new \app\api\model\User();
@@ -292,6 +300,123 @@ class Wechat extends Base
         echo successJson($data);
         exit;
     }
+
+    /**
+     * 小程序授权app登录
+     * @param Request $request
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function getauthcode(Request $request)
+    {
+        $token = $request->post('token');
+
+        if (empty($token)) {
+            echo errorJson('1', '缺少关键参数$token');
+            exit;
+        }
+        $wechatModel = new \app\api\model\Wechat();
+        $wechatInfo = $wechatModel->getWechatInfo();
+        if (empty($wechatInfo)) {
+            echo $this->errorJson(1, '小程序未绑定');
+            exit;
+        }
+        $appid = $wechatInfo['app_id'];
+        $appsecret = $wechatInfo['app_secret'];
+
+        $accessToken = $wechatModel->getAccessToken($appid, $appsecret);
+        if (empty($accessToken)) {
+            echo errorJson('1', '获取token失败');
+            exit;
+        }
+
+        $record['token'] = $token;
+        $record['create_time'] = time();
+        Db::table('mrs_qrcode_login_record')->insert($record);
+
+        $post = array();
+        $post['page'] = 'pages/acount/applogin';
+        $post['scene'] = $token;
+
+        $pic = doPostHttp('https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' . $accessToken, json_encode($post));
+
+        $absolute_path = Config('absolute_path');
+        $domain = Config('domain');
+        $name = 'wxacode_' . time() . rand(0000000, 9999999) . '.jpg';
+        $jpg = $absolute_path . '/public/uploads/images/wxacode/' . $name;
+        $path = $domain . '/uploads/images/wxacode/' . $name;
+
+        ob_end_clean();        //清空缓冲区
+        $fp = fopen($jpg, 'w');    //写入图片
+        if (fwrite($fp, $pic)) {
+            fclose($fp);
+        }
+
+        $data = array();
+        $data['path'] = $path;
+
+        echo successJson($data);
+        exit;
+    }
+
+    /**
+     * app轮询查询登录结果
+     * @param Request $request
+     */
+    public function checkloginresult(Request $request)
+    {
+        if ($request->isPost()) {
+            $token = $request->post('token');
+
+            if (empty($token)) {
+                echo errorJson('1', '缺少关键参数$token');
+                exit;
+            }
+
+            $record = Db::table('mrs_qrcode_login_record')->where('token', '=', $token)->find();
+            if ($record) {
+                if ($record['login_time'] > 0) { //已登录
+                    if ($record['is_used'] == 1) {
+                        echo errorJson('1', '该token已经被使用，请重新登录');
+                        exit;
+                    }
+
+                    //查询登录用户数据
+                    $where = [];
+                    $where[] = ['open_id', '=', $record['open_id']];
+                    $where[] = ['user_id', '=', $record['user_id']];
+
+                    $userInfo = Db::table('mrs_user')->where($where)->find();
+                    if ($userInfo) {
+                        unset($userInfo['password']);
+                        $data = array();
+                        if (empty($userInfo['user_auth'])) {
+                            $userInfo['user_auth_arr'] = [];
+                        } else {
+                            $userInfo['user_auth_arr'] = explode(",", $userInfo['user_auth']);
+                        }
+                        $data['userInfo'] = $userInfo;
+
+                        Db::table('mrs_qrcode_login_record')->where('record_id', '=', $record['record_id'])->update(['is_used' => 1]);
+
+                        echo $this->successJson($data);
+                        exit;
+                    } else {
+                        echo errorJson('1', '未找到用户信息');
+                        exit;
+                    }
+                } else { //未登录
+                    echo errorJson('2', '用户未扫码');
+                    exit;
+                }
+            } else {
+                echo errorJson('1', '登录失败，未找到记录');
+                exit;
+            }
+        }
+    }
+
 
     /**
      * 第三方扫码登录
