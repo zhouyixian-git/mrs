@@ -10,20 +10,31 @@ namespace app\admin\controller;
 
 
 use think\Db;
+use think\Request;
 
 class Index extends Base
 {
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->isPost()) {
+            $whereOr = [];
+            $whereOr[] = ['refund_status', '<>', "1"];
+            $whereOr[] = ['sales_status', '<>', "1"];
+
+            $orderCount = Db::table('mrs_orders')->whereOr($whereOr)->count();
+            $data['orderCount'] = $orderCount;
+            echo $this->successJson($data);
+            exit;
+        }
         return $this->fetch();
     }
 
     public function home()
     {
         //订单金额
-        $orderTotal =  Db::table('mrs_orders')->where('pay_status', '=', 2)->sum('order_amount');
+        $orderTotal = Db::table('mrs_orders')->where('pay_status', '=', 2)->sum('order_amount');
         //订单量
-        $orderNum =  Db::table('mrs_orders')->count();
+        $orderNum = Db::table('mrs_orders')->count();
         //待提现金额
         $waitAmouont = Db::table('mrs_withdraw')->where('status', '=', 1)->sum('withdraw_amount');
         //已提现金额
@@ -36,7 +47,7 @@ class Index extends Base
         $orderNumResult = Db::query($sql);
         $orderNumXs = [];
         $orderNumYs = [];
-        foreach ($orderNumResult as $v){
+        foreach ($orderNumResult as $v) {
             $orderNumXs[] = $v['days'];
             $orderNumYs[] = $v['count'];
         }
@@ -48,7 +59,7 @@ class Index extends Base
         $recoveryNumResult = Db::query($sql);
         $recoveryXs = [];
         $recoveryYs = [];
-        foreach ($recoveryNumResult as $v){
+        foreach ($recoveryNumResult as $v) {
             $recoveryXs[] = $v['days'];
             $recoveryYs[] = $v['count'];
         }
@@ -60,7 +71,7 @@ class Index extends Base
         $withdrawNumResult = Db::query($sql);
         $withdrawXs = [];
         $withdrawYs = [];
-        foreach ($withdrawNumResult as $v){
+        foreach ($withdrawNumResult as $v) {
             $withdrawXs[] = $v['days'];
             $withdrawYs[] = $v['count'];
         }

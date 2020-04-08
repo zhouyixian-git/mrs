@@ -483,6 +483,13 @@ class Order extends Base
             }
 
         } else if ($pay_type == 3) { //积分抵扣
+            $used_integral = Db::table('mrs_user')->where('user_id', '=', $user_id)->value('used_integral');
+            if ($used_integral < $integral) {
+                $result = $this->errorJson(1, '积分不足，请选择其他支付方式');
+                echo $result;
+                exit;
+            }
+
             $where = [];
             $where[] = ['setting_code', '=', 'integral'];
             $integral_rate = Db::table('mrs_system_setting')->where($where)->value('setting_value');
@@ -641,7 +648,7 @@ class Order extends Base
             exit;
 
         } else {
-            try{
+            try {
                 //积分支付时，修改订单状态
                 $time = time();
                 $payData['pay_time'] = $time;
@@ -671,7 +678,7 @@ class Order extends Base
                 $result = $this->successJson();
                 echo $result;
                 exit;
-            }catch(Exception $e){
+            } catch (Exception $e) {
                 recordLog($e, 'order.txt');
             }
         }

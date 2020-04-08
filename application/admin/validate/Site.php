@@ -18,7 +18,9 @@ class Site extends Validate
         'lng' => 'require',
         'lat' => 'require',
         'site_address' => 'require',
-        'region_id' => 'require'
+        'region_id' => 'require',
+        'start_time' => 'require',
+        'end_time' => 'require'
         /*'province_id' => 'require',
         'city_id' => 'require',
         'area_id' => 'require'*/
@@ -30,7 +32,9 @@ class Site extends Validate
         'lng.require' => '请选择站点坐标',
         'lat.require' => '请选择站点坐标',
         'site_address.require' => '站点地址不能为空',
-        'region_id.require' => '站点区域不能为空'
+        'region_id.require' => '站点区域不能为空',
+        'start_time.require' => '请填写运营时间',
+        'end_time.require' => '请填写运营时间'
         /*'province_id.require' => '请选择站点区域',
         'city_id.require' => '请选择站点区域',
         'area_id.require' => '请选择站点区域'*/

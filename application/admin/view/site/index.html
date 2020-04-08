@@ -64,6 +64,7 @@
                             <th>站点区域</th>
                             <th>回收量</th>
                             <th>使用量</th>
+                            <th>运营时间</th>
                             <th>是否有效</th>
                             <th>创建时间</th>
                         </tr>
@@ -89,6 +90,7 @@
                                 <!--<td>{$siteInfo.province_name}-{$siteInfo.city_name}-{$siteInfo.area_name}</td>-->
                                 <td>{$siteInfo.recovery_num}</td>
                                 <td>{$siteInfo.used_num}</td>
+                                <td>{$siteInfo.start_time}-{$siteInfo.end_time}</td>
                                 <td>
                                     {if condition="$siteInfo.status eq 1"}
                                     <span style="color: green;">有效</span>

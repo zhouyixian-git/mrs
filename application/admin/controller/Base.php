@@ -98,14 +98,14 @@ class Base extends Controller
     {
         if ($admin_code == 'admin') {
             $parentMenu = Db::table('eas_menu')
-                ->field('menu_id,menu_name,menu_url,menu_icon,menu_level')
+                ->field('menu_id,menu_code,menu_name,menu_url,menu_icon,menu_level')
                 ->where([['menu_level', '=', 1]])
                 ->order('order_no asc')
                 ->select();
         } else {
             $parentMenu = Db::table('eas_role_menu')
                 ->alias('t1')
-                ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.menu_level')
+                ->field('t2.menu_id,t2.menu_code,t2.menu_name,t2.menu_url,t2.menu_icon,t2.menu_level')
                 ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
                 ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 1], ['t2.menu_code', '<>', 'menu_mgr']])
                 ->order('t2.order_no asc')
@@ -114,14 +114,14 @@ class Base extends Controller
 
         if ($admin_code == 'admin') {
             $childMenu = Db::table('eas_menu')
-                ->field('menu_id,menu_name,menu_url,menu_icon,parent_id,menu_level')
+                ->field('menu_id,menu_code,menu_name,menu_url,menu_icon,parent_id,menu_level')
                 ->where([['menu_level', '=', 2]])
                 ->order('order_no asc')
                 ->select();
         } else {
             $childMenu = Db::table('eas_role_menu')
                 ->alias('t1')
-                ->field('t2.menu_id,t2.menu_name,t2.menu_url,t2.menu_icon,t2.parent_id,t2.menu_level')
+                ->field('t2.menu_id,t2.menu_code,t2.menu_name,t2.menu_url,t2.menu_icon,t2.parent_id,t2.menu_level')
                 ->leftJoin('eas_menu t2', 't1.menu_id = t2.menu_id')
                 ->where([['t1.role_id', '=', $role_id], ['t2.menu_level', '=', 2]])
                 ->order('t2.order_no asc')
@@ -134,6 +134,7 @@ class Base extends Controller
             foreach ($childMenu as $k1 => $v1) {
                 if ($v['menu_id'] == $v1['parent_id']) {
                     $childMenuData[] = [
+                        'menu_code' => $v1['menu_code'],
                         'menu_name' => $v1['menu_name'],
                         'menu_url' => $v1['menu_url'],
                         'menu_id' => $v1['menu_id'],
@@ -143,6 +144,7 @@ class Base extends Controller
                 }
             }
             $menuData[] = [
+                'menu_code' => $v['menu_code'],
                 'menu_name' => $v['menu_name'],
                 'menu_url' => $v['menu_url'],
                 'menu_id' => $v['menu_id'],

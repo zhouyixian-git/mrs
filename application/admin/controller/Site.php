@@ -66,6 +66,8 @@ class Site extends Base
             $data['site_address'] = $request->post('site_address');
             $data['region_id'] = $request->post('region_id');
             $data['region_name'] = $request->post('region_name');
+            $data['start_time'] = $request->post('start_time');
+            $data['end_time'] = $request->post('end_time');
             /*$data['province_id'] = $request->post('province_id');
             $data['city_id'] = $request->post('city_id');
             $data['area_id'] = $request->post('area_id');
@@ -114,6 +116,8 @@ class Site extends Base
             $data['site_address'] = $request->post('site_address');
             $data['region_id'] = $request->post('region_id');
             $data['region_name'] = $request->post('region_name');
+            $data['start_time'] = $request->post('start_time');
+            $data['end_time'] = $request->post('end_time');
             /*$data['province_id'] = $request->post('province_id');
             $data['city_id'] = $request->post('city_id');
             $data['area_id'] = $request->post('area_id');

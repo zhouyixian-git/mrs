@@ -48,11 +48,11 @@
 
                     {foreach $loginAdmin.menuData as $parentMenu}
                         {if condition="empty($parentMenu.child)"}
-                            <li>
+                            <li class="{$parentMenu.menu_code}">
                                 <a class="J_menuItem" href="{$parentMenu.menu_url}"><i class="{$parentMenu.menu_icon}"></i> <span class="nav-label">{$parentMenu.menu_name}</span></a>
                             </li>
                         {else/}
-                            <li>
+                            <li class="{$parentMenu.menu_code}">
                                 <a href="#">
                                     <i class="{$parentMenu.menu_icon}"></i>
                                     <span class="nav-label">{$parentMenu.menu_name}</span>
@@ -60,7 +60,7 @@
                                 </a>
                                 <ul class="nav nav-second-level">
                                     {foreach $parentMenu.child as $childMenu}
-                                    <li>
+                                    <li class="{$childMenu.menu_code}">
                                         <a class="J_menuItem" href="{$childMenu.menu_url}" data-index="0">{$childMenu.menu_name}</a>
                                     </li>
                                     {/foreach}
@@ -86,6 +86,12 @@
                          -->
                     </div>
                     <ul class="nav navbar-top-links navbar-right">
+                        <li class="dropdown" id="refundorder">
+                            <a class="dropdown-toggle count-info J_menuItem" href="{:url('admin/order/refundorder')}">
+                                退款订单
+                                <i class="fa fa-bell"></i> <span class="label label-primary" style="padding: 2px 5px;right: 2px;" id="refundorder-count">0</span>
+                            </a>
+                        </li>
                         <li class="dropdown hidden-xs">
                             <a class="right-sidebar-toggle" aria-expanded="false">
                                 <i class="fa fa-tasks"></i> 主题
@@ -117,10 +123,6 @@
             <div class="row J_mainContent" id="content-main">
                 <iframe class="J_iframe" name="iframe0" width="100%" height="100%" src="{:url('admin/admin/index/home')}" frameborder="0" data-id="index_v1.html" seamless></iframe>
 
-            </div>
-            <div class="footer">
-                <div class="pull-right">&copy; 2014-2015 <a href="http://www.zi-han.net/" target="_blank">zihan's blog</a>
-                </div>
             </div>
         </div>
         <!--右侧部分结束-->
@@ -226,6 +228,36 @@
     <!-- 自定义js -->
     <script src="__JS__/hplus.js?v=4.1.0"></script>
     <script type="text/javascript" src="__JS__/contabs.js"></script>
+    <script>
+        $(function(){
+            if($(".refund_order").length < 1){
+                $("#refundorder").hide();
+            } else {
+                selectCount();
+                setInterval(function () {
+                    selectCount();
+                }, 5000);
+            }
+        });
+
+        function selectCount(){
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: "{:url('admin/admin/index/index')}",
+                data: {},
+                success: function (result) {
+                    if (result.errcode == 1) {
+                        $("#refundorder-count").text(result.data.orderCount);
+                    }else{
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                    return false;
+                }
+            });
+        }
+
+    </script>
 </body>
 
 </html>

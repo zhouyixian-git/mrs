@@ -49,7 +49,7 @@ class Recovery extends Base
 
             $siteList = Db::table('mrs_site')
                 ->alias('t1')
-                ->field("t1.site_id,t1.site_name,t1.lng,t1.lat,t1.site_address,
+                ->field("t1.site_id,t1.site_name,t1.lng,t1.lat,t1.site_address,t1.start_time,t1.end_time,
                     ROUND(
                         6378.138 * 2 * ASIN(
                             SQRT(
@@ -73,12 +73,14 @@ class Recovery extends Base
                     ) AS distance
                 ")
                 ->whereOr($whereOr)
+                ->where('is_delete', '<>' , 1)
                 ->limit(($page - 1) * $pageSize, $pageSize)
                 ->order('distance asc')
                 ->select();
 
             $totalCount = Db::table('mrs_site')
                 ->alias('t1')
+                ->where('is_delete', '<>' , 1)
                 ->whereOr($whereOr)
                 ->count();
 

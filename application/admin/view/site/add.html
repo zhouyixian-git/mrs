@@ -15,6 +15,7 @@
     <link href="__CSS__/plugins/iCheck/custom.css" rel="stylesheet">
     <link href="__CSS__/animate.css" rel="stylesheet">
     <link href="__CSS__/style.css?v=4.1.0" rel="stylesheet">
+    <link href="__CSS__/plugins/clockpicker/clockpicker.css" rel="stylesheet">
     <style>
         body{overflow-y: hidden;}
         .ibox-content{height: 480px;}
@@ -68,6 +69,25 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label class="col-sm-3 control-label">运营时间：</label>
+                            <div class="col-sm-4">
+                                <div class="input-group clockpicker" data-autoclose="true">
+                                    <input type="text" class="form-control" name="start_time" value="09:00">
+                                    <span class="input-group-addon">
+                                        <span class="fa fa-clock-o"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="input-group clockpicker" data-autoclose="true">
+                                    <input type="text" class="form-control" name="end_time" value="18:00">
+                                    <span class="input-group-addon">
+                                        <span class="fa fa-clock-o"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label class="col-sm-3 control-label">是否有效：</label>
                             <div class="radio i-checks">
                                 <label><input type="radio" checked value="1" name="status"> <i></i> 有效</label>
@@ -94,11 +114,13 @@
     <script src="__JS__/plugins/iCheck/icheck.min.js"></script>
 
     <script src="__JS__/plugins/layer/layer.min.js"></script>
+    <script src="__JS__/plugins/clockpicker/clockpicker.js"></script>
     <script>
         $(function(){
             $('.i-checks').iCheck({
                 radioClass: 'iradio_square-green',
             });
+            $('.clockpicker').clockpicker();
 
             $("#region_id").change(function(){
                 $("#region_name").val($(this).find("option:selected").text());
