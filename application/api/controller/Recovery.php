@@ -202,6 +202,15 @@ class Recovery extends Base
             exit;
         }
 
+        if(empty($user_phone_no)){
+            echo $this->errorJson('1','缺少上门联系号码');
+            exit;
+        }
+        if(empty($call_create_time)){
+            echo $this->errorJson('1','请选择预约上门时间');
+            exit;
+        }
+
         if(empty($address)){
             echo $this->errorJson('1','缺少关键参数address');
             exit;
@@ -234,6 +243,11 @@ class Recovery extends Base
 
         if(empty($call_create_time)){
             echo $this->errorJson('1','$call_create_time格式不正确');
+            exit;
+        }
+
+        if(strtotime($call_create_time) < time()){
+            echo $this->errorJson('1','请选择正确的预约上门时间');
             exit;
         }
 
@@ -311,6 +325,9 @@ class Recovery extends Base
         $patterns = array();
         $replacements = array();
 
+        if(mb_strlen($address,"utf-8") > 20){
+            $address = '...'.mb_substr($address, -17);
+        }
         $patterns[] = '/{address}/';
         $patterns[] = '/{user_phone_no}/';
         $patterns[] = '/{call_create_time}/';
@@ -394,7 +411,7 @@ class Recovery extends Base
 
 
     public function analyserial(Request $request){
-        $serial_data = $request->post("serial_data");
+            $serial_data = $request->post("serial_data");
         recordLog('serial_data-->'.$serial_data,'analyserialData.txt');
 
 //        $serial_data = bin2Bin($serial_data);

@@ -111,7 +111,6 @@ class User extends Model
         $res = httpPost($url, $posts);
 
         recordLog('$res->'.json_encode($res), 'face.txt');
-
         return $res;
     }
 

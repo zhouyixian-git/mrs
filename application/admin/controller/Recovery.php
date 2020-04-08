@@ -72,7 +72,7 @@ class Recovery extends Base
      * 回收清单导出
      * @param Request $request
      */
-    public function expert(Request $request)
+    public function export(Request $request)
     {
         $objPHPExcel = new \PHPExcel();
         $objPHPExcel->setActiveSheetIndex(0);

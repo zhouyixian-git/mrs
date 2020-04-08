@@ -49,7 +49,7 @@
                             <div class="col-sm-1" style="text-align:center;">
                                 <button type="submit" class="btn btn-sm btn-white">查询</button>
                                 {if condition="in_array('recovery_export',$loginAdmin.buttonData)"}
-                                <button type="button" onclick="expertOrder()" class="btn btn-sm btn-info">导出</button>
+                                <button type="button" onclick="exportOrder()" class="btn btn-sm btn-info">导出</button>
                                 {/if}
                             </div>
                         </div>
@@ -109,8 +109,8 @@
             content: "{:url('admin/admin/recovery/detail')}?record_id=" + record_id
         });
     }
-    function expertOrder(){
-        window.location.href = "{:url('admin/admin/recovery/expert')}?recovery_record_sn=" + $("#recovery_record_sn").val() + "&phone_no=" + $("#phone_no").val() + "&site_name=" + $("#site_name").val();
+    function exportOrder(){
+        window.location.href = "{:url('admin/admin/recovery/export')}?recovery_record_sn=" + $("#recovery_record_sn").val() + "&phone_no=" + $("#phone_no").val() + "&site_name=" + $("#site_name").val();
     }
 </script>
 

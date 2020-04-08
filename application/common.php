@@ -145,7 +145,7 @@ function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements
     if (empty($smsApi)) {
         return errorJson('1', 'Not found the sms api!');
     }
-    $smsTpl = Db::table('mrs_sms_tpl')->where(array('tpl_code' => $tpl_code))->find();
+    $smsTpl = Db::table('mrs_sms_tpl')->where('tpl_code','=',$tpl_code)->find();
     if (empty($smsTpl)) {
         return errorJson('1', 'Not found the sms template!');
     }
@@ -208,6 +208,11 @@ function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements
     // 发起访问请求
     $acsResponse = $acsClient->getAcsResponse($request);
     // 打印请求结果
+    recordLog('$acsResponse->'.json_encode($acsResponse), 'sms.txt');
+    recordLog('$smsApi->'.json_encode($smsApi), 'sms.txt');
+    recordLog('$phone->'.$phone, 'sms.txt');
+    recordLog('$smsTpl->'.json_encode($smsTpl), 'sms.txt');
+
 
     return successJson();
 

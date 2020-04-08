@@ -34,7 +34,7 @@ class User extends Base
 
             $addressList = Db::table('mrs_user_address')
                 ->where('user_id', '=', $user_id)
-                ->field('address_id,consignee,telephone,province_name,city_name,district_name,areainfo,address,is_default')
+                ->field('address_id,consignee,telephone,province_name,city_name,district_name,areainfo,address,is_default,zip_code')
                 ->order('is_default asc,create_time desc')
                 ->select();
 
@@ -93,10 +93,10 @@ class User extends Base
                 echo $this->errorJson(1, '请填写详细地址');
                 exit;
             }
-            if (empty($data['zip_code'])) {
-                echo $this->errorJson(1, '请填写邮政号码');
-                exit;
-            }
+//            if (empty($data['zip_code'])) {
+//                echo $this->errorJson(1, '请填写邮政号码');
+//                exit;
+//            }
 
             Db::table('mrs_user_address')
                 ->where('address_id', '=', $address_id)
@@ -179,10 +179,10 @@ class User extends Base
                 echo $this->errorJson(1, '请填写详细地址');
                 exit;
             }
-            if (empty($data['zip_code'])) {
-                echo $this->errorJson(1, '请填写邮政号码');
-                exit;
-            }
+//            if (empty($data['zip_code'])) {
+//                echo $this->errorJson(1, '请填写邮政号码');
+//                exit;
+//            }
 
             $data['country'] = '中国';
             $data['create_time'] = time();
@@ -482,13 +482,11 @@ class User extends Base
             $token = $request->post('token');
 
             if (empty($user_id) || empty($phone_no) || empty($password) || empty($confirm_password)) {
-                recordLog('缺少关键数据', 'editlogin.txt');
                 echo $this->errorJson(1, '缺少关键数据');
                 exit;
             }
 
             if ($password != $confirm_password) {
-                recordLog('缺少关键数据', 'editlogin.txt');
                 echo $this->errorJson(1, '密码不一致');
                 exit;
             }
@@ -531,14 +529,22 @@ class User extends Base
             $confirm_password = $request->post('confirm_password');
             $token = $request->post('token');
 
-            if (empty($phone_no) || empty($password) || empty($confirm_password)) {
-                recordLog('缺少关键数据', 'editlogin.txt');
-                echo $this->errorJson(1, '缺少关键数据');
+            if (empty($phone_no)) {
+                echo $this->errorJson(1, '请输入手机号');
+                exit;
+            }
+
+            if (empty($password)) {
+                echo $this->errorJson(1, '请输入密码');
+                exit;
+            }
+
+            if (empty($confirm_password)) {
+                echo $this->errorJson(1, '请再次缺认输出密码');
                 exit;
             }
 
             if ($password != $confirm_password) {
-                recordLog('密码不一致', 'editlogin.txt');
                 echo $this->errorJson(1, '密码不一致');
                 exit;
             }
@@ -1082,8 +1088,9 @@ class User extends Base
         $result = json_decode($res, true);
         if ($result['error_code'] == 0) {
             $user_id = $result['result']['user_list'][0]['user_id'];
+            $score = $result['result']['user_list'][0]['score'];
             $user = $userM->where('user_id', '=', $user_id)->find();
-            if (empty($user)) {
+            if (empty($user) || $score < 90) {
                 echo errorJson('1', '登录失败，不存在人脸对应用户。');
                 exit;
             } else {

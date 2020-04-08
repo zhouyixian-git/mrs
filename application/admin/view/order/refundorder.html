@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
-    <title>订单列表</title>
+    <title>售后订单列表</title>
 
     <link rel="shortcut icon" href="favicon.ico">
     <link href="__CSS__/bootstrap.min.css?v=3.3.6" rel="stylesheet">
@@ -32,7 +32,7 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/admin/order/index')}">
+                    <form id="formSearch" class="form-horizontal" method="get" action="{:url('admin/admin/order/refundorder')}">
                         <div class="form-group">
                             <label class="control-label col-sm-1">订单状态</label>
                             <div class="col-sm-2">
@@ -212,7 +212,7 @@
         window.location.href = "{:url('admin/admin/order/view')}?order_id=" + order_id;
     }
     function exportOrder(){
-        window.location.href = "{:url('admin/admin/order/export')}?order_status=" + $("#order_status").val() + "&order_sn=" + $("#order_sn").val();
+        window.location.href = "{:url('admin/admin/order/refundexport')}?order_status=" + $("#order_status").val() + "&order_sn=" + $("#order_sn").val();
     }
 </script>
 
