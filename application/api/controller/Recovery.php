@@ -214,27 +214,27 @@ class Recovery extends Base
         }
 
         if(empty($address)){
-            echo $this->errorJson('1','缺少关键参数address');
+            echo $this->errorJson('1','请输入地址');
             exit;
         }
 
         if(empty($lng)){
-            echo $this->errorJson('1','缺少关键参数$lng');
+            echo $this->errorJson('1','请输入地址');
             exit;
         }
 
         if(empty($lat)){
-            echo $this->errorJson('1','缺少关键参数$lat');
+            echo $this->errorJson('1','请输入地址');
             exit;
         }
 
         if(empty($user_phone_no)){
-            echo $this->errorJson('1','缺少关键参数$user_phone_no');
+            echo $this->errorJson('1','请输入手机号');
             exit;
         }
 
         if(empty($recovery_cate_id)){
-            echo $this->errorJson('1','缺少关键参数$recovery_cate_id');
+            echo $this->errorJson('1','请选择回收类型');
             exit;
         }
 
@@ -650,7 +650,7 @@ class Recovery extends Base
 
             if($res1 && $res2 && $res3 && $res4){
                 Db::commit();
-                echo successJson();
+                echo successJson(array());
             }else{
                 Db::rollback();
                 echo errorJson('1', '系统异常，请稍后再试。');
