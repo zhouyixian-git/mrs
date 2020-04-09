@@ -133,7 +133,7 @@ function sendSms($phone, $tpl_code)
  * @return false|mixed|SimpleXMLElement|string|void
  *
  */
-function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements = array(), $smsParam= array())
+function sendSmsCommon($phone = '', $tpl_code = '', $patterns = array(), $replacements = array(), $smsParam = array())
 {
 
     $accessKeyId = '';
@@ -145,7 +145,7 @@ function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements
     if (empty($smsApi)) {
         return errorJson('1', 'Not found the sms api!');
     }
-    $smsTpl = Db::table('mrs_sms_tpl')->where('tpl_code','=',$tpl_code)->find();
+    $smsTpl = Db::table('mrs_sms_tpl')->where('tpl_code', '=', $tpl_code)->find();
     if (empty($smsTpl)) {
         return errorJson('1', 'Not found the sms template!');
     }
@@ -208,10 +208,10 @@ function sendSmsCommon($phone='', $tpl_code='',$patterns = array(),$replacements
     // 发起访问请求
     $acsResponse = $acsClient->getAcsResponse($request);
     // 打印请求结果
-    recordLog('$acsResponse->'.json_encode($acsResponse), 'sms.txt');
-    recordLog('$smsApi->'.json_encode($smsApi), 'sms.txt');
-    recordLog('$phone->'.$phone, 'sms.txt');
-    recordLog('$smsTpl->'.json_encode($smsTpl), 'sms.txt');
+    recordLog('$acsResponse->' . json_encode($acsResponse), 'sms.txt');
+    recordLog('$smsApi->' . json_encode($smsApi), 'sms.txt');
+    recordLog('$phone->' . $phone, 'sms.txt');
+    recordLog('$smsTpl->' . json_encode($smsTpl), 'sms.txt');
 
 
     return successJson();
@@ -247,7 +247,7 @@ function successJson($data = null)
     $result['errcode'] = 0;
     $result['msg'] = 'success';
 //    if (!empty($data)) {
-        $result['data'] = $data;
+    $result['data'] = $data;
 //    }
     return json_encode($result);
 }
@@ -438,64 +438,68 @@ if (!function_exists('dateTime')) {
     }
 }
 
-function checkPhoneToken($token){
+function checkPhoneToken($token)
+{
     $key = 'jiayuanpro123';
     $cryptType = 'des-ecb';
     $res = openssl_decrypt($token, $cryptType, $key);
-    if($res){
-        $result = explode("|",$res);
+    if ($res) {
+        $result = explode("|", $res);
 
         if (!preg_match("/^1[3456789]{1}\d{9}$/", $result[0])) {
             echo errorJson('1', 'Token校验失败');
             exit;
         }
 
-        if (time() > $result[1] + 3600 || $result[1]> time()) {
+        if (time() > $result[1] + 3600 || $result[1] > time()) {
             echo errorJson('1', 'Token已失效');
             exit;
         }
 
         return successJson();
-    }else{
+    } else {
         return errorJson('1', 'Token校验失败');
-       exit;
+        exit;
     }
 }
 
 
-function createToken(){
+function createToken()
+{
     $key = 'jiayuanpro123';
     $cryptType = 'des-ecb';
-    $str = rand(100000 , 999999);
+    $str = rand(100000, 999999);
     $str .= '|';
     $str .= time();
 
-    $res = openssl_encrypt($str , $cryptType, $key);
+    $res = openssl_encrypt($str, $cryptType, $key);
 
     return $res;
 }
 
 
-function checkToken($token){
+function checkToken($token)
+{
     $key = 'jiayuanpro123';
     $cryptType = 'des-ecb';
     $res = openssl_decrypt($token, $cryptType, $key);
-    if($res){
-        $result = explode("|",$res);
+    if ($res) {
+        $result = explode("|", $res);
 
-        if (time() > $result[1] + 3600 || $result[1]> time()) {
+        if (time() > $result[1] + 3600 || $result[1] > time()) {
             echo errorJson('1', 'Token已失效');
             exit;
         }
 
         return true;
-    }else{
+    } else {
         return false;
         exit;
     }
 }
 
-function wxDecrypt($encryptedData,$iv,$sessionKey){
+function wxDecrypt($encryptedData, $iv, $sessionKey)
+{
     include_once "../extend/wx_extend/wxBizDataCrypt.php";
 
     $wechatModel = new \app\api\model\Wechat();
@@ -525,7 +529,8 @@ function wxDecrypt($encryptedData,$iv,$sessionKey){
  *
  * @return string
  */
-function imgToBase64($img_file) {
+function imgToBase64($img_file)
+{
 
     $img_base64 = '';
     if (file_exists($img_file)) {
@@ -549,86 +554,107 @@ function imgToBase64($img_file) {
 /**
  * @param $str 报文内容，不包括包头包尾
  */
-function calcCRC($str){
+function calcCRC($str)
+{
 //    00000000000001fa000000000000000000000000
-    $sendbuf['device'] = (hexdec('0x'.substr($str, 0, 8)));
-    $sendbuf['order'] = (hexdec('0x'.substr($str, 8, 4)));
-    $sendbuf['senser'] = (hexdec('0x'.substr($str, 12, 4)));
-    $sendbuf['weight'] = (hexdec('0x'.substr($str, 16, 8)));
-    $sendbuf['temp'] = (hexdec('0x'.substr($str, 24, 8)));
-    $sendbuf['card_id'] = (hexdec('0x'.substr($str, 32, 8)));
+    $sendbuf['device'] = (hexdec('0x' . substr($str, 0, 8)));
+    $sendbuf['order'] = (hexdec('0x' . substr($str, 8, 4)));
+    $sendbuf['senser'] = (hexdec('0x' . substr($str, 12, 4)));
+    $sendbuf['weight'] = (hexdec('0x' . substr($str, 16, 8)));
+    $sendbuf['temp'] = (hexdec('0x' . substr($str, 24, 8)));
+    $sendbuf['card_id'] = (hexdec('0x' . substr($str, 32, 8)));
 
-    $crc = dechex($sendbuf['device'] ^ $sendbuf['order'] ^ $sendbuf['senser'] ^ $sendbuf['weight'] ^ $sendbuf['temp'] ^ $sendbuf['card_id'] );
+    $crc = dechex($sendbuf['device'] ^ $sendbuf['order'] ^ $sendbuf['senser'] ^ $sendbuf['weight'] ^ $sendbuf['temp'] ^ $sendbuf['card_id']);
     $crc = substr($crc, -4);
-    return $crc = str_pad($crc,4,"0",STR_PAD_LEFT);
+    return $crc = str_pad($crc, 4, "0", STR_PAD_LEFT);
 }
 
 /**
  * @param $str 报文内容，不包括包头包尾
  */
-function calcCRC2($str){
+function calcCRC2($str)
+{
 //    ffee000010010000000100007A63010104570000000200000063010104580000000300007A63010104590000000400007A630101045A0000000500007A630101045B0000000600007A630101045C0000000700007A630101045D0000000800007A630101045E01efccdd
-    $sendbuf['device'] = (hexdec('0x'.substr($str, 0, 8)));
-    $sendbuf['order'] = (hexdec('0x'.substr($str, 8, 8)));
-    $sendbuf['weight'] = (hexdec('0x'.substr($str, 16, 8)));
-    $sendbuf['temp'] = (hexdec('0x'.substr($str, 24, 8)));
-    $sendbuf['card_id'] = (hexdec('0x'.substr($str, 32, 8)));
+    $sendbuf['device'] = (hexdec('0x' . substr($str, 0, 8)));
+    $sendbuf['order'] = (hexdec('0x' . substr($str, 8, 8)));
+    $sendbuf['weight'] = (hexdec('0x' . substr($str, 16, 8)));
+    $sendbuf['temp'] = (hexdec('0x' . substr($str, 24, 8)));
+    $sendbuf['card_id'] = (hexdec('0x' . substr($str, 32, 8)));
 
-    $crc = dechex($sendbuf['device'] ^ $sendbuf['order'] ^ $sendbuf['weight'] ^ $sendbuf['temp'] ^ $sendbuf['card_id'] );
+    $crc = dechex($sendbuf['device'] ^ $sendbuf['order'] ^ $sendbuf['weight'] ^ $sendbuf['temp'] ^ $sendbuf['card_id']);
     $crc = substr($crc, -4);
-    return $crc = str_pad($crc,4,"0",STR_PAD_LEFT);
+    return $crc = str_pad($crc, 4, "0", STR_PAD_LEFT);
 }
 
 /**
  * Str2Hex
  */
-function str2Hex($str, $length = 8){
+function str2Hex($str, $length = 8)
+{
     $hex = dechex($str);
-    return $hex = str_pad($hex,$length,"0",STR_PAD_LEFT);
+    return $hex = str_pad($hex, $length, "0", STR_PAD_LEFT);
 }
 
-function bin2Bin($str){
-        $v =  reverseStr($str);
-    $data = implode('',$strArr);
+function bin2Bin($str)
+{
+    $v = reverseStr($str);
+    $data = implode('', $strArr);
     return $data;
 }
 
-function reverseStr($str) {
+function reverseStr($str)
+{
     $hex = bin2hex($str);
 
     $strlen = strlen($hex);
     $hex_array = array();
     $newhex = '';
     $j = -1;
-    for($i=0; $i<$strlen; $i++){
-        if($i%4 == 0){
+    for ($i = 0; $i < $strlen; $i++) {
+        if ($i % 4 == 0) {
             $j++;
             $hex_array[$j] = $hex[$i];
-        }else{
+        } else {
             $hex_array[$j] .= $hex[$i];
         }
     }
     $hex_array = array_reverse($hex_array);
-    foreach($hex_array as $v){
+    foreach ($hex_array as $v) {
         $newhex .= $v;
     }
 
     $bin = "";
     $i = 0;
     do {
-        $bin .= chr(hexdec($newhex{$i}.$newhex{($i + 1)}));
+        $bin .= chr(hexdec($newhex{$i} . $newhex{($i + 1)}));
         $i += 2;
     } while ($i < strlen($newhex));
     return $bin;
 }
 
-function mbStrSplit ($string, $len=2) {
+function mbStrSplit($string, $len = 2)
+{
     $start = 0;
     $strlen = mb_strlen($string);
     while ($strlen) {
-        $array[] = mb_substr($string,$start,$len,"utf8");
-        $string = mb_substr($string, $len, $strlen,"utf8");
+        $array[] = mb_substr($string, $start, $len, "utf8");
+        $string = mb_substr($string, $len, $strlen, "utf8");
         $strlen = mb_strlen($string);
     }
     return $array;
+}
+
+/**
+ * 过滤标点符号
+ * @param $text
+ * @return string
+ */
+function filter_mark($text)
+{
+    if (trim($text) == '') return '';
+    $text = preg_replace("/[[:punct:]\s]/", ' ', $text);
+    $text = urlencode($text);
+    $text = preg_replace("/(%7E|%60|%21|%40|%23|%24|%25|%5E|%26|%27|%2A|%28|%29|%2B|%7C|%5C|%3D|\-|_|%5B|%5D|%7D|%7B|%3B|%22|%3A|%3F|%3E|%3C|%2C|\.|%2F|%A3%BF|%A1%B7|%A1%B6|%A1%A2|%A1%A3|%A3%AC|%7D|%A1%B0|%A3%BA|%A3%BB|%A1%AE|%A1%AF|%A1%B1|%A3%FC|%A3%BD|%A1%AA|%A3%A9|%A3%A8|%A1%AD|%A3%A4|%A1%A4|%A3%A1|%E3%80%82|%EF%BC%81|%EF%BC%8C|%EF%BC%9B|%EF%BC%9F|%EF%BC%9A|%E3%80%81|%E2%80%A6%E2%80%A6|%E2%80%9D|%E2%80%9C|%E2%80%98|%E2%80%99|%EF%BD%9E|%EF%BC%8E|%EF%BC%88)+/", ' ', $text);
+    $text = urldecode($text);
+    return trim($text);
 }
