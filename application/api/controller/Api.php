@@ -206,6 +206,12 @@ class Api extends Base
         if (empty($file)) {
             return array('errcode' => '1', 'errmsg' => '上传文件错误，文件资源为空');
         }
+        $name = $file->getInfo('name');
+        $fileInfo = pathinfo($name);
+        $ext = $fileInfo['extension'];
+        if($ext != 'mp3' && $ext != 'MP3'){
+            return array('errcode' => '1', 'errmsg' => '音频格式错误，请转换成mp3格式文件');
+        }
         $date = date('Ymd');
         $folder = 'files/voice/' . $date;
 
