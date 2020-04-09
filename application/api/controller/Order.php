@@ -483,8 +483,8 @@ class Order extends Base
             }
 
         } else if ($pay_type == 3) { //积分抵扣
-            $used_integral = Db::table('mrs_user')->where('user_id', '=', $user_id)->value('used_integral');
-            if ($used_integral < $integral) {
+            $able_integral = Db::table('mrs_user')->where('user_id', '=', $user_id)->value('able_integral');
+            if ($able_integral < $integral) {
                 $result = $this->errorJson(1, '积分不足，请选择其他支付方式');
                 echo $result;
                 exit;
