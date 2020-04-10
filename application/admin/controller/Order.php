@@ -37,7 +37,8 @@ class Order extends Base
         $domain = config('domain');
         $orderList = Db::table('mrs_orders')
             ->alias('t1')
-            ->field('t1.*')
+            ->field('t1.*,t2.nick_name')
+            ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->where($where)
             ->order('t1.create_time desc')
             ->paginate(8, false, ['query' => $request->param(), 'type' => 'page\Page', 'var_page' => 'page'])
@@ -86,7 +87,8 @@ class Order extends Base
         $domain = config('domain');
         $orderList = Db::table('mrs_orders')
             ->alias('t1')
-            ->field('t1.*')
+            ->field('t1.*,t2.nick_name')
+            ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->where($where)
             ->where(
                 function ($q) use($whereOr) {

@@ -34,7 +34,7 @@ class Withdraw extends Base
 
         $withdrawList = Db::table('mrs_withdraw')
             ->alias('t1')
-            ->field('t1.*,t2.user_name,t3.admin_name')
+            ->field('t1.*,t2.user_name,t2.nick_name,t3.admin_name')
             ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->leftJoin('eas_admin t3', 't1.admin_id = t3.admin_id')
             ->where($where)

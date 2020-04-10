@@ -64,7 +64,7 @@
                         <tr>
                             <th style="width: 60px;">操作</th>
                             <th style="width: 120px;">订单号</th>
-                            <th style="width: 70px;">用户名称</th>
+                            <th style="width: 70px;">用户昵称</th>
                             <th style="width: 70px;">商品名称</th>
                             <th style="width: 70px;">商品图片</th>
                             <th style="width: 70px;">商品数量</th>
@@ -94,7 +94,7 @@
                                         <button type="button" class="btn btn-sm btn-warning" onclick="view({$orderInfo.order_id})">查看详情</button>
                                     </td>
                                     <td rowspan="{$orderInfo.goodsList|count}">{$orderInfo.order_sn}</td>
-                                    <td rowspan="{$orderInfo.goodsList|count}">{$orderInfo.user_name}</td>
+                                    <td rowspan="{$orderInfo.goodsList|count}">{$orderInfo.nick_name}</td>
                                     {/if}
                                     <td>{$goodsInfo.goods_name}</td>
                                     <td>

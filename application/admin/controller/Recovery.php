@@ -30,21 +30,24 @@ class Recovery extends Base
         $where = [];
 
         if (!empty(self::$loginAdmin['roleRegion'])) {
-            $where[] = ['region_id', 'in', self::$loginAdmin['roleRegion']];
+            $where[] = ['t1.region_id', 'in', self::$loginAdmin['roleRegion']];
         }
         if (!empty($recovery_record_sn)) {
-            $where[] = ['recovery_record_sn', 'like', "%$recovery_record_sn%"];
+            $where[] = ['t1.recovery_record_sn', 'like', "%$recovery_record_sn%"];
         }
         if (!empty($site_name)) {
-            $where[] = ['site_name', 'like', "%$site_name%"];
+            $where[] = ['t1.site_name', 'like', "%$site_name%"];
         }
         if (!empty($phone_no)) {
-            $where[] = ['phone_no', 'like', "%$phone_no%"];
+            $where[] = ['t1.phone_no', 'like', "%$phone_no%"];
         }
 
         $recoveryList = Db::table('mrs_recovery_record')
+            ->alias('t1')
+            ->field('t1.*,t2.nick_name')
+            ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->where($where)
-            ->order('recovery_time desc')
+            ->order('t1.recovery_time desc')
             ->paginate(8, false, ['query' => $request->param(), 'type' => 'page\Page', 'var_page' => 'page']);
 
         $this->assign('recovery_record_sn', $recovery_record_sn);

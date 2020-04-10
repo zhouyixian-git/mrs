@@ -41,7 +41,7 @@ class Callrecoveryrecord extends Base
 
         $recordList = Db::table('mrs_call_recovery_record')
             ->alias('t1')
-            ->field('t1.*,t2.user_name')
+            ->field('t1.*,t2.user_name,t2.nick_name')
             ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->order('t1.create_time desc')
             ->where($where)
