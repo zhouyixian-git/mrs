@@ -336,7 +336,7 @@ class Wechat extends Base
         Db::table('mrs_qrcode_login_record')->insert($record);
 
         $post = array();
-        $post['page'] = 'pages/acount/applogin';
+        $post['page'] = 'pages/account/applogin';
         $post['scene'] = $token;
 
         $pic = doPostHttp('https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=' . $accessToken, json_encode($post));
