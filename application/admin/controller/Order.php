@@ -95,7 +95,7 @@ class Order extends Base
                     $q->whereOr($whereOr);
                 }
             )
-            ->order('t1.create_time desc')
+            ->order(array('sales_status asc','refund_status asc','t1.create_time desc'))
             ->paginate(8, false, ['query' => $request->param(), 'type' => 'page\Page', 'var_page' => 'page'])
             ->each(function ($order, $key) use ($domain) {
                 $where = [];
