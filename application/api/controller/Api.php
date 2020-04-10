@@ -107,9 +107,14 @@ class Api extends Base
                 $body = substr($response, $headerSize);
             }
             $result = json_decode($body, true);
-            $data['result'] = $result['data'][0];
-            echo $this->successJson($data);
-            exit;
+            if ($result['ret'] == 200) {
+                $data['result'] = $result['data'];
+                echo $this->successJson($data);
+                exit;
+            } else {
+                echo $this->errorJson('1', '图片转换失败，失败原因：' . $result['err']);
+                exit;
+            }
         }
     }
 
@@ -209,7 +214,7 @@ class Api extends Base
         $name = $file->getInfo('name');
         $fileInfo = pathinfo($name);
         $ext = $fileInfo['extension'];
-        if($ext != 'mp3' && $ext != 'MP3'){
+        if ($ext != 'mp3' && $ext != 'MP3') {
             return array('errcode' => '1', 'errmsg' => '音频格式错误，请转换成mp3格式文件');
         }
         $date = date('Ymd');
