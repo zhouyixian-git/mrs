@@ -44,7 +44,7 @@ class Recovery extends Base
 
         $recoveryList = Db::table('mrs_recovery_record')
             ->alias('t1')
-            ->field('t1.*,t2.nick_name')
+            ->field('t1.*,t2.nick_name,t2.phone_no')
             ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->where($where)
             ->order('t1.recovery_time desc')

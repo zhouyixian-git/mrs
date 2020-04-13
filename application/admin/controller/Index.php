@@ -18,11 +18,21 @@ class Index extends Base
     {
         if ($request->isPost()) {
             $whereOr = [];
-            $whereOr[] = ['refund_status', '<>', "1"];
-            $whereOr[] = ['sales_status', '<>', "1"];
+            $whereOr[] = ['refund_status', '=', "2"];
+            $whereOr[] = ['sales_status', '=', "2"];
+            $refundOrderCount = Db::table('mrs_orders')->whereOr($whereOr)->count();
+            $data['refundOrderCount'] = $refundOrderCount;
 
-            $orderCount = Db::table('mrs_orders')->whereOr($whereOr)->count();
+            $where = [];
+            $where[] = ['create_time', '>=', strtotime("-10 minute")];
+            $orderCount = Db::table('mrs_orders')->where($where)->count();
             $data['orderCount'] = $orderCount;
+
+            $where = [];
+            $where[] = ['accept_status', '=', '1'];
+            $where[] = ['create_time', '>=', strtotime("-10 minute")];
+            $callrecoveryrecordCount = Db::table('mrs_call_recovery_record')->where($where)->count();
+            $data['callrecoveryrecordCount'] = $callrecoveryrecordCount;
             echo $this->successJson($data);
             exit;
         }
