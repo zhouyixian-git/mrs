@@ -113,7 +113,7 @@ class Withdraw extends Base
                 //todo  审核通过，调用微信企业付款到个人接口
                 $wechatModel = new \app\admin\model\Wechat();
                 $param['partner_trade_no'] = $withdraw['withdraw_sn'];
-                $param['amount'] = $withdraw['withdraw_amount'];
+                $param['amount'] = $withdraw['withdraw_payed'];
                 $param['openid'] = $withdraw['open_id'];
                 $param['desc'] = '用户提现';
                 $result = $wechatModel->transfers($param);
