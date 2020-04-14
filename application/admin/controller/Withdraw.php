@@ -65,7 +65,7 @@ class Withdraw extends Base
             }
 
             $withdraw = Db::table('mrs_withdraw')
-                ->field('t1.user_id,t1.withdraw_sn,t1.withdraw_amount,t1.integral_used,t2.able_integral,t2.frozen_integral,t2.used_integral,t2.open_id')
+                ->field('t1.user_id,t1.withdraw_sn,t1.withdraw_amount,t1.withdraw_payed,t1.integral_used,t2.able_integral,t2.frozen_integral,t2.used_integral,t2.open_id')
                 ->alias('t1')
                 ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
                 ->where('t1.withdraw_id', '=', $withdraw_id)
