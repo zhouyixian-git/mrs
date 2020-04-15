@@ -868,14 +868,29 @@ class User extends Base
                     echo errorJson('1', '验证码已失效.');
                     exit;
                 }
-
             }
 
-            $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
+            if (!empty($user_id)) { //用户id不为空时，做手机号绑定就可以了，场景：小程序里面getopenid已经生成用户，然后用户登录使用手机号登录
+                $user = Db::table('mrs_user')->where(array('user_id' => $user_id))->find();
+                if ($user) {
+                    $userData = array();
+                    $userData['phone_no'] = $phone;
+                    $userData['status'] = 1;
+                    $userData['last_login_time'] = time();
+                    Db::table("mrs_user")->where('user_id', '=', $user_id)->update($userData);
+                    $user['phone_no'] = $phone;
+                } else {
+                    $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
+                }
+            } else {
+                $user = Db::table('mrs_user')->where(array('phone_no' => $phone))->find();
+            }
+
             if (empty($user)) {
                 $userData = array();
                 $userData['phone_no'] = $phone;
                 $userData['status'] = 1;
+                $userData['last_login_time'] = time();
                 $userData['create_time'] = time();
                 Db::table('mrs_user')->insert($userData);
                 $user_id = Db::table("mrs_user")->getLastInsID();
@@ -1393,21 +1408,21 @@ class User extends Base
             $user_id = $request->post('user_id');
             $address = $request->post('address');
 
-            if(empty($user_id)){
+            if (empty($user_id)) {
                 echo $this->errorJson(0, '缺少关键参数user_id');
                 exit;
             }
 
-            if(empty($address)){
+            if (empty($address)) {
                 echo $this->errorJson(0, '缺少关键参数address');
                 exit;
             }
 
-            $res = Db::table('mrs_user')->where('user_id','=',$user_id)->update(['address' => $address]);
-            if($res){
+            $res = Db::table('mrs_user')->where('user_id', '=', $user_id)->update(['address' => $address]);
+            if ($res) {
                 echo $this->successJson();
                 exit;
-            }else{
+            } else {
                 echo $this->errorJson(0, '修改失败');
                 exit;
             }

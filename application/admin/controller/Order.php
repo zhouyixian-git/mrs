@@ -270,6 +270,21 @@ class Order extends Base
                         //更新订单表数据
                         Db::startTrans();
                         try {
+                            //增加库存
+                            $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->field('goods_num,sku_detail_id')->select();
+                            foreach ($orderGoods as $k => $v) {
+                                $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->field('goods_stock,sku_json')->find();
+                                $goods_stock = $goods_detail['goods_stock'];
+                                $sku_json = json_decode($goods_detail['sku_json'], true);
+                                $new_stock = bcadd($goods_stock, $v['goods_num']);
+
+                                $sku_json['skuInfo']['goodsStock'] = $new_stock;
+                                $stockData['goods_stock'] = $new_stock;
+                                $stockData['sku_json'] = json_encode($sku_json);
+                                Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->update($stockData);
+                            }
+
+
                             $orderData['order_status'] = 5;
                             $orderData['refund_status'] = 5;
                             $orderData['refund_order_sn'] = $out_refund_no;
@@ -336,6 +351,21 @@ class Order extends Base
                 //更新订单表数据
                 Db::startTrans();
                 try {
+                    //增加库存
+                    $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->field('goods_num,sku_detail_id')->select();
+                    foreach ($orderGoods as $k => $v) {
+                        $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->field('goods_stock,sku_json')->find();
+                        $goods_stock = $goods_detail['goods_stock'];
+                        $sku_json = json_decode($goods_detail['sku_json'], true);
+                        $new_stock = bcadd($goods_stock, $v['goods_num']);
+
+                        $sku_json['skuInfo']['goodsStock'] = $new_stock;
+                        $stockData['goods_stock'] = $new_stock;
+                        $stockData['sku_json'] = json_encode($sku_json);
+                        Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->update($stockData);
+                    }
+
+
                     $orderData['order_status'] = 5;
                     $orderData['refund_status'] = 5;
                     $orderData['refund_order_sn'] = '';
@@ -467,6 +497,21 @@ class Order extends Base
                         //更新订单表数据
                         Db::startTrans();
                         try {
+                            //增加库存
+                            $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->field('goods_num,sku_detail_id')->select();
+                            foreach ($orderGoods as $k => $v) {
+                                $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->field('goods_stock,sku_json')->find();
+                                $goods_stock = $goods_detail['goods_stock'];
+                                $sku_json = json_decode($goods_detail['sku_json'], true);
+                                $new_stock = bcadd($goods_stock, $v['goods_num']);
+
+                                $sku_json['skuInfo']['goodsStock'] = $new_stock;
+                                $stockData['goods_stock'] = $new_stock;
+                                $stockData['sku_json'] = json_encode($sku_json);
+                                Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->update($stockData);
+                            }
+
+
                             $orderData['order_status'] = 5;
                             $orderData['sales_status'] = 5;
                             $orderData['refund_order_sn'] = $out_refund_no;
@@ -529,6 +574,21 @@ class Order extends Base
                 //更新订单表数据
                 Db::startTrans();
                 try {
+                    //增加库存
+                    $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->field('goods_num,sku_detail_id')->select();
+                    foreach ($orderGoods as $k => $v) {
+                        $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->field('goods_stock,sku_json')->find();
+                        $goods_stock = $goods_detail['goods_stock'];
+                        $sku_json = json_decode($goods_detail['sku_json'], true);
+                        $new_stock = bcadd($goods_stock, $v['goods_num']);
+
+                        $sku_json['skuInfo']['goodsStock'] = $new_stock;
+                        $stockData['goods_stock'] = $new_stock;
+                        $stockData['sku_json'] = json_encode($sku_json);
+                        Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->update($stockData);
+                    }
+
+
                     $orderData['order_status'] = 5;
                     $orderData['sales_status'] = 5;
                     $orderData['refund_order_sn'] = '';
