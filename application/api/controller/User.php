@@ -874,6 +874,7 @@ class User extends Base
                 $user = Db::table('mrs_user')->where(array('user_id' => $user_id))->find();
                 if ($user) {
                     $userData = array();
+                    $userData['nick_name'] = $phone;
                     $userData['phone_no'] = $phone;
                     $userData['status'] = 1;
                     $userData['last_login_time'] = time();
@@ -888,6 +889,7 @@ class User extends Base
 
             if (empty($user)) {
                 $userData = array();
+                $userData['nick_name'] = $phone;
                 $userData['phone_no'] = $phone;
                 $userData['status'] = 1;
                 $userData['last_login_time'] = time();
