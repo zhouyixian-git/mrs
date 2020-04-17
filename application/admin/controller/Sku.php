@@ -162,6 +162,15 @@ class Sku extends Base
                 exit;
             }
 
+            $whereOr = [];
+            $whereOr[] = ['parent_sku_id', '=', $sku_id];
+            $whereOr[] = ['sku_id', '=', $sku_id];
+            $skuCount = Db::table('mrs_goods_sku_group')->whereOr($whereOr)->count();
+            if($skuCount > 0){
+                echo $this->errorJson(0, '该规格已经被使用，不可删除');
+                exit;
+            }
+
             \app\admin\model\Sku::where('sku_id', $sku_id)->update(['is_delete' => 1]);
             echo $this->successJson();
             exit;
