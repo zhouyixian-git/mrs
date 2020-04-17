@@ -686,7 +686,8 @@ class Order extends Base
 
         $orderList = Db::table('mrs_orders')
             ->alias('t1')
-            ->field('t1.*')
+            ->field('t1.*,t2.nick_name')
+            ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->where($where)
             ->order('t1.create_time desc')
             ->select();
@@ -695,7 +696,7 @@ class Order extends Base
         $num = 2;
         foreach ($orderList as $k => $v) {
             $objPHPExcel->getActiveSheet()->SetCellValue('A' . $num, ' ' . $v['order_sn']); //防止订单号过长变成科学计算问题所以在订单号前拼接空字符，转化为字符串。 ' '.$v['order_no']
-            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $num, $v['user_name']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $num, $v['nick_name']);
 
             $order_status_remark = '未知';
             if ($v['order_status'] == 1) {
@@ -893,6 +894,8 @@ class Order extends Base
         $orderList = Db::table('mrs_orders')
             ->alias('t1')
             ->field('t1.*')
+            ->field('t1.*,t2.nick_name')
+            ->leftJoin('mrs_user t2', 't1.user_id = t2.user_id')
             ->where($where)
             ->where(
                 function ($q) use($whereOr) {
@@ -906,7 +909,7 @@ class Order extends Base
         $num = 2;
         foreach ($orderList as $k => $v) {
             $objPHPExcel->getActiveSheet()->SetCellValue('A' . $num, ' ' . $v['order_sn']); //防止订单号过长变成科学计算问题所以在订单号前拼接空字符，转化为字符串。 ' '.$v['order_no']
-            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $num, $v['user_name']);
+            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $num, $v['nick_name']);
 
             $order_status_remark = '未知';
             if ($v['order_status'] == 1) {
