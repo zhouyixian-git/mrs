@@ -563,19 +563,9 @@ class Order extends Base
                     'sku_json' => $v['sku_json'],
                     'sku_detail_id' => $v['sku_detail_id'],
                 ];
-
                 //减库存
-                $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->field('goods_stock,sku_json')->find();
-                $new_stock = bcsub($goods_detail['goods_stock'], 1);
-                $new_stock = bcmul($new_stock, $v['goods_num']);
-                $sku_json = json_decode($goods_detail['sku_json'], true);
-                if ($new_stock <= 0) {
-                    $new_stock = 0;
-                }
-                $sku_json['skuInfo']['goodsStock'] = $new_stock;
-                $stockData['goods_stock'] = $new_stock;
-                $stockData['sku_json'] = json_encode($sku_json);
-                Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->update($stockData);
+                $goodsModel = new \app\api\model\Goods();
+                $goodsModel->cutstock($v['goods_id'], $v['goods_num'], json_decode($v['sku_json']));
             }
         } else {
             $orderGoodsData[] = [
@@ -591,17 +581,8 @@ class Order extends Base
                 'sku_detail_id' => $detail_id
             ];
             //减库存
-            $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $detail_id)->field('goods_stock,sku_json')->find();
-            $new_stock = bcsub($goods_detail['goods_stock'], 1);
-            $new_stock = bcmul($new_stock, $goods_num);
-            $sku_json = json_decode($goods_detail['sku_json'], true);
-            if ($new_stock <= 0) {
-                $new_stock = 0;
-            }
-            $sku_json['skuInfo']['goodsStock'] = $new_stock;
-            $stockData['goods_stock'] = $new_stock;
-            $stockData['sku_json'] = json_encode($sku_json);
-            Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $detail_id)->update($stockData);
+            $goodsModel = new \app\api\model\Goods();
+            $goodsModel->cutstock($goods['goods_id'], $goods_num, $goods_sku);
         }
         $res = Db::table('mrs_order_goods')->insertAll($orderGoodsData);
 
@@ -852,18 +833,8 @@ class Order extends Base
         Db::startTrans();
         try {
             //增加库存
-            $orderGoods = Db::table('mrs_order_goods')->where('order_id', '=', $order_id)->field('goods_num,sku_detail_id')->select();
-            foreach ($orderGoods as $k => $v) {
-                $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->field('goods_stock,sku_json')->find();
-                $goods_stock = $goods_detail['goods_stock'];
-                $sku_json = json_decode($goods_detail['sku_json'], true);
-                $new_stock = bcadd($goods_stock, $v['goods_num']);
-
-                $sku_json['skuInfo']['goodsStock'] = $new_stock;
-                $stockData['goods_stock'] = $new_stock;
-                $stockData['sku_json'] = json_encode($sku_json);
-                Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $v['sku_detail_id'])->update($stockData);
-            }
+            $goodsModel = new \app\api\model\Goods();
+            $goodsModel->addstock($order_id);
 
             //生成订单动作表
             $actionData['order_id'] = $order['order_id'];
@@ -904,6 +875,7 @@ class Order extends Base
             echo $this->successJson();
             exit;
         } catch (Exception $e) {
+            recordLog($e, 'order.txt');
             echo $this->errorJson('1', '取消订单异常');
             exit;
             Db::rollback();
