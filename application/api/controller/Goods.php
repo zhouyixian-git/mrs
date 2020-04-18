@@ -49,7 +49,7 @@ class Goods extends Base
 
             $where = array();
             $where[] = ['goods_status', '=', 1];
-            if(!empty($cate_id)){
+            if (!empty($cate_id)) {
                 $where[] = ['cate_id', '=', $cate_id];
             }
 
@@ -105,6 +105,11 @@ class Goods extends Base
                 ->where('goods_id', '=', $goods_id)
                 ->field('goods_id,goods_name,goods_desc,goods_detail,goods_price')
                 ->find();
+
+            if (!$goods) {
+                echo $this->errorJson(1, '商品信息不存在');
+                exit;
+            }
 
             if (!empty($user_id)) {
                 $cart_count = Db::table('mrs_carts')

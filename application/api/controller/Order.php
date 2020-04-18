@@ -563,9 +563,15 @@ class Order extends Base
                     'sku_json' => $v['sku_json'],
                     'sku_detail_id' => $v['sku_detail_id'],
                 ];
+
                 //减库存
                 $goodsModel = new \app\api\model\Goods();
-                $goodsModel->cutstock($v['goods_id'], $v['goods_num'], json_decode($v['sku_json']));
+                $result = $goodsModel->cutstock($v['goods_id'], $v['goods_num'], json_decode($v['sku_json']));
+                if($result['errcode'] == 1){
+                    $result = $this->errorJson(1, $result['errmsg']);
+                    echo $result;
+                    exit;
+                }
             }
         } else {
             $orderGoodsData[] = [
@@ -582,7 +588,12 @@ class Order extends Base
             ];
             //减库存
             $goodsModel = new \app\api\model\Goods();
-            $goodsModel->cutstock($goods['goods_id'], $goods_num, $goods_sku);
+            $result = $goodsModel->cutstock($goods['goods_id'], $goods_num, $goods_sku);
+            if($result['errcode'] == 1){
+                $result = $this->errorJson(1, $result['errmsg']);
+                echo $result;
+                exit;
+            }
         }
         $res = Db::table('mrs_order_goods')->insertAll($orderGoodsData);
 

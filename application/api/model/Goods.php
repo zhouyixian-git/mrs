@@ -79,11 +79,15 @@ class Goods extends Model
                 }
             }
         }
+
         if (!empty($detail_id)) {
             //减库存
             $goods_detail = Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $detail_id)->field('goods_stock,sku_json')->find();
-            $new_stock = bcsub($goods_detail['goods_stock'], 1);
-            $new_stock = bcmul($new_stock, $goods_num);
+            if($goods_detail['goods_stock'] < $goods_num){
+                return ['errcode' => 1, 'errmsg' => '商品库存不足'];
+            }
+
+            $new_stock = bcsub($goods_detail['goods_stock'], $goods_num);
             $sku_json = json_decode($goods_detail['sku_json'], true);
             if ($new_stock <= 0) {
                 $new_stock = 0;
@@ -92,6 +96,7 @@ class Goods extends Model
             $stockData['goods_stock'] = $new_stock;
             $stockData['sku_json'] = json_encode($sku_json);
             Db::table('mrs_goods_sku_detail')->where('detail_id', '=', $detail_id)->update($stockData);
+            return ['errcode' => 0, 'errmsg' => 'success'];
         }
     }
 
